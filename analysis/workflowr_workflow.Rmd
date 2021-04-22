@@ -1,0 +1,108 @@
+---
+title: "Creating this workflowR page for the group"
+author: "Marnin Wolfe"
+date: "2021-04-22"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval=FALSE)
+```
+
+Below, I document the process of creating and publishing a `workflowr` documentation for the Breeding Scheme Opt. Group.
+
+To implement yourself, also recommend you check out the [getting started page](https://jdblischak.github.io/workflowr/articles/wflow-01-getting-started.html) for `workflowr`.
+
+I work in Rstudio. I use the Rstudio GUI to create the project and do a few other tasks that don't need automation.
+
+`File > New Project > New Directory > Create workflowr project`
+
+![](images/Pasted%20image%2020210422123729.png)
+
+Enter your Git / GitHub user name and email address to facilitate version control set-up.
+
+The project get's set up automatically.
+
+Get presented with initial files and file structure.
+
+File in a super brief description or other relevant information in the `README.md`; this will appear on the main GitHub repository for the project.
+
+Next `index.Rmd`. This is the home / landing page for the project. Combined with the top navigation bar (which is edited in the `_site.yml`).
+
+Change the theme and syntax highlighting in `_site.yml` to **yeti** and **breezedark** because I like them.
+
+From here, content creation begins.
+
+I add new Rmd's in the `analysis/` directory as I go. I *also* subsequently link new documents in the `index.Rmd` main page and on the navbar (`_site.yml`) as desired.
+
+Once the structure is in place, it's pretty straightforward to build on.
+
+You can add and automatically open a new Rmd using
+
+```{r}
+workflowr::wflow_open("analysis/AlphaSimHlpR_firstSteps.Rmd")
+```
+
+Automatically adds a bit of `yaml` at the top to connect it to the rest of the project. Customize the title, author name, etc as desired.
+
+```{yaml}
+---
+title: "First steps - Install and Run AlphaSimHlpR tutorial"
+author: "Marnin Wolfe"
+date: "2021-04-22"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+```
+
+Now I'm ready to do an initial "publish" of the project, which means the `*.Rmd` files will be compiled into `*.html` in the `docs/` directory. Also a Git commit will occur.
+
+I like to manually record each Rmd I publish for precision, but you can compile *everything* if you want.
+
+```{r}
+workflowr::wflow_publish(c("analysis/AlphaSimHlpR_firstSteps.Rmd",
+                           "analysis/example-simulation-reducing-error-with-new-tools.Rmd",
+                           "analysis/index.Rmd", 
+                           "analysis/about.Rmd", 
+                           "analysis/license.Rmd",
+                           "analysis/_site.yml"),
+                         "Publish the initial files for the Breeding Scheme Optimization Group project")
+```
+
+```{r}
+workflowr::wflow_use_github(username="wolfemd", create_on_github = T)
+workflowr::wflow_git_push(usename="wolfemd")
+```
+
+Now the repository is uploaded to GitHub.
+
+Last step to make it live on GitHub Pages
+
+In GitHub repository --\> "Settings" (approx top right")
+
+![](images/Pasted%20image%2020210422135034.png)
+
+Choose Pages (left side bar) --\> Choose Source branch "master" and directory /docs
+
+![](images/Pasted%20image%2020210422135018.png)
+
+Site is now published to: <https://wolfemd.github.io/BreedingSchemeOptGroup/>
+
+Might take a few moments to be live.
+
+Last step, add *this* page to the workflowR project.
+
+``` {.r}
+workflowr::wflow_open("analysis/workflowr_workflow.Rmd")
+```
+
+```{r}
+workflowr::wflow_publish(c("analysis/index.Rmd", 
+                           "analysis/_site.yml",
+                           "analysis/workflowr_workflow.Rmd"),
+                         republish = T, # republish=T since we updated _site.yml
+                         message = "Publish the workflowr workflow itself.")
+```
