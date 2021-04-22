@@ -13,7 +13,7 @@
 
 <meta name="date" content="2021-04-22" />
 
-<title>Example simulation - reducing error with new tools</title>
+<title>Creating this workflowR page for the group</title>
 
 <script src="site_libs/header-attrs-2.7/header-attrs.js"></script>
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
@@ -470,7 +470,7 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Example simulation - reducing error with new tools</h1>
+<h1 class="title toc-ignore">Creating this workflowR page for the group</h1>
 <h4 class="author">Marnin Wolfe</h4>
 <h4 class="date">2021-04-22</h4>
 
@@ -628,7 +628,7 @@ Note that any generated files, e.g. HTML, png, CSS, etc., are not included in t
 <div id="versions" class="tab-pane fade">
 
 <p>
-These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/example-simulation-reducing-error-with-new-tools.Rmd</code>) and HTML (<code>docs/example-simulation-reducing-error-with-new-tools.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/workflowr_workflow.Rmd</code>) and HTML (<code>docs/workflowr_workflow.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
 </p>
 <div class="table-responsive">
 <table class="table table-condensed table-hover">
@@ -654,27 +654,10 @@ Message
 <tbody>
 <tr>
 <td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/wolfemd/BreedingSchemeOptGroup/fe3048aaf2a488e7d7f8b85f1889332261d1b4c5/docs/example-simulation-reducing-error-with-new-tools.html" target="_blank">fe3048a</a>
-</td>
-<td>
-wolfemd
-</td>
-<td>
-2021-04-22
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
 Rmd
 </td>
 <td>
-<a href="https://github.com/wolfemd/BreedingSchemeOptGroup/blob/9df9d9b2b1f9c0816f0e76fa8e95a345e47a28d6/analysis/example-simulation-reducing-error-with-new-tools.Rmd" target="_blank">9df9d9b</a>
+<a href="https://github.com/wolfemd/BreedingSchemeOptGroup/blob/bf9f68cefcbe1805b65cabfd2ed426041abeca7f/analysis/workflowr_workflow.Rmd" target="_blank">bf9f68c</a>
 </td>
 <td>
 wolfemd
@@ -683,7 +666,7 @@ wolfemd
 2021-04-22
 </td>
 <td>
-Publish the initial files for the Breeding Scheme Optimization Group project
+Publish the workflowr workflow itself.
 </td>
 </tr>
 </tbody>
@@ -693,125 +676,57 @@ Publish the initial files for the Breeding Scheme Optimization Group project
 </div>
 </div>
 </div>
-<div id="previously" class="section level1">
-<h1>Previously</h1>
-<p><a href="AlphaSimHlpR_firstSteps.html">AlphaSimHlpR first steps</a>: Installation and quickly running the <code>AlphaSimHlpR</code> tutorial example.</p>
-</div>
-<div id="simulation-with-a-burn-in-period" class="section level1">
-<h1>Simulation with a burn-in period</h1>
-<p>Generate a baseline population. As this is an example, I won’t use empirical inputs. Ignore costs for now.</p>
-<ul>
-<li>Initialized with the provided “small” example control files. Made some minor manual changes, which I will print below.</li>
-<li>See the files <code>BaselineControlFile.txt</code> and <code>BaselinePopulationFile.txt</code> in this repository.</li>
-</ul>
-<p>I want to set-up “burn-in” generations of phenotypic selection. See if I can work that in <code>AlphaSimHlpR</code>.</p>
-<p><strong>SPOILER ALERT: Not quite working yet. More work needed.</strong></p>
-<p>The first step is to read in the control files defining the baseline breeding program and other breeding scheme parameters in a list <code>bsp</code>.</p>
-<p>The tutorial example repeatedly runs the <code>runBreedingScheme()</code> function, which in turn depends on specified functions: <code>initializeFunc=initFuncADChk, productPipeline=prodPipeFncChk, populationImprovement=popImprov1Cyc</code>.</p>
-<p><code>selCritPipeAdv</code> and <code>selCritPopImprov</code> are set to <strong>selCritIID</strong>.</p>
-<p>Now, to continue, we can’t use the <code>runBreedingScheme()</code> function because it will re-run the <code>initializeFunc()</code> and subsequently <code>runMacs2()</code>, which overwrites our founder haplotypes.</p>
-<p>Make my own function: <code>runBreedingScheme_wBurnIn()</code>.</p>
-<p>Specify number of burn-in and post-burn in cycles.</p>
-<p>Also let’s uses two separate <code>bsp</code> objects, one for before, another for after. <em>Use with caution.</em></p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list=</span><span class="fu">ls</span>()); <span class="fu">gc</span>()</span></code></pre></div>
-<pre><code>          used (Mb) gc trigger (Mb) limit (Mb) max used (Mb)
-Ncells  713527 38.2    1332414 71.2         NA  1332414 71.2
-Vcells 1325964 10.2    8388608 64.0      65536  1976208 15.1</code></pre>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse); <span class="fu">library</span>(magrittr); </span></code></pre></div>
-<pre><code>── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──</code></pre>
-<pre><code>✓ ggplot2 3.3.3     ✓ purrr   0.3.4
-✓ tibble  3.1.1     ✓ dplyr   1.0.5
-✓ tidyr   1.1.3     ✓ stringr 1.4.0
-✓ readr   1.4.0     ✓ forcats 0.5.1</code></pre>
-<pre><code>── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-x dplyr::filter() masks stats::filter()
-x dplyr::lag()    masks stats::lag()</code></pre>
-<pre><code>
-Attaching package: &#39;magrittr&#39;</code></pre>
-<pre><code>The following object is masked from &#39;package:purrr&#39;:
-
-    set_names</code></pre>
-<pre><code>The following object is masked from &#39;package:tidyr&#39;:
-
-    extract</code></pre>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(AlphaSimHlpR))</span></code></pre></div>
-<pre><code>Warning in rgl.init(initValue, onlyNULL): RGL: unable to open X11 display</code></pre>
-<pre><code>Warning: &#39;rgl.init&#39; failed, running with &#39;rgl.useNULL = TRUE&#39;.</code></pre>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>bsp <span class="ot">&lt;-</span> <span class="fu">specifyPopulation</span>(<span class="at">ctrlFileName=</span><span class="st">&quot;data/BaselinePopulationFile.txt&quot;</span>)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>bsp <span class="ot">&lt;-</span> <span class="fu">specifyPipeline</span>(bsp, <span class="at">ctrlFileName=</span><span class="st">&quot;data/BaselineControlFile.txt&quot;</span>)</span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>runBreedingScheme_wBurnIn <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">replication=</span><span class="cn">NULL</span>, </span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">nBurnInCycles=</span><span class="dv">10</span>,<span class="at">nPostBurnInCycles=</span><span class="dv">10</span>,</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>                                      bspBurnIn,bspPostBurnIn,</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>                                      initializeFunc, </span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>                                      productPipeline, </span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>                                      populationImprovement){</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;******&quot;</span>, replication, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># This initiates the founding population </span></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  initList <span class="ot">&lt;-</span> <span class="fu">initializeFunc</span>(bspBurnIn)</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  SP <span class="ot">&lt;-</span> initList<span class="sc">$</span>SP</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  bspBurnIn <span class="ot">&lt;-</span> initList<span class="sc">$</span>bsp</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  records <span class="ot">&lt;-</span> initList<span class="sc">$</span>records</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Burn-in cycles</span></span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (cycle <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nBurnInCycles){</span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(cycle, <span class="st">&quot; &quot;</span>)</span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    records <span class="ot">&lt;-</span> <span class="fu">productPipeline</span>(records, bspBurnIn, SP)</span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>    records <span class="ot">&lt;-</span> <span class="fu">populationImprovement</span>(records, bspBurnIn, SP)</span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># records &lt;- AlphaSimHlpR:::lastCycStgOut(records, bspPostBurnIn, SP)</span></span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Burn-in Cycles&quot;</span>)</span>
-<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Post burn-in cycles</span></span>
-<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (cycle <span class="cf">in</span> (nBurnInCycles<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>(nBurnInCycles<span class="sc">+</span>nPostBurnInCycles)){</span>
-<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(cycle, <span class="st">&quot; &quot;</span>)</span>
-<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>    records <span class="ot">&lt;-</span> <span class="fu">productPipeline</span>(records, bspPostBurnIn, SP)</span>
-<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>    records <span class="ot">&lt;-</span> <span class="fu">populationImprovement</span>(records, bspPostBurnIn, SP)</span>
-<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Finalize the stageOutputs</span></span>
-<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>  records <span class="ot">&lt;-</span> AlphaSimHlpR<span class="sc">:::</span><span class="fu">lastCycStgOut</span>(records, bspPostBurnIn, SP)</span>
-<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">records=</span>records,</span>
-<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>              <span class="at">bspBurnIn=</span>bspBurnIn,</span>
-<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>              <span class="at">bspPostBurnIn=</span>bspPostBurnIn,</span>
-<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a>              <span class="at">SP=</span>SP))</span>
-<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-<p>For burn-in, using phenotypic selection, so the <code>bsp</code> already created.</p>
-<p>For post burn-in, change <code>selCritPopImprov</code> to <code>selCritGRM</code>, but ignore <code>selCritPipeAdv</code> for now.</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>bspBurnIn<span class="ot">&lt;-</span>bsp</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>bspPostBurnIn<span class="ot">&lt;-</span>bspBurnIn</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>bspPostBurnIn[[<span class="st">&quot;selCritPopImprov&quot;</span>]] <span class="ot">&lt;-</span> selCritGRM</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>test_sim<span class="ot">&lt;-</span><span class="fu">runBreedingScheme_wBurnIn</span>(<span class="at">replication =</span> <span class="dv">1</span>, </span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">nBurnInCycles=</span><span class="dv">2</span>,<span class="at">nPostBurnInCycles=</span><span class="dv">2</span>,</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">bspBurnIn=</span>bspBurnIn,</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">bspPostBurnIn=</span>bspPostBurnIn,</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">initializeFunc=</span>initializeScheme, </span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">productPipeline=</span>productPipeline, </span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">populationImprovement=</span>popImprov1Cyc)</span></code></pre></div>
-<p>Unfortunately, haven’t gotten this to work yet. It seems likely more tweaking to the package is necessary.</p>
-<p>I traced the problem at least as far as the <code>populationImprovement()</code> function in the post-burn-in phase and the <code>makeGRM()</code>.</p>
-</div>
-<div id="simulation---no-burn-in" class="section level1">
-<h1>Simulation - no burn-in</h1>
-<p>Set-up an experiment. No burn-in simulations.</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># rm(list=ls()); gc()</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co"># library(tidyverse); library(magrittr); </span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co"># suppressMessages(library(AlphaSimHlpR))</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co"># bsp &lt;- specifyPopulation(ctrlFileName=&quot;BaselinePopulationFile.txt&quot;)</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="co"># bsp &lt;- specifyPipeline(bsp, ctrlFileName=&quot;BaselineControlFile.txt&quot;)</span></span></code></pre></div>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># test&lt;-runBreedingScheme(replication = 1, nCycles = 5, # just 5 for now </span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co">#                         initializeFunc=initializeScheme, </span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co">#                         productPipeline=prodPipeFncChk, </span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co">#                         populationImprovement=popImprov1Cyc, bsp)</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co"># test_burnin$records$stageOutputs %&gt;% ggplot(.,aes(x=year,y=genValMean, color=stage)) + geom_line()</span></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co"># test_burnin$records</span></span></code></pre></div>
+<p>Below, I document the process of creating and publishing a <code>workflowr</code> documentation for the Breeding Scheme Opt. Group.</p>
+<p>To implement yourself, also recommend you check out the <a href="https://jdblischak.github.io/workflowr/articles/wflow-01-getting-started.html">getting started page</a> for <code>workflowr</code>.</p>
+<p>I work in Rstudio. I use the Rstudio GUI to create the project and do a few other tasks that don’t need automation.</p>
+<p><code>File &gt; New Project &gt; New Directory &gt; Create workflowr project</code></p>
+<p><img src="images/Pasted%20image%2020210422123729.png" /></p>
+<p>Enter your Git / GitHub user name and email address to facilitate version control set-up.</p>
+<p>The project get’s set up automatically.</p>
+<p>Get presented with initial files and file structure.</p>
+<p>File in a super brief description or other relevant information in the <code>README.md</code>; this will appear on the main GitHub repository for the project.</p>
+<p>Next <code>index.Rmd</code>. This is the home / landing page for the project. Combined with the top navigation bar (which is edited in the <code>_site.yml</code>).</p>
+<p>Change the theme and syntax highlighting in <code>_site.yml</code> to <strong>yeti</strong> and <strong>breezedark</strong> because I like them.</p>
+<p>From here, content creation begins.</p>
+<p>I add new Rmd’s in the <code>analysis/</code> directory as I go. I <em>also</em> subsequently link new documents in the <code>index.Rmd</code> main page and on the navbar (<code>_site.yml</code>) as desired.</p>
+<p>Once the structure is in place, it’s pretty straightforward to build on.</p>
+<p>You can add and automatically open a new Rmd using</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>workflowr<span class="sc">::</span><span class="fu">wflow_open</span>(<span class="st">&quot;analysis/AlphaSimHlpR_firstSteps.Rmd&quot;</span>)</span></code></pre></div>
+<p>Automatically adds a bit of <code>yaml</code> at the top to connect it to the rest of the project. Customize the title, author name, etc as desired.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">---</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;First steps - Install and Run AlphaSimHlpR tutorial&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">author</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;Marnin Wolfe&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">date</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;2021-04-22&quot;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">output</span><span class="kw">:</span><span class="at"> workflowr::wflow_html</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">editor_options</span><span class="kw">:</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">chunk_output_type</span><span class="kw">:</span><span class="at"> console</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="pp">---</span></span></code></pre></div>
+<p>Now I’m ready to do an initial “publish” of the project, which means the <code>*.Rmd</code> files will be compiled into <code>*.html</code> in the <code>docs/</code> directory. Also a Git commit will occur.</p>
+<p>I like to manually record each Rmd I publish for precision, but you can compile <em>everything</em> if you want.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>workflowr<span class="sc">::</span><span class="fu">wflow_publish</span>(<span class="fu">c</span>(<span class="st">&quot;analysis/AlphaSimHlpR_firstSteps.Rmd&quot;</span>,</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>                           <span class="st">&quot;analysis/example-simulation-reducing-error-with-new-tools.Rmd&quot;</span>,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                           <span class="st">&quot;analysis/index.Rmd&quot;</span>, </span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>                           <span class="st">&quot;analysis/about.Rmd&quot;</span>, </span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>                           <span class="st">&quot;analysis/license.Rmd&quot;</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>                           <span class="st">&quot;analysis/_site.yml&quot;</span>),</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>                         <span class="st">&quot;Publish the initial files for the Breeding Scheme Optimization Group project&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>workflowr<span class="sc">::</span><span class="fu">wflow_use_github</span>(<span class="at">username=</span><span class="st">&quot;wolfemd&quot;</span>, <span class="at">create_on_github =</span> T)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>workflowr<span class="sc">::</span><span class="fu">wflow_git_push</span>(<span class="at">usename=</span><span class="st">&quot;wolfemd&quot;</span>)</span></code></pre></div>
+<p>Now the repository is uploaded to GitHub.</p>
+<p>Last step to make it live on GitHub Pages</p>
+<p>In GitHub repository –&gt; “Settings” (approx top right")</p>
+<p><img src="images/Pasted%20image%2020210422135034.png" /></p>
+<p>Choose Pages (left side bar) –&gt; Choose Source branch “master” and directory /docs</p>
+<p><img src="images/Pasted%20image%2020210422135018.png" /></p>
+<p>Site is now published to: <a href="https://wolfemd.github.io/BreedingSchemeOptGroup/" class="uri">https://wolfemd.github.io/BreedingSchemeOptGroup/</a></p>
+<p>Might take a few moments to be live.</p>
+<p>Last step, add <em>this</em> page to the workflowR project.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>workflowr<span class="sc">::</span><span class="fu">wflow_open</span>(<span class="st">&quot;analysis/workflowr_workflow.Rmd&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>workflowr<span class="sc">::</span><span class="fu">wflow_publish</span>(<span class="fu">c</span>(<span class="st">&quot;analysis/index.Rmd&quot;</span>, </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>                           <span class="st">&quot;analysis/_site.yml&quot;</span>,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>                           <span class="st">&quot;analysis/workflowr_workflow.Rmd&quot;</span>),</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>                         <span class="at">republish =</span> T, <span class="co"># republish=T since we updated _site.yml</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>                         <span class="at">message =</span> <span class="st">&quot;Publish the workflowr workflow itself.&quot;</span>)</span></code></pre></div>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -819,67 +734,7 @@ Attaching package: &#39;magrittr&#39;</code></pre>
 </button>
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
-<pre><code>R version 4.0.3 (2020-10-10)
-Platform: x86_64-apple-darwin17.0 (64-bit)
-Running under: macOS Big Sur 10.16
-
-Matrix products: default
-BLAS:   /Library/Frameworks/R.framework/Versions/4.0/Resources/lib/libRblas.dylib
-LAPACK: /Library/Frameworks/R.framework/Versions/4.0/Resources/lib/libRlapack.dylib
-
-locale:
-[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
-
-attached base packages:
-[1] parallel  stats     graphics  grDevices utils     datasets  methods  
-[8] base     
-
-other attached packages:
- [1] AlphaSimHlpR_0.2.0 MCMCpack_1.5-0     coda_0.19-4        optiSel_2.0.5     
- [5] sommer_4.1.3       crayon_1.4.1       lattice_0.20-41    MASS_7.3-53.1     
- [9] lme4_1.1-26        Matrix_1.3-2       plotrix_3.8-1      AlphaSimR_0.13.0  
-[13] R6_2.5.0           magrittr_2.0.1     forcats_0.5.1      stringr_1.4.0     
-[17] dplyr_1.0.5        purrr_0.3.4        readr_1.4.0        tidyr_1.1.3       
-[21] tibble_3.1.1       ggplot2_3.3.3      tidyverse_1.3.1    workflowr_1.6.2   
-
-loaded via a namespace (and not attached):
-  [1] minqa_1.2.4             colorspace_2.0-0        ellipsis_0.3.1         
-  [4] rprojroot_2.0.2         fs_1.5.0                rstudioapi_0.13        
-  [7] MatrixModels_0.5-0      fansi_0.4.2             lubridate_1.7.10       
- [10] xml2_1.3.2              codetools_0.2-18        splines_4.0.3          
- [13] doParallel_1.0.16       pedigree_1.4            cachem_1.0.4           
- [16] knitr_1.32              shapes_1.2.6            optiSolve_0.1.2        
- [19] jsonlite_1.7.2          kinship2_1.8.5          nloptr_1.2.2.2         
- [22] mcmc_0.9-7              broom_0.7.6             dbplyr_2.1.1           
- [25] shiny_1.6.0             compiler_4.0.3          httr_1.4.2             
- [28] backports_1.2.1         assertthat_0.2.1        fastmap_1.1.0          
- [31] cli_2.4.0               later_1.1.0.1           quantreg_5.85          
- [34] htmltools_0.5.1.1       tools_4.0.3             gtable_0.3.0           
- [37] glue_1.4.2              reshape2_1.4.4          Rcpp_1.0.6             
- [40] cellranger_1.1.0        jquerylib_0.1.3         pkgdown_1.6.1          
- [43] vctrs_0.3.7             nlme_3.1-152            conquer_1.0.2          
- [46] iterators_1.0.13        crosstalk_1.1.1         xfun_0.22              
- [49] rvest_1.0.0             mime_0.10               miniUI_0.1.1.1         
- [52] lifecycle_1.0.0         ECOSolveR_0.5.4         statmod_1.4.35         
- [55] nadiv_2.17.1            scales_1.1.1            hms_1.0.0              
- [58] promises_1.2.0.1        SparseM_1.81            yaml_2.2.1             
- [61] HaploSim_1.8.4          memoise_2.0.0           sass_0.3.1             
- [64] stringi_1.5.3           foreach_1.5.1           boot_1.3-27            
- [67] manipulateWidget_0.10.1 matrixStats_0.58.0      rlang_0.4.10           
- [70] pkgconfig_2.0.3         rgl_0.106.6             evaluate_0.14          
- [73] htmlwidgets_1.5.3       tidyselect_1.1.0        plyr_1.8.6             
- [76] generics_0.1.0          DBI_1.1.1               pillar_1.6.0           
- [79] haven_2.4.0             whisker_0.4             withr_2.4.2            
- [82] abind_1.4-5             scatterplot3d_0.3-41    cccp_0.2-7             
- [85] pspline_1.0-18          modelr_0.1.8            utf8_1.2.1             
- [88] alabama_2015.3-1        rmarkdown_2.7           grid_4.0.3             
- [91] readxl_1.3.1            minpack.lm_1.2-1        data.table_1.14.0      
- [94] git2r_0.28.0            reprex_2.0.0            digest_0.6.27          
- [97] webshot_0.5.2           xtable_1.8-4            httpuv_1.5.5           
-[100] numDeriv_2016.8-1.1     munsell_0.5.0           bslib_0.2.4            
-[103] magic_1.5-9             quadprog_1.5-8         </code></pre>
-</div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
 </div>
 
 
