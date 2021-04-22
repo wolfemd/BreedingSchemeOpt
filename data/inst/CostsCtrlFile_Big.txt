@@ -1,0 +1,20 @@
+# Program costs
+# The seedling development costs are included in the SDN cost
+# SDN CET PYT AYT UY1 UY2
+plotCosts
+1 8 14 32 42 42
+
+# Cost per location. Will be multiplied by the max nLocs
+# I have no idea what a good number would be
+perLocationCost
+1000
+
+# Crossing cost
+crossingCost
+0.2
+
+# Genotyping cost
+qcGenoCost
+1.5
+wholeGenomeCost
+10

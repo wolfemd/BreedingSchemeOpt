@@ -1,0 +1,97 @@
+# The number of stages simulated and retained in the records
+nStages
+6
+stageNames
+SDN CET PYT AYT UY1 UY2
+
+# At what stage do you want to genotype individuals?
+stageToGenotype
+SDN
+
+# How many cycles back to keep records from each stage in the training
+# population. More cycles means bigger training population but also more
+# distant from the selection candidates. Fewer cycles means the simulation
+# runs faster
+trainingPopCycles
+3 3 3 2 1 1
+
+# Number of parents in the crossing nursery
+nParents
+30
+# Number of crosses entering the pipeline
+nCrosses
+200
+# Number of progeny per cross
+nProgeny
+20
+
+# Whether to use a polycross nursery. If it is used, nSeeds are made
+# using completely random mating
+usePolycrossNursery
+FALSE
+# Parameter to determine the number of seeds only if usePolycrossNursery TRUE
+nSeeds
+4000
+
+# Optimum contributions parameters
+useOptContrib
+TRUE
+nCandOptCont
+3000
+targetEffPopSize
+100
+
+# Vector of number of number of entries in each stage
+nEntries
+3000 1000 300 60 40 40
+
+# Number of clones that will be sent to NCRP for potential variety release
+nClonesToNCRP
+3
+
+# Vector of number of checks used in each stage
+# Checks are replicated the same as experimental entries
+nChks
+5 5 5 3 2 2
+# How many entry plots do you have per check plot
+entryToChkRatio
+3000 40 20 20 20 20
+
+# Vector of number of reps used in each stage
+nReps
+1 1 2 2 3 3
+# Vector of number of locations used in each stage
+nLocs
+1 1 2 3 5 5
+
+# Vector of error variances estimated from historical data 
+# 200 for SDN is a guess
+errVars
+200 146 82 40 37 37
+
+# Parameters to control how seeds are moved from F1 to the Stage 1 trial
+phenoF1toStage1
+TRUE
+errVarPreStage1
+500
+
+# Are the current year phenotypes available for model training
+# when parents are chosen to send to the crossing nursery? YES / NO
+useCurrentPhenoTrain
+TRUE
+
+# How many cycles to run the breeding scheme
+nCyclesToRun
+10
+
+# How many cycles to keep records. Must be > nStages
+nCyclesToKeepRecords
+7
+
+# Name of function to advance individuals from one stage to the next
+selCritPipeAdv
+selCritIID
+
+# Name of function to select individuals to be parents for the next cycle
+selCritPopImprov
+selCritGRM

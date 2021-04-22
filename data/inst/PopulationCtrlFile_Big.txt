@@ -1,0 +1,43 @@
+# Species characteristics
+# Number of chromosomes
+nChr
+10
+
+# Population characteristics
+# Effective size of population generating the founders
+effPopSize
+500
+
+# Whether to use the AlphaSimR "quickHaplo" feature
+# It is less realistic but greatly accelerates the 
+# creation of founders. Useful for quick tests. TRUE/FALSE
+quickHaplo
+FALSE
+
+# Number of segregating sites per chromosome
+segSites
+500
+
+# Number of QTL per chromosome
+nQTL
+200
+
+# Number of observed SNP per chromosome
+nSNP
+500
+
+# Initial genetic variance
+genVar
+40
+
+# Initial genotype x environment interaction variance
+gxeVar
+30
+
+# Mean and variance of dominance degree
+meanDD
+0.8
+varDD
+0.01
+relAA
+0.5

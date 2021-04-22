@@ -1,0 +1,103 @@
+# The number of stages simulated and retained in the records
+nStages
+3
+stageNames
+SDN CET PYT
+
+# At what stage do you want to genotype individuals?  In addition to the
+# named stages (SDN, CET, and PYT in this control file), the user can
+# specify F1, which will cause all nCrosses * nProgeny individuals to be
+# genotyped. If nothing is specified, the default will be to genotype all F1
+stageToGenotype
+CET
+
+# How many cycles back to keep records from each stage in the training
+# population. More cycles means bigger training population but also more
+# distant from the selection candidates. Fewer cycles means the simulation
+# runs faster
+trainingPopCycles
+3 3 2
+
+# Number of parents in the crossing nursery
+nParents
+10
+# Number of crosses entering the pipeline
+nCrosses
+30
+# Number of progeny per cross
+nProgeny
+10
+
+# Whether to use a polycross nursery. If it is used, nSeeds are made
+# using completely random mating
+usePolycrossNursery
+FALSE
+# Parameter to determine the number of seeds only if usePolycrossNursery TRUE
+nSeeds
+300
+
+# Optimum contributions parameters
+useOptContrib
+FALSE
+nCandOptCont
+200
+targetEffPopSize
+20
+
+# Vector of number of number of entries in each stage
+nEntries
+200 100 20
+
+# Number of clones that will be sent to NCRP for potential variety release
+nClonesToNCRP
+3
+
+# Vector of number of checks used in each stage
+# Checks are replicated the same as experimental entries
+nChks
+5 4 2
+
+# How many entry plots do you have per check plot
+entryToChkRatio
+50 25 20
+
+# Vector of number of reps used in each stage
+nReps
+1 1 2
+# Vector of number of locations used in each stage
+nLocs
+1 3 6
+
+# Vector of error variances estimated from historical data
+# 200 for SDN is a guess
+errVars
+200 100 70
+
+# Parameters to control how seeds are moved from F1 to the Stage 1 trial
+phenoF1toStage1
+TRUE
+errVarPreStage1
+500
+
+# Are the current year phenotypes available for model training
+# when parents are chosen to send to the crossing nursery? YES / NO
+useCurrentPhenoTrain
+TRUE
+
+# How many cycles to run the breeding scheme
+nCyclesToRun
+20
+
+# How many cycles to keep records
+nCyclesToKeepRecords
+25
+
+# Name of function to advance individuals from one stage to the next
+# selCritIID assumes no information sharing between individuals
+# selCritGRM calculates an additive GRM using markers
+selCritPipeAdv
+selCritIID
+
+# Name of function to select individuals to be parents for the next cycle
+selCritPopImprov
+selCritIID
