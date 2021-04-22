@@ -1,7 +1,7 @@
-name: "BreedingSchemeOptGroup"
+name: BreedingSchemeOptGroup
 output_dir: ../docs
 navbar:
-  title: "BreedingSchemeOptGroup"
+  title: BreedingSchemeOptGroup
   left:
   - text: Home
     href: index.html
@@ -19,6 +19,10 @@ navbar:
       href: about.html
     - text: License
       href: license.html
+  right:
+  - icon: fa-github
+    text: Source code
+    href: https://github.com/wolfemd/BreedingSchemeOptGroup
 output:
   workflowr::wflow_html:
     toc: yes
