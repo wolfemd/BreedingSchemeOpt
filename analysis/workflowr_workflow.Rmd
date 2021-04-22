@@ -19,7 +19,7 @@ I work in Rstudio. I use the Rstudio GUI to create the project and do a few othe
 
 `File > New Project > New Directory > Create workflowr project`
 
-![](images/Pasted%20image%2020210422123729.png)
+![](data/images/Pasted%20image%2020210422123729.png)
 
 Enter your Git / GitHub user name and email address to facilitate version control set-up.
 
@@ -83,11 +83,11 @@ Last step to make it live on GitHub Pages
 
 In GitHub repository --\> "Settings" (approx top right")
 
-![](images/Pasted%20image%2020210422135034.png)
+![](data/images/Pasted%20image%2020210422135034.png)
 
 Choose Pages (left side bar) --\> Choose Source branch "master" and directory /docs
 
-![](images/Pasted%20image%2020210422135018.png)
+![](data/images/Pasted%20image%2020210422135018.png)
 
 Site is now published to: <https://wolfemd.github.io/BreedingSchemeOptGroup/>
 
@@ -95,7 +95,7 @@ Might take a few moments to be live.
 
 Last step, add *this* page to the workflowR project.
 
-``` {.r}
+``` {r}
 workflowr::wflow_open("analysis/workflowr_workflow.Rmd")
 ```
 
