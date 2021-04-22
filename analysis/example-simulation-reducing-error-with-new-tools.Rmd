@@ -1,0 +1,151 @@
+---
+title: "Example simulation - reducing error with new tools"
+author: "Marnin Wolfe"
+date: "2021-04-22"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Previously
+
+[AlphaSimHlpR first steps](AlphaSimHlpR_firstSteps.html): Installation and quickly running the `AlphaSimHlpR` tutorial example.
+
+# Simulation with a burn-in period
+
+Generate a baseline population. As this is an example, I won't use empirical inputs. Ignore costs for now.
+
+-   Initialized with the provided "small" example control files. Made some minor manual changes, which I will print below.
+-   See the files `BaselineControlFile.txt` and `BaselinePopulationFile.txt` in this repository.
+
+I want to set-up "burn-in" generations of phenotypic selection. See if I can work that in `AlphaSimHlpR`.
+
+**SPOILER ALERT: Not quite working yet. More work needed.**
+
+The first step is to read in the control files defining the baseline breeding program and other breeding scheme parameters in a list `bsp`.
+
+The tutorial example repeatedly runs the `runBreedingScheme()` function, which in turn depends on specified functions: `initializeFunc=initFuncADChk, productPipeline=prodPipeFncChk, populationImprovement=popImprov1Cyc`.
+
+`selCritPipeAdv` and `selCritPopImprov` are set to **selCritIID**. 
+
+Now, to continue, we can't use the `runBreedingScheme()` function because it will re-run the `initializeFunc()` and subsequently `runMacs2()`, which overwrites our founder haplotypes.
+
+Make my own function: `runBreedingScheme_wBurnIn()`. 
+
+Specify number of burn-in and post-burn in cycles. 
+
+Also let's uses two separate `bsp` objects, one for before, another for after. *Use with caution.*
+
+```{r}
+rm(list=ls()); gc()
+library(tidyverse); library(magrittr); 
+suppressMessages(library(AlphaSimHlpR))
+bsp <- specifyPopulation(ctrlFileName="data/BaselinePopulationFile.txt")
+bsp <- specifyPipeline(bsp, ctrlFileName="data/BaselineControlFile.txt")
+```
+
+```{r}
+runBreedingScheme_wBurnIn <- function(replication=NULL, 
+                                      nBurnInCycles=10,nPostBurnInCycles=10,
+                                      bspBurnIn,bspPostBurnIn,
+                                      initializeFunc, 
+                                      productPipeline, 
+                                      populationImprovement){
+  
+  cat("******", replication, "\n")
+  
+  # This initiates the founding population 
+  initList <- initializeFunc(bspBurnIn)
+  SP <- initList$SP
+  bspBurnIn <- initList$bsp
+  records <- initList$records
+  
+  # Burn-in cycles
+  for (cycle in 1:nBurnInCycles){
+    cat(cycle, " ")
+    records <- productPipeline(records, bspBurnIn, SP)
+    records <- populationImprovement(records, bspBurnIn, SP)
+  }
+  # records <- AlphaSimHlpR:::lastCycStgOut(records, bspPostBurnIn, SP)
+
+  cat("\n")
+  cat("Burn-in Cycles")
+  cat("\n")
+  # Post burn-in cycles
+  
+  for (cycle in (nBurnInCycles+1):(nBurnInCycles+nPostBurnInCycles)){
+    cat(cycle, " ")
+    records <- productPipeline(records, bspPostBurnIn, SP)
+    records <- populationImprovement(records, bspPostBurnIn, SP)
+  }
+  cat("\n")
+  # Finalize the stageOutputs
+  records <- AlphaSimHlpR:::lastCycStgOut(records, bspPostBurnIn, SP)
+  
+  return(list(records=records,
+              bspBurnIn=bspBurnIn,
+              bspPostBurnIn=bspPostBurnIn,
+              SP=SP))
+}
+```
+
+For burn-in, using phenotypic selection, so the `bsp` already created.
+
+For post burn-in, change `selCritPopImprov` to `selCritGRM`, but ignore `selCritPipeAdv` for now.
+
+```{r, eval=F}
+bspBurnIn<-bsp
+bspPostBurnIn<-bspBurnIn
+bspPostBurnIn[["selCritPopImprov"]] <- selCritGRM
+
+test_sim<-runBreedingScheme_wBurnIn(replication = 1, 
+                                    nBurnInCycles=2,nPostBurnInCycles=2,
+                                    bspBurnIn=bspBurnIn,
+                                    bspPostBurnIn=bspPostBurnIn,
+                                    initializeFunc=initializeScheme, 
+                                    productPipeline=productPipeline, 
+                                    populationImprovement=popImprov1Cyc)
+```
+
+Unfortunately, haven't gotten this to work yet. It seems likely more tweaking to the package is necessary.
+
+I traced the problem at least as far as the `populationImprovement()` function in the post-burn-in phase and the `makeGRM()`.
+
+```{r, eval=F, echo=F}
+### DEBUGGING
+# bspBurnIn<-bsp
+# bspPostBurnIn<-bspBurnIn
+# bspPostBurnIn[["selCritPopImprov"]] <- selCritGRM
+# replication = 1; 
+# nBurnInCycles=2;nPostBurnInCycles=2;
+# bspBurnIn=bspBurnIn;
+# bspPostBurnIn=bspPostBurnIn;
+# initializeFunc=initializeScheme; 
+# productPipeline=productPipeline; 
+# populationImprovement=popImprov1Cyc
+```
+
+# Simulation - no burn-in
+
+Set-up an experiment. No burn-in simulations. 
+```{r}
+# rm(list=ls()); gc()
+# library(tidyverse); library(magrittr); 
+# suppressMessages(library(AlphaSimHlpR))
+# bsp <- specifyPopulation(ctrlFileName="BaselinePopulationFile.txt")
+# bsp <- specifyPipeline(bsp, ctrlFileName="BaselineControlFile.txt")
+```
+
+```{r}
+# test<-runBreedingScheme(replication = 1, nCycles = 5, # just 5 for now 
+#                         initializeFunc=initializeScheme, 
+#                         productPipeline=prodPipeFncChk, 
+#                         populationImprovement=popImprov1Cyc, bsp)
+# 
+# test_burnin$records$stageOutputs %>% ggplot(.,aes(x=year,y=genValMean, color=stage)) + geom_line()
+# test_burnin$records
+```

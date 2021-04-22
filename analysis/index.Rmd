@@ -1,5 +1,5 @@
 ---
-title: "Home"
+title: "NextGen Breeding Scheme Optimization Group"
 site: workflowr::wflow_site
 output:
   workflowr::wflow_html:
@@ -8,4 +8,30 @@ editor_options:
   chunk_output_type: console
 ---
 
-Welcome to my research website.
+Welcome. 
+
+## Objectives
+
+- Participants learn about the usage of empirically-parameterized simulations for decision making about optimal breeding schemes.
+- Generate recommendations to NGC and stakeholders regarding key breeding scheme-related questions.
+
+
+## 2021 
+
+### Meeting 1
+
+1. Meeting 1 - 2021-Mar-12
+
+### Meeting 2
+
+2. Meeting 2 - 2021-Apr-02
+
+### Meeting 3
+
+3. Meeting 3 - 2021-Apr-23
+
+[Creating this workflowR page for the group](workflowr_workflow.html)
+
+[AlphaSimHlpR first steps](AlphaSimHlpR_firstSteps.html): Installation and quickly running the `AlphaSimHlpR` tutorial example.
+
+[Reducing error with new tools](example-simulation-reducing-error-with-new-tools.html): Run a simple example simulation of the effect of reducing error with new tools. The first part, which currently is where my progress terminated, was to try and initiate a simulation and burn-in under phenotypic selection for several cycles before switching to genomic selection. **Spoiler alert:** Still needs work.

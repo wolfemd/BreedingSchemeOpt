@@ -1,0 +1,129 @@
+---
+title: "First steps - Install and Run AlphaSimHlpR tutorial"
+author: "Marnin Wolfe"
+date: "2021-04-22"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preamble: Install AlphaSimHlpR
+
+R packages we will need. Install them if necessary.
+
+```{r, eval=F}
+install.packages(c("tidyverse","AlphaSimR","devtools"))
+```
+
+Install AlphaSimHlpR
+
+```{r, eval=F}
+devtools::install_github("jeanlucj/AlphaSimHlpR", ref = 'master', 
+                         dependencies = T, force = T) # force = T to ensure I get a fresh install
+```
+
+When prompted "Which would you like to update?" choose "1: All".
+
+```{r, eval=F}
+library(AlphaSimHlpR)
+# Get `Error: package ‘optiSel’ could not be loaded`??
+install.packages("optiSel",dependencies = T)
+library(AlphaSimHlpR)
+# still error
+library(optiSel)
+# Error: package or namespace 
+# load failed for ‘optiSel’: .on
+# Load failed in loadNamespace() for 'rgl', 
+# details: call:         rgl.init(initValue, onlyNULL) 
+# error: OpenGL is not available in this build
+```
+
+**Following is specific to my macOS install state**
+
+Google search of error leads to: <https://stackoverflow.com/questions/9878693/error-in-loading-rgl-package-with-mac-os-x>
+
+Suggestion Solution: install XQuartz
+
+```{bash, eval=F}
+brew install xquartz
+```
+
+```{r, eval=F}
+library(AlphaSimHlpR)
+```
+
+Finally I get a clean load!
+
+```{r, eval=F}
+browseVignettes("AlphaSimHlpR")
+```
+
+The vignettes don't show up... but their Rmd's are in the GitHub Repo. Best guess: need to be added to the `namespace` or `knit` and the package master needs to be freshly built.
+
+I downloaded the Rmd's [from GitHub here](https://github.com/jeanlucj/AlphaSimHlpR/tree/master/vignettes).
+
+# Basic AlphaSimHlpR tutorial
+
+New R session. Follow the AlphaSimHlpR vignette.
+
+**I also had to download the `inst` folder and it's example "control file" contents [from GitHub here](https://github.com/jeanlucj/AlphaSimHlpR/tree/master/inst)**
+
+```{r}
+# Make sure you have the right packages installed
+neededPackages <- c("AlphaSimR", "dplyr", "tidyr", "plotrix", 
+                    "lme4", "sommer", "optiSel")
+for (p in neededPackages) if (!require(p, character.only=T)) install.packages(p)
+suppressMessages(library(AlphaSimHlpR))
+```
+
+## Define simulation settings
+
+Define the genetic architecture of the population and other breeding scheme parameters in a list `bsp`.
+
+```{r}
+bsp <- specifyPopulation(ctrlFileName="data/inst/PopulationCtrlFile_Small.txt")
+bsp <- specifyPipeline(bsp, ctrlFileName="data/inst/ControlFile_Small.txt")
+bsp <- specifyCosts(bsp, ctrlFileName="data/inst/CostsCtrlFile_Small.txt")
+nReplications <- 3
+bsp$nCyclesToRun <- 6
+
+print(bsp)
+```
+
+## Replicate simple scheme
+
+Run a simple breeding scheme for `r bsp$nCyclesToRun` cycles
+
+Replicate a very simple breeding program `r nReplications` times.
+
+```{r}
+replicRecords <- lapply(1:nReplications, runBreedingScheme, 
+                        nCycles=bsp$nCyclesToRun, 
+                        initializeFunc=initFuncADChk, 
+                        productPipeline=prodPipeFncChk, 
+                        populationImprovement=popImprov1Cyc, bsp)
+```
+
+## Calculate means and plot results
+
+Calculate the means of the breeding programs and plot them out
+
+```{r}
+plotData <- plotRecords(replicRecords)
+meanMeans <- tapply(plotData$genValMean, list(plotData$year, plotData$stage), mean)
+meanMeans <- meanMeans[,c("F1", bsp$stageNames)]
+stdErrMeans <- tapply(plotData$genValMean, list(plotData$year, plotData$stage), std.error)
+stdErrMeans <- stdErrMeans[,c("F1", bsp$stageNames)]
+print(meanMeans)
+print(stdErrMeans)
+```
+
+# Next step
+
+Run a simple example [simulation of the effect of reducing error with new tools](example-simulation-reducing-error-with-new-tools.html).
+

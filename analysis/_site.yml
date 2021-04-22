@@ -5,13 +5,23 @@ navbar:
   left:
   - text: Home
     href: index.html
-  - text: About
-    href: about.html
-  - text: License
-    href: license.html
+  - text: Meetings and Examples
+    menu:
+    - text: AlphaSimHlpR first steps
+      href: AlphaSimHlpR_firstSteps.html
+    - text: Reducing error with new tools
+      href: example-simulation-reducing-error-with-new-tools.html
+  - text: Resources
+    href: resources.html
+  - text: Other
+    menu:
+    - text: About
+      href: about.html
+    - text: License
+      href: license.html
 output:
   workflowr::wflow_html:
     toc: yes
     toc_float: yes
-    theme: cosmo
-    highlight: textmate
+    theme: yeti
+    highlight: breezedark
