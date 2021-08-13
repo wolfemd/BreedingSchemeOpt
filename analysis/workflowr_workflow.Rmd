@@ -95,7 +95,7 @@ Might take a few moments to be live.
 
 Last step, add *this* page to the workflowR project.
 
-``` {r}
+```{r}
 workflowr::wflow_open("analysis/workflowr_workflow.Rmd")
 ```
 

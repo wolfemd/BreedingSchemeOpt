@@ -1,5 +1,5 @@
 ---
-title: "NextGen Breeding Scheme Optimization Group"
+title: "NextGen Breeding Scheme Optimization"
 site: workflowr::wflow_site
 output:
   workflowr::wflow_html:
@@ -8,9 +8,14 @@ editor_options:
   chunk_output_type: console
 ---
 
-Welcome. 
+# Simulations
 
-## Objectives
+1. [Emprically-driven baseline simulation](baselineSim.html): 
+
+
+# Breeding Scheme Opt Group
+
+## Group Objectives
 
 - Participants learn about the usage of empirically-parameterized simulations for decision making about optimal breeding schemes.
 - Generate recommendations to NGC and stakeholders regarding key breeding scheme-related questions.
@@ -29,3 +34,8 @@ Welcome.
 [Reducing error with new tools](example-simulation-reducing-error-with-new-tools.html): Run a simple example simulation of the effect of reducing error with new tools. The first part, which currently is where my progress terminated, was to try and initiate a simulation and burn-in under phenotypic selection for several cycles before switching to genomic selection. **Spoiler alert:** Still needs work.
 
 [Creating this workflowR page for the group](workflowr_workflow.html):
+
+### Meeting 4 - 2021-Jul-02
+
+[Meeting Slides](https://docs.google.com/open?id=1xbRIlOKXtD3ApsLFrseo_nEbWqOcmuE6tWYjM10iYG8): Concept for empirically estimating selection error described.
+

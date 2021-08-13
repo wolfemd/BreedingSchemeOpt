@@ -1,16 +1,20 @@
-name: BreedingSchemeOptGroup
+name: BreedingSchemeOpt
 output_dir: ../docs
 navbar:
-  title: BreedingSchemeOptGroup
+  title: BreedingSchemeOpt
   left:
   - text: Home
     href: index.html
-  - text: Meetings and Examples
+  - text: Vignettes
     menu:
     - text: AlphaSimHlpR first steps
       href: AlphaSimHlpR_firstSteps.html
     - text: Reducing error with new tools
       href: example-simulation-reducing-error-with-new-tools.html
+  - text: Simulations
+    menu:
+    - text: Baseline simulation
+      href: baselineSim.html
   - text: Resources
     href: resources.html
   - text: Other
@@ -22,7 +26,7 @@ navbar:
   right:
   - icon: fa-github
     text: Source code
-    href: https://github.com/wolfemd/BreedingSchemeOptGroup
+    href: https://github.com/wolfemd/BreedingSchemeOpt
 output:
   workflowr::wflow_html:
     toc: yes
