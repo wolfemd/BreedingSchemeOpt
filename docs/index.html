@@ -11,9 +11,9 @@
 
 
 
-<title>NextGen Breeding Scheme Optimization Group</title>
+<title>NextGen Breeding Scheme Optimization</title>
 
-<script src="site_libs/header-attrs-2.7/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.10/header-attrs.js"></script>
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/yeti.min.css" rel="stylesheet" />
@@ -237,7 +237,7 @@ $(document).ready(function () {
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="index.html">BreedingSchemeOptGroup</a>
+      <a class="navbar-brand" href="index.html">BreedingSchemeOpt</a>
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
@@ -246,7 +246,7 @@ $(document).ready(function () {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Meetings and Examples
+    Vignettes
      
     <span class="caret"></span>
   </a>
@@ -256,6 +256,18 @@ $(document).ready(function () {
     </li>
     <li>
       <a href="example-simulation-reducing-error-with-new-tools.html">Reducing error with new tools</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Simulations
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="baselineSim.html">Baseline simulation</a>
     </li>
   </ul>
 </li>
@@ -280,8 +292,8 @@ $(document).ready(function () {
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="https://github.com/wolfemd/BreedingSchemeOptGroup">
-    <span class="fas fa-github"></span>
+  <a href="https://github.com/wolfemd/BreedingSchemeOpt">
+    <span class="fa fa-github"></span>
      
     Source code
   </a>
@@ -295,7 +307,7 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">NextGen Breeding Scheme Optimization Group</h1>
+<h1 class="title toc-ignore">NextGen Breeding Scheme Optimization</h1>
 
 </div>
 
@@ -320,13 +332,13 @@ $(document).ready(function () {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2021-04-22
+<strong>Last updated:</strong> 2021-08-19
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 2 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
 </p>
 <p>
-<strong>Knit directory:</strong> <code>BreedingSchemeOptGroup/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
+<strong>Knit directory:</strong> <code>BreedingSchemeOpt/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
 </p>
 <p>
 This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis was created with <a
@@ -351,16 +363,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomwolfemdBreedingSchemeOptGrouptree9d88be9a3d8f8253eecf9df9169513ae8b1a7355targetblank9d88be9a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/wolfemd/BreedingSchemeOptGroup/tree/9d88be9a3d8f8253eecf9df9169513ae8b1a7355" target="_blank">9d88be9</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomwolfemdBreedingSchemeOpttree5914d8df72caa55375fb4d7336f1f8f5755e8763targetblank5914d8da"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/wolfemd/BreedingSchemeOpt/tree/5914d8df72caa55375fb4d7336f1f8f5755e8763" target="_blank">5914d8d</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomwolfemdBreedingSchemeOptGrouptree9d88be9a3d8f8253eecf9df9169513ae8b1a7355targetblank9d88be9a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomwolfemdBreedingSchemeOpttree5914d8df72caa55375fb4d7336f1f8f5755e8763targetblank5914d8da" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/wolfemd/BreedingSchemeOptGroup/tree/9d88be9a3d8f8253eecf9df9169513ae8b1a7355" target="_blank">9d88be9</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/wolfemd/BreedingSchemeOpt/tree/5914d8df72caa55375fb4d7336f1f8f5755e8763" target="_blank">5914d8d</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -368,10 +380,19 @@ Note that you need to be careful to ensure that all relevant files for the analy
 <pre><code>
 Ignored files:
     Ignored:    .DS_Store
+    Ignored:    .Rhistory
     Ignored:    .Rproj.user/
     Ignored:    analysis/.DS_Store
     Ignored:    analysis/images/.DS_Store
     Ignored:    data/.DS_Store
+
+Untracked files:
+    Untracked:  data/baselineScheme.gsheet
+    Untracked:  output/benchmark_sim.rds
+    Untracked:  output/benchmark_sims5.rds
+
+Unstaged changes:
+    Modified:   data/README.md
 
 </code></pre>
 <p>
@@ -412,10 +433,61 @@ Message
 <tbody>
 <tr>
 <td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/wolfemd/BreedingSchemeOpt/blob/5914d8df72caa55375fb4d7336f1f8f5755e8763/analysis/index.Rmd" target="_blank">5914d8d</a>
+</td>
+<td>
+wolfemd
+</td>
+<td>
+2021-08-19
+</td>
+<td>
+Publish initial sims towards a baseline set of sims using runBreedingScheme_wBurnIn
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/wolfemd/BreedingSchemeOpt/blob/0ebe65fbc44115cb155d9b47a337c5f533a88eec/analysis/index.Rmd" target="_blank">0ebe65f</a>
+</td>
+<td>
+wolfemd
+</td>
+<td>
+2021-08-13
+</td>
+<td>
+test
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/wolfemd/BreedingSchemeOpt/blob/c2e379e19de5a854ca2cc037d4072c66704b0e01/analysis/index.Rmd" target="_blank">c2e379e</a>
+</td>
+<td>
+wolfemd
+</td>
+<td>
+2021-08-13
+</td>
+<td>
+Rebuild repo removing the “Group” part. Project is to contain BOTH the “Group” and a separate section just for the actual simulation analyses.
+</td>
+</tr>
+<tr>
+<td>
 html
 </td>
 <td>
-<a href="https://rawcdn.githack.com/wolfemd/BreedingSchemeOptGroup/92bd15ba9f599387cdcfd51e6ab61e6c498df200/docs/index.html" target="_blank">92bd15b</a>
+<a href="https://rawcdn.githack.com/wolfemd/BreedingSchemeOpt/5395509f2376c287a7c8e159c36e2b7797cd76c9/docs/index.html" target="_blank">5395509</a>
 </td>
 <td>
 wolfemd
@@ -432,7 +504,24 @@ Build site.
 html
 </td>
 <td>
-<a href="https://rawcdn.githack.com/wolfemd/BreedingSchemeOptGroup/1d503b67f789e2bc34b198547854b3dcda22a4b9/docs/index.html" target="_blank">1d503b6</a>
+<a href="https://rawcdn.githack.com/wolfemd/BreedingSchemeOpt/92bd15ba9f599387cdcfd51e6ab61e6c498df200/docs/index.html" target="_blank">92bd15b</a>
+</td>
+<td>
+wolfemd
+</td>
+<td>
+2021-04-22
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/wolfemd/BreedingSchemeOpt/1d503b67f789e2bc34b198547854b3dcda22a4b9/docs/index.html" target="_blank">1d503b6</a>
 </td>
 <td>
 wolfemd
@@ -449,7 +538,7 @@ Build site.
 Rmd
 </td>
 <td>
-<a href="https://github.com/wolfemd/BreedingSchemeOptGroup/blob/bf9f68cefcbe1805b65cabfd2ed426041abeca7f/analysis/index.Rmd" target="_blank">bf9f68c</a>
+<a href="https://github.com/wolfemd/BreedingSchemeOpt/blob/bf9f68cefcbe1805b65cabfd2ed426041abeca7f/analysis/index.Rmd" target="_blank">bf9f68c</a>
 </td>
 <td>
 wolfemd
@@ -466,7 +555,7 @@ Publish the workflowr workflow itself.
 html
 </td>
 <td>
-<a href="https://rawcdn.githack.com/wolfemd/BreedingSchemeOptGroup/fe3048aaf2a488e7d7f8b85f1889332261d1b4c5/docs/index.html" target="_blank">fe3048a</a>
+<a href="https://rawcdn.githack.com/wolfemd/BreedingSchemeOpt/fe3048aaf2a488e7d7f8b85f1889332261d1b4c5/docs/index.html" target="_blank">fe3048a</a>
 </td>
 <td>
 wolfemd
@@ -483,7 +572,7 @@ Build site.
 Rmd
 </td>
 <td>
-<a href="https://github.com/wolfemd/BreedingSchemeOptGroup/blob/9df9d9b2b1f9c0816f0e76fa8e95a345e47a28d6/analysis/index.Rmd" target="_blank">9df9d9b</a>
+<a href="https://github.com/wolfemd/BreedingSchemeOpt/blob/9df9d9b2b1f9c0816f0e76fa8e95a345e47a28d6/analysis/index.Rmd" target="_blank">9df9d9b</a>
 </td>
 <td>
 wolfemd
@@ -500,7 +589,7 @@ Publish the initial files for the Breeding Scheme Optimization Group project
 Rmd
 </td>
 <td>
-<a href="https://github.com/wolfemd/BreedingSchemeOptGroup/blob/32a7aff0a6459a178568051d7e246aaf770686db/analysis/index.Rmd" target="_blank">32a7aff</a>
+<a href="https://github.com/wolfemd/BreedingSchemeOpt/blob/32a7aff0a6459a178568051d7e246aaf770686db/analysis/index.Rmd" target="_blank">32a7aff</a>
 </td>
 <td>
 wolfemd
@@ -519,9 +608,16 @@ Start workflowr project.
 </div>
 </div>
 </div>
-<p>Welcome.</p>
-<div id="objectives" class="section level2">
-<h2>Objectives</h2>
+<div id="simulations" class="section level1">
+<h1>Simulations</h1>
+<ol style="list-style-type: decimal">
+<li><a href="baselineSim.html">Baseline simulations</a>:</li>
+</ol>
+</div>
+<div id="breeding-scheme-opt-group" class="section level1">
+<h1>Breeding Scheme Opt Group</h1>
+<div id="group-objectives" class="section level2">
+<h2>Group Objectives</h2>
 <ul>
 <li>Participants learn about the usage of empirically-parameterized simulations for decision making about optimal breeding schemes.</li>
 <li>Generate recommendations to NGC and stakeholders regarding key breeding scheme-related questions.</li>
@@ -540,6 +636,11 @@ Start workflowr project.
 <p><a href="AlphaSimHlpR_firstSteps.html">AlphaSimHlpR first steps</a>: Installation and quickly running the <code>AlphaSimHlpR</code> tutorial example.</p>
 <p><a href="example-simulation-reducing-error-with-new-tools.html">Reducing error with new tools</a>: Run a simple example simulation of the effect of reducing error with new tools. The first part, which currently is where my progress terminated, was to try and initiate a simulation and burn-in under phenotypic selection for several cycles before switching to genomic selection. <strong>Spoiler alert:</strong> Still needs work.</p>
 <p><a href="workflowr_workflow.html">Creating this workflowR page for the group</a>:</p>
+</div>
+<div id="meeting-4---2021-jul-02" class="section level3">
+<h3>Meeting 4 - 2021-Jul-02</h3>
+<p><a href="https://docs.google.com/open?id=1xbRIlOKXtD3ApsLFrseo_nEbWqOcmuE6tWYjM10iYG8">Meeting Slides</a>: Concept for empirically estimating selection error described.</p>
+</div>
 </div>
 </div>
 
