@@ -1,0 +1,4 @@
+stageNames,nEntries,nLocs,nReps,nChks,entryToChkRatio,errVars,trainingPopCycles,PlantsPerPlot
+PYT,200,1,1,2,20,100,15,10
+AYT,100,1,1,2,20,50,15,25
+UYT,20,1,2,2,20,25,15,42
