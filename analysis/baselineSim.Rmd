@@ -16,3 +16,422 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
                       highlight=TRUE)
 ```
 
+See [here](https://wolfemd.github.io/IITA_2021GS/inputsForSimulation.html) for an analysis of IITA trial data to derive empirical inputs for this analysis. I analyzed trial-by-trial to measure selection error and associate it with plot-size. While inconclusive, this exercise emphasized a key concern for conducting simulations that alter the VDP: that the cost-benefit balance could depend on the relative information value/selection accuracy/error variance of different plot sizes and trial configurations.
+
+As a result, I decided to simulate a range of error-vs-plot size scaling as part of the "baseline" simulations, starting with IITA as an example.
+
+***If*** we observe a shift-point in the cost-benefit analysis we can then work with breeding programs to determine where their data indicate they lie and what changes are subsequently recommended.
+
+# Develop a simulation with burn-in PS
+
+-   First thing is to complete un-finished work ([started here](example-simulation-reducing-error-with-new-tools.html)) and build a [`runBreedingScheme_wBurnIn()`](https://wolfemd.github.io/AlphaSimHlpR/reference/runBreedingScheme_wBurnIn.html) function into `AlphaSimHlpR`. The new function enables a switch in selection criteria after a certain number of cycles, e.g. a phenotypic selection "burn-in" period followed by GS.
+-   Previously, used control files to set-up `bsp`. Implemented [`specifyBSP()`](https://wolfemd.github.io/AlphaSimHlpR/reference/specifyBSP.html) which creates a `bsp` using a `data.frame` of stage-specific breeding scheme *plus* all other `AlphaSimHlpR` arguments as inputs.
+-   I fully documented all new functions, integrated them into my forked-repo of `AlphaSimHlpR` *and* built a `pkgdown` web-documentation: [here](https://wolfemd.github.io/AlphaSimHlpR/index.html)
+-   (click the function refs above to see their specific details)
+-   Below, a quick demo before subsequently setting up a bigger analysis
+
+## Set-up a singularity shell with R+OpenBLAS
+
+This is not required. If you want the advantage of multi-threaded BLAS to speed up predictions within the simulations, you need an R instance that is linked to OpenBLAS (another example is Microsoft R Open). For CBSU, the recommended approach is currently to use singularity shells provided by the "rocker" project. They even come pre-installed with tidyverse :).
+
+Linked to OpenBLAS, using a simple function `RhpcBLASctl::blas_set_num_threads()` I can add arguments to functions to control this feature.
+
+For optimal performance, it is import to balance the number of threads each R session uses for BLAS against any other form of parallel processing being used and considering total available system resources.
+
+```{bash, eval=F}
+# 0) Pull a singularity image with OpenBLAS enabled R + tidyverse from rocker/
+singularity pull ~/rocker2.sif docker://rocker/tidyverse:latest;
+# only do above first time
+# 1) start a screen shell 
+screen; # or screen -r if re-attaching...
+# 3) start the singularity Linux shell inside that
+singularity shell ~/rocker2.sif; 
+# Project directory, so R will use as working dir.
+cd /home/mw489/BreedingSchemeOpt/;
+# 3) Start R
+R
+```
+
+```{r, eval=F}
+# Install genomicMateSelectR to user-accessible libPath
+### In a singularity shell, sintall as follows:
+libPath<-"/home/mw489/R/x86_64-pc-linux-gnu-library/4.1" # should be YOUR libPath
+withr::with_libpaths(new=libPath, devtools::install_github("wolfemd/genomicMateSelectR", ref = 'master'))
+### Else, simply
+devtools::install_github("wolfemd/genomicMateSelectR", ref = 'master')
+# Install my own forked repo of AlphaSimHlpR
+withr::with_libpaths(new=libPath, install.packages("Rcpp"))
+withr::with_libpaths(new=libPath, install.packages("AlphaSimR"))
+withr::with_libpaths(new=libPath, install.packages("optiSel"))
+withr::with_libpaths(new=libPath, install.packages("rgl"))
+withr::with_libpaths(new=libPath, devtools::install_github("wolfemd/AlphaSimHlpR", ref = 'master', force=T))
+```
+
+## A small example
+
+```{r inputs,eval=T}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+```
+
+Run two cycles pre- and post with a small breeding scheme. Runs on a laptop.
+
+Use my newly created `specifyBSP()` function to create the `bsp` input for sims.
+
+-   3 chrom, Ne = 100, 300 SNP (100/chrom)
+-   Select 10 parents, make 4 random crosses with 50 progeny each
+
+```{r,eval=T}
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+bsp<-specifyBSP(schemeDF = schemeDF,
+                nChr = 3,effPopSize = 100,quickHaplo = F,
+                segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                stageToGenotype = "PYT",
+                nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                phenoF1toStage1 = T,errVarPreStage1 = 500,
+                useCurrentPhenoTrain = F, 
+                nCyclesToKeepRecords = 30,
+                selCritPipeAdv = selCritIID, 
+                selCritPopImprov =  selCritIID)
+```
+
+I created a CSV to specify a data.frame `schemeDF` defining stage-specific breeding scheme inputs.
+
+```{r}
+schemeDF %>% rmarkdown::paged_table()
+```
+
+Now run `runBreedingScheme_wBurnIn()` which will simulate PS for burn-in cycles and GS post burn-in. Use `selCritIID` for VDP. Notice the new `parentSelCritGEBV` which is so far the same as `selCritGRM` but lays groundwork for mate selection and non-additive effects related sims.
+
+```{r run test sim, eval=F}
+test_sim<-runBreedingScheme_wBurnIn(replication = 1, bsp = bsp,
+                                    nBurnInCycles=2,nPostBurnInCycles=2,
+                                    selCritPopPre="selCritIID",
+                                    selCritPopPost="parentSelCritGEBV",
+                                    selCritPipePre="selCritIID",
+                                    selCritPipePost="selCritIID",
+                                    nBLASthreads=3,nThreadsMacs2=3)
+saveRDS(test_sim,file = here::here("output","test_sim.rds"))
+```
+
+```{r plot test sim}
+test_sim<-readRDS(here::here("output","test_sim.rds"))
+test_sim$records$stageOutputs %>% 
+  ggplot(.,aes(x=year,y=genValMean,color=stage)) + 
+  geom_point() + geom_line() + geom_vline(xintercept = 2)
+```
+
+This plot shows the mean genetic value (y-axis) by pipeline-stage (colors) versus the year. The vertical line indicates the point after which GS (`parentSelCritGEBV`) was used.
+
+# Run two cycles of IITA-sized GS
+
+First run a benchmark sim. How long will two cycles of IITA-sized GS rep take?
+
+After benchmarking, I will run a bigger analysis, with multiple iterations times a range of parameter settings. Will use at least one full large memory server for that (112 cores, 512GB RAM). Benchmark using **cbsurobbins.biohpc.cornell.edu**, which now uses SLURM. Reserve and set-up an interactive SLURM shell as follows:
+
+```{bash, eval=F}
+# 1) start a screen shell 
+screen; 
+# 2) reserve interactive slurm
+salloc -n 10 --mem 60G;
+# 3) start the singularity Linux shell inside that
+singularity shell ~/rocker2.sif; 
+# Project directory, so R will use as working dir.
+cd /home/mw489/BreedingSchemeOpt/;
+# 3) Start R
+R
+```
+
+```{r benchmark run inputs}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+# This scheme _excludes_ the seedling stage from the simulation.
+schemeDF<-read.csv(here::here("data","baselineScheme - IITA.csv"), 
+                   header = T, stringsAsFactors = F)
+```
+
+```{r}
+schemeDF %>% rmarkdown::paged_table()
+```
+
+-   6 chrom, Ne = 1000, 600 SNP (100/chrom)
+-   `genVar = 100` and `errVar` starting at 100
+-   Select 50 parents, Make 100 random crosses with 25 progeny each
+-   `nCyclesToKeepRecords = 30`
+-   `trainingPopCycles = 15` for all stages.
+-   5 cores for BLAS
+
+```{r}
+bsp<-specifyBSP(schemeDF = schemeDF,
+                nChr = 6,effPopSize = 1000,quickHaplo = F,
+                segSites = 500, nQTL = 50, nSNP = 100, genVar = 100,
+                gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                meanDD = 1,varDD = 5,relAA = 0.1,
+                stageToGenotype = "CET",
+                nParents = 50, nCrosses = 100, nProgeny = 25,nClonesToNCRP = 3,
+                phenoF1toStage1 = F,errVarPreStage1 = 500,
+                useCurrentPhenoTrain = F, 
+                nCyclesToKeepRecords = 30,
+                # selCrits are overwritten by runBreedingScheme_wBurnIn
+                selCritPipeAdv = selCritIID, # thus have no actual effect
+                selCritPopImprov =  selCritIID) 
+```
+
+```{r run benchmark sim, eval=F}
+starttime<-proc.time()[3]
+benchmark_sim<-runBreedingScheme_wBurnIn(replication = 1, bsp = bsp,
+                                         nBurnInCycles=2,nPostBurnInCycles=2,
+                                         selCritPopPre="selCritIID",
+                                         selCritPopPost="parentSelCritGEBV",
+                                         selCritPipePre="selCritIID",
+                                         selCritPipePost="selCritIID",
+                                         nBLASthreads=5,nThreadsMacs2=5)
+endtime<-proc.time()[3]; print(paste0((endtime-starttime)/60," mins elapsed."));
+saveRDS(benchmark_sim,file = here::here("output","benchmark_sim.rds"))
+# [1] "866.377616666667 mins elapsed."
+# ~14 hrs for 2 cycles of GS.
+```
+
+\~14 hrs for 2 cycles of GS. Up to 40 or 50GB RAM.
+
+```{r plot benchmark sim}
+readRDS(here::here("output","benchmark_sim.rds"))$records$stageOutputs %>% 
+    ggplot(.,aes(x=year,y=genValMean,color=stage)) + 
+  geom_point() + geom_line() + geom_vline(xintercept = 2)
+```
+
+This plot shows the mean genetic value (y-axis) by pipeline-stage (colors) versus the year. The vertical line indicates the point after which GS (`parentSelCritGEBV`) was used. Obviously this is a test. So not digging in more yet.
+
+# Run a scaled-down simulation
+
+It seems prudent to scale down and run additional tests, before scaling back up for full experiments.
+
+-   cbsulm09,
+
+-   Reduce to `trainingPopCycles=5`
+
+-   Reduce pop size to 1/3 scale
+
+    -   `nEntries=ceiling(nEntries/3)`
+    -   `nChks=ceiling(nChks/3)`
+    -   Select 17 parents, Make 33 random crosses with 26 progeny each
+    -   Reduce to 3 chrom, Ne = 500, 300 SNP (100/chrom)
+
+```{bash, eval=F}
+screen; 
+singularity shell ~/rocker2.sif; 
+cd /home/mw489/BreedingSchemeOpt/;
+R
+```
+
+```{r inputs for scaled down sim, eval=T}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+# This scheme _excludes_ the seedling stage from the simulation.
+
+schemeDF<-read.csv(here::here("data","baselineScheme - IITA.csv"), 
+                   header = T, stringsAsFactors = F) %>% 
+  dplyr::select(-PlantsPerPlot) %>% 
+  dplyr::mutate(trainingPopCycles=5,
+                nEntries=ceiling(nEntries/3),
+                nChks=ceiling(nChks/3))
+```
+
+```{r, eval=T}
+schemeDF %>% rmarkdown::paged_table()
+```
+
+```{r bsp for scaled down sim, eval=F}
+bsp<-specifyBSP(schemeDF = schemeDF,
+                nChr = 3,effPopSize = 500,quickHaplo = F,
+                segSites = 200, nQTL = 30, nSNP = 100, genVar = 100,
+                gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                meanDD = 1,varDD = 5,relAA = 0.1,
+                stageToGenotype = "CET",
+                nParents = 17, nCrosses = 33, nProgeny = 26,nClonesToNCRP = 3,
+                phenoF1toStage1 = F,errVarPreStage1 = 500,
+                useCurrentPhenoTrain = F, 
+                nCyclesToKeepRecords = 5,
+                # selCrits are overwritten by runBreedingScheme_wBurnIn
+                selCritPipeAdv = selCritIID, 
+                selCritPopImprov =  selCritIID) # thus have no actual effect
+```
+
+-   Ran the scaled down simulation three times
+
+    1.  Set `nBLASthreads=60` to go as-fast-as-possible... Took 7 mins.
+
+    2.  Set a more reasonable `nBLASthreads=5` to see how much speed comes from scaled-down sim. size... Took 10 mins.
+
+    3.  Ran `nBurnInCycles=15` and `nPostBurnInCycles=15`... took 68 mins.
+
+```{r run scaled down sim, eval=F}
+starttime<-proc.time()[3]
+benchmark_sim2<-runBreedingScheme_wBurnIn(replication = 1, bsp = bsp,
+                                          nBurnInCycles=2,nPostBurnInCycles=2,
+                                          selCritPopPre="selCritIID",
+                                          selCritPopPost="parentSelCritGEBV",
+                                          selCritPipePre="selCritIID",
+                                          selCritPipePost="selCritIID",
+                                          nBLASthreads=60,nThreadsMacs2=60)
+endtime<-proc.time()[3]; print(paste0((endtime-starttime)/60," mins elapsed."));
+saveRDS(benchmark_sim2,file = here::here("output","benchmark_sim2.rds"))
+# [1] "6.93941666666667 mins elapsed."
+
+starttime<-proc.time()[3]
+benchmark_sim3<-runBreedingScheme_wBurnIn(replication = 1, bsp = bsp,
+                                          nBurnInCycles=2,nPostBurnInCycles=2,
+                                          selCritPopPre="selCritIID",
+                                          selCritPopPost="parentSelCritGEBV",
+                                          selCritPipePre="selCritIID",
+                                          selCritPipePost="selCritIID",
+                                          nBLASthreads=5,nThreadsMacs2=5)
+endtime<-proc.time()[3]; print(paste0((endtime-starttime)/60," mins elapsed."));
+saveRDS(benchmark_sim3,file = here::here("output","benchmark_sim3.rds"))
+# [1] "10.0116333333333 mins elapsed."
+
+starttime<-proc.time()[3]
+benchmark_sim4<-runBreedingScheme_wBurnIn(replication = 1, bsp = bsp,
+                                          nBurnInCycles=15,nPostBurnInCycles=15,
+                                          selCritPopPre="selCritIID",
+                                          selCritPopPost="parentSelCritGEBV",
+                                          selCritPipePre="selCritIID",
+                                          selCritPipePost="selCritIID",
+                                          nBLASthreads=5,nThreadsMacs2=5)
+endtime<-proc.time()[3]; print(paste0((endtime-starttime)/60," mins elapsed."));
+saveRDS(benchmark_sim4,file = here::here("output","benchmark_sim4.rds"))
+# [1] "67.8371833333333 mins elapsed."
+```
+
+```{r}
+readRDS(here::here("output","benchmark_sim4.rds"))$records$stageOutputs %>% 
+    ggplot(.,aes(x=year,y=genValMean,color=stage)) + 
+  geom_point() + geom_line() + geom_vline(xintercept = 15)
+```
+
+# Run multiple scaled-down sims in parallel
+
+Set-up 10 iterations of a simulation with 15 pre- and 15-post burn-in cycles.
+
+For a bonus, set-up 10 additional iterations that uses PS (`selCritIID` the entire 30 cycles).
+
+Made a few changes to the sims so they would exhaust variation (hopefully):
+
+-   Increase to `effPopSize=1000`
+-   Increase stage-specific errors: `errVars*3`
+-   Increase `gxyVar`, `gxlVar`, `gxyxlVar`.
+
+Also:
+
+-   Increase to `trainingPopCycles=10` to use more training data
+-   Set `nCyclesToKeepRecords = 30` to keep all records
+
+```{bash, eval=F}
+screen; 
+singularity shell ~/rocker2.sif; 
+cd /home/mw489/BreedingSchemeOpt/;
+R
+```
+
+```{r inputs for multi-sim benchmark, eval=T}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+# This scheme _excludes_ the seedling stage from the simulation.
+schemeDF<-read.csv(here::here("data","baselineScheme - IITA.csv"), 
+                   header = T, stringsAsFactors = F) %>% 
+  select(-PlantsPerPlot) %>% 
+  mutate(trainingPopCycles=10,
+         nEntries=ceiling(nEntries/3),
+         nChks=ceiling(nChks/3),
+         errVars=errVars*3)
+bsp<-specifyBSP(schemeDF = schemeDF,
+                nChr = 3,effPopSize = 1000,quickHaplo = F,
+                segSites = 200, nQTL = 30, nSNP = 100, genVar = 200,
+                gxeVar = NULL, gxyVar = 20, gxlVar = 15,gxyxlVar = 10,
+                meanDD = 1,varDD = 5,relAA = 0.1,
+                stageToGenotype = "CET",
+                nParents = 17, nCrosses = 33, nProgeny = 26,nClonesToNCRP = 3,
+                phenoF1toStage1 = F,errVarPreStage1 = 500,
+                useCurrentPhenoTrain = F, 
+                nCyclesToKeepRecords = 30,
+                # selCrits are overwritten by runBreedingScheme_wBurnIn
+                selCritPipeAdv = selCritIID, 
+                selCritPopImprov =  selCritIID) # thus have no actual effect
+benchmark_sims<-crossing(replication=1:10,
+                         postBurnIn=c("parentSelCritGEBV","selCritIID")) %>% 
+  arrange(postBurnIn)
+```
+
+```{r, eval=T}
+benchmark_sims %>% rmarkdown::paged_table()
+```
+
+Run 10 sims in parallel, each sim gets 10 additional threads for BLAS to speed GP.
+
+```{r run multiple benchmark sims , eval=F}
+starttime<-proc.time()[3]
+require(furrr); plan(multisession, workers = 10)
+options(future.globals.maxSize=+Inf); options(future.rng.onMisuse="ignore")
+benchmark_sims %<>% 
+  mutate(sim=future_map2(replication,postBurnIn,
+                         ~runBreedingScheme_wBurnIn(replication = .x, 
+                                                    bsp = bsp,
+                                                    nBurnInCycles=15,nPostBurnInCycles=15,
+                                                    selCritPopPre="selCritIID",
+                                                    selCritPopPost=.y,
+                                                    selCritPipePre="selCritIID",
+                                                    selCritPipePost="selCritIID",
+                                                    nBLASthreads=10,nThreadsMacs2=10)))
+endtime<-proc.time()[3]; print(paste0((endtime-starttime)/60," mins elapsed."));
+saveRDS(benchmark_sims,file = here::here("output","benchmark_sims5.rds"))
+plan(sequential)
+# [1] "499.316183333333 mins elapsed."
+```
+
+Took \~8.3 hrs to run.
+
+```{r}
+sims<-readRDS(here::here("output","benchmark_sims5.rds"))
+sims %>% 
+  mutate(sim=map(sim,~.$records$stageOutputs)) %>% 
+  unnest(sim) %>% 
+  filter(stage=="CET") %>% 
+  mutate(rep=paste0(postBurnIn,replication)) %>% 
+  #as.character(replication)) %>% 
+  #stage=factor(stage,levels = c("F1","CET","PYT","AYT","UYT")))
+  ggplot(.,aes(x=year,y=genValMean,color=postBurnIn, group=rep)) + 
+  geom_point() + geom_line() + geom_vline(xintercept = 15)
+
+```
+
+Plot the mean genetic value (y-axis) of the "CET" stage for all 20 simulations (10 with `selCritIID` PS and 10 with `parentSelCritGEBV` GS used after the first 15 cycles of PS). **NOTE:** In retrospect, it is not entirely fair to compare the post-burn-in PS (blue) and GS (red). Next time, I will set-up a `runBreedingScheme` function that simulations a single population pre-burn-in and then diverges that population post-burn-in. A proper simulation would diver
+
+# Questions and next steps
+
+1.  Correct `runBreedingScheme_wBurnIn` to diverge single pop after burn-in.
+
+2.  I am not yet seeing a notable effect of switching from PS to GS after 15 cycles. What parameters need to be changed?
+
+3.  How to handle all the breeding simulation options, e.g.:
+
+    -   Ne, `entryToChkRatio`, etc.
+
+    -   Similar approach to with plot size.... simulate a spectrum and check for an effect?
+
+```{=html}
+<!-- -->
+```
+4.  Develop and test a errVar-plotSize scaling function
+5.  Complete a baseline simulation
+6.  Test alternative *mate selection* scenarios, etc.
