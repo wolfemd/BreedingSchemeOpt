@@ -13,7 +13,9 @@ navbar:
       href: example-simulation-reducing-error-with-new-tools.html
   - text: Simulations
     menu:
-    - text: Baseline simulation
+    - text: Burn-in simulations
+      href: burnInSims.html
+    - text: Baseline simulations
       href: baselineSim.html
   - text: Resources
     href: resources.html

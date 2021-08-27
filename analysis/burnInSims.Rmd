@@ -1,0 +1,336 @@
+---
+title: "Burn-in simulations for cassava GS"
+author: "Marnin Wolfe"
+date: "2021-Aug-26"
+output: 
+  workflowr::wflow_html:
+    toc: true
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
+                      tidy='styler', 
+                      tidy.opts=list(strict=FALSE,width.cutoff=100), 
+                      highlight=TRUE)
+```
+
+# Previous step
+
+I developed an empirical approach to estimate TrialType-specific error variances in terms of the IITA selection index (SELIND). See that analysis [here](https://wolfemd.github.io/IITA_2021GS/inputsForSimulationV2.html).
+
+# Generate burn-in simulations
+
+-   Build a [`runBurnInScheme()`](https://wolfemd.github.io/AlphaSimHlpR/reference/) for `AlphaSimHlpR`.
+-   Output of `runBurnInScheme()` is input for downstream optimization and comparison of scenarios.
+
+Previously, used control files to set-up `bsp`. Implemented [`specifyBSP()`](https://wolfemd.github.io/AlphaSimHlpR/reference/specifyBSP.html), which creates a `bsp` using a `data.frame` of stage-specific breeding scheme *plus* all other `AlphaSimHlpR` arguments as inputs.
+
+-   See full function reference [here](https://wolfemd.github.io/AlphaSimHlpR/index.html) in my forked-repo of `AlphaSimHlpR`
+
+## Set-up a singularity shell with R+OpenBLAS
+
+This is not required. If you want the advantage of multi-threaded BLAS to speed up predictions within the simulations, you need an R instance that is linked to OpenBLAS (another example is Microsoft R Open). For CBSU, the recommended approach is currently to use singularity shells provided by the "rocker" project. They even come pre-installed with tidyverse :).
+
+Linked to OpenBLAS, using a simple function `RhpcBLASctl::blas_set_num_threads()` I can add arguments to functions to control this feature.
+
+For optimal performance, it is import to balance the number of threads each R session uses for BLAS against any other form of parallel processing being used and considering total available system resources.
+
+```{bash, eval=F}
+# 0) Pull a singularity image with OpenBLAS enabled R + tidyverse from rocker/
+singularity pull ~/rocker2.sif docker://rocker/tidyverse:latest;
+# only do above first time
+# 1) start a screen shell 
+screen; # or screen -r if re-attaching...
+# 3) start the singularity Linux shell inside that
+singularity shell ~/rocker2.sif; 
+# Project directory, so R will use as working dir.
+cd /home/mw489/BreedingSchemeOpt/;
+# 3) Start R
+R
+```
+
+```{r, eval=F}
+# Install genomicMateSelectR to user-accessible libPath
+### In a singularity shell, sintall as follows:
+libPath<-"/home/mw489/R/x86_64-pc-linux-gnu-library/4.1" # should be YOUR libPath
+withr::with_libpaths(new=libPath, devtools::install_github("wolfemd/genomicMateSelectR", ref = 'master'))
+### Else, simply
+devtools::install_github("wolfemd/genomicMateSelectR", ref = 'master')
+# Install my own forked repo of AlphaSimHlpR
+withr::with_libpaths(new=libPath, install.packages("Rcpp"))
+withr::with_libpaths(new=libPath, install.packages("AlphaSimR"))
+withr::with_libpaths(new=libPath, install.packages("optiSel"))
+withr::with_libpaths(new=libPath, install.packages("rgl"))
+withr::with_libpaths(new=libPath, devtools::install_github("wolfemd/AlphaSimHlpR", ref = 'master', force=T))
+```
+
+## A small example
+
+Test the code with a small example. Source functions *not yet* included in `AlphaSimHlpR` from `code/` directory.
+
+Use my newly created `specifyBSP()` function to create the `bsp` input for sims.
+
+-   3 chrom, Ne = 100, 300 SNP (100/chrom)
+-   Select 10 parents, make 4 random crosses with 50 progeny each
+
+```{r,eval=T}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+bsp<-specifyBSP(schemeDF = schemeDF,
+                nChr = 3,effPopSize = 100,quickHaplo = F,
+                segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                stageToGenotype = "PYT",
+                nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                phenoF1toStage1 = T,errVarPreStage1 = 500,
+                useCurrentPhenoTrain = F, 
+                nCyclesToKeepRecords = 30,
+                selCritPipeAdv = selCritIID, 
+                selCritPopImprov =  selCritIID)
+source(here::here("code","runBurnInSchemes.R"))
+```
+
+I created a CSV to specify a data.frame `schemeDF` defining stage-specific breeding scheme inputs.
+
+```{r}
+schemeDF %>% rmarkdown::paged_table()
+```
+
+`runBurnInSchemes()`: basically `runBreedingScheme()` but without the final call `records <- lastCycStgOut(records, bsp, SP)` so that sims can be continued based on the `records` and `bsp`.
+
+Also, set up function *include* the potentially parallel execution of multiple replications of each sim scheme.
+
+Run 16 replicate simulations of 10 cycles phenotypic selection with a small breeding scheme on a laptop.
+
+```{r run test burn-in sims, eval=F}
+burnIn_test<-runBurnInSchemes(bsp = bsp,
+                              nBurnInCycles=10,
+                              selCritPop="selCritIID",
+                              selCritPipe="selCritIID",
+                              iniFunc="initializeScheme",
+                              productFunc="productPipeline",
+                              popImprovFunc="popImprov1Cyc",
+                              nReplications=16,ncores=8,
+                              nBLASthreads=1,nThreadsMacs2=1)
+saveRDS(burnIn_test,file = here::here("output","burnIn_test.rds"))
+```
+
+```{r ribbon plot of test sims}
+burnIn_test<-readRDS(here::here("output","burnIn_test.rds"))
+forSimPlot<-burnIn_test %>% 
+  unnest_wider(burnInSim) %>% 
+  select(SimRep,records) %>% 
+  unnest_wider(records) %>% 
+  select(SimRep,stageOutputs) %>% 
+  unnest() %>% 
+  filter(stage=="F1") %>% 
+  mutate(Year=year-max(year))
+
+library(patchwork)
+meanGplot<-forSimPlot %>% 
+  group_by(Year,year,stage) %>% 
+  summarize(meanGenMean=mean(genValMean),
+            seGenMean=sd(genValMean)/n()) %>% 
+  ggplot(.,aes(x=Year)) +
+  geom_ribbon(aes(ymin = meanGenMean - seGenMean, 
+                  ymax = meanGenMean + seGenMean), 
+              fill = "grey70", alpha=0.75) + 
+  geom_line(aes(y = meanGenMean))
+sdGplot<-forSimPlot %>% 
+  group_by(Year,year,stage) %>% 
+  summarize(meanGenSD=mean(genValSD),
+            seGenSD=sd(genValSD)/n()) %>% 
+  ggplot(.,aes(x=Year)) +
+  geom_ribbon(aes(ymin = meanGenSD - seGenSD, 
+                  ymax = meanGenSD + seGenSD), 
+              fill = "grey70", alpha=0.75) + 
+  geom_line(aes(y = meanGenSD))
+(meanGplot | sdGplot) & theme_bw()
+```
+
+Ribbon plot mean and std. error computed across replicated simulations.
+
+Next, execute the `runSchemesPostBurnIn()` function to continue running the 16 replicate initiated sims for an additional 10 post-burn in cycles of phenotypic selection.
+
+```{r continue simulating post burn-in, eval=F}
+source(here::here("code","runSchemesPostBurnIn.R"))
+simulations<-readRDS(here::here("output","burnIn_test.rds"))
+postBurnIn_test<-runSchemesPostBurnIn(simulations = simulations,
+                                      newBSP=NULL, # so you can change the scheme after burn-in
+                                      nPostBurnInCycles=10,
+                                      selCritPop="selCritIID",
+                                      selCritPipe="selCritIID",
+                                      productFunc="productPipeline",
+                                      popImprovFunc="popImprov1Cyc",
+                                      ncores=8,
+                                      nBLASthreads=1,nThreadsMacs2=1)
+saveRDS(postBurnIn_test,file = here::here("output","postBurnIn_test.rds"))
+```
+
+```{r plot test sims}
+postBurnIn_test<-readRDS(here::here("output","postBurnIn_test.rds"))
+
+forSimPlot<-postBurnIn_test %>% 
+  unnest_wider(SimOutput) %>% 
+  select(SimRep,records) %>% 
+  unnest_wider(records) %>% 
+  select(SimRep,stageOutputs) %>% 
+  unnest() %>% 
+  filter(stage=="F1") %>% 
+  mutate(YearPostBurnIn=year-10)
+ 
+library(patchwork)
+meanGplot<-forSimPlot %>% 
+  group_by(YearPostBurnIn,year,stage) %>% 
+  summarize(meanGenMean=mean(genValMean),
+            seGenMean=sd(genValMean)/n()) %>% 
+  ggplot(.,aes(x=YearPostBurnIn)) +
+  geom_ribbon(aes(ymin = meanGenMean - seGenMean, 
+                  ymax = meanGenMean + seGenMean), 
+              fill = "grey70", alpha=0.75) + 
+  geom_line(aes(y = meanGenMean))
+sdGplot<-forSimPlot %>% 
+  group_by(YearPostBurnIn,year,stage) %>% 
+  summarize(meanGenSD=mean(genValSD),
+            seGenSD=sd(genValSD)/n()) %>% 
+  ggplot(.,aes(x=YearPostBurnIn)) +
+  geom_ribbon(aes(ymin = meanGenSD - seGenSD, 
+                  ymax = meanGenSD + seGenSD), 
+              fill = "grey70", alpha=0.75) + 
+  geom_line(aes(y = meanGenSD))
+(meanGplot | sdGplot) & theme_bw() & geom_vline(xintercept = 0, color='darkred')
+```
+
+Now run the same 16 burnt-in sims for 10 cycles of GS.
+
+```{r continue after burn-in with GS, eval=F}
+# source(here::here("code","runSchemesPostBurnIn.R"))
+# simulations<-readRDS(here::here("output","burnIn_test.rds"))
+# postBurnInGS_test<-runSchemesPostBurnIn(simulations = simulations,
+#                                       newBSP=NULL,
+#                                       nPostBurnInCycles=10,
+#                                       selCritPop="parentSelCritGEBV",
+#                                       selCritPipe="selCritIID",
+#                                       productFunc="productPipeline",
+#                                       popImprovFunc="popImprov1Cyc",
+#                                       ncores=8,
+#                                       nBLASthreads=1,nThreadsMacs2=1)
+# saveRDS(postBurnInGS_test,file = here::here("output","postBurnInGS_test.rds"))
+```
+
+*This actually ran all night on my laptop without finishing.... even the toy example with GS is non-trivial to run.*
+
+## Run full-scale burn-in sims
+
+Set-up multiple iterations of a simulation with `selCritIID` as burn-in.
+
+20 burn-in cycles to match examples by EiB.
+
+-   Genome / Pop specs
+
+    -   18 chrom,
+
+    -   Ne = 1000,
+
+    -   nSNP = 300 SNP/chrom (matches EiB examples)
+
+    -   nQTLperChr = 1000
+
+    -   nSegSites = 2000
+
+-   Genetic architecture and Error variance
+
+    -   `genVar = 750` and stage-specific `errVar` input from [here](https://wolfemd.github.io/IITA_2021GS/inputsForSimulationV2.html)
+
+        -   The max estimated `errVar` was for CET at \~3500,
+
+        -   so a `genVar` of 750 is to set up a entry level h2 around 0.2
+
+    -   `meanDD = 0.3`
+
+    -   `varDD = ???`
+
+    -   Var(GxYr) == Var(G), again matching EiB example
+
+        -   What about GxL and GxLxYr?
+
+```{r}
+read.csv(here::here("data","baselineScheme - IITA.csv"), 
+                   header = T, stringsAsFactors = F) %>% rmarkdown::paged_table()
+```
+
+-   Breeding Scheme (`schemeDF` printed above)
+
+    -   Skips SDN stage. Is there an UYT2 (second year of UYT) to sim?
+
+    -   `phenoF1toStage1 = FALSE`
+
+    -   Population Improvement
+
+        -   `nParents = 50, nCrosses = 100, nProgeny = 25,nClonesToNCRP = 3`
+        -   Or `nParents = 100, nCrosses = 250, nProgeny = 10,nClonesToNCRP = 3` (EiB example)
+
+-   Additional Settings
+
+    -   `nCyclesToKeepRecords = 30` (all)... what effect does this actually have? Just on storage of output?
+
+    -   `trainingPopCycles = 15`...
+
+        -   means 15 years of each stage used in each prediction...
+
+        -   What about an alternative: set a fixed TP size e.g. 5000 clones.
+
+            -   This might be faster since the number of clones / dimension of kinship matrix is primary slow point.
+
+```{bash, eval=F}
+screen; 
+singularity shell ~/rocker2.sif; 
+cd /home/mw489/BreedingSchemeOpt/;
+R
+```
+
+```{r inputs for multi-sim benchmark, eval=T}
+# suppressMessages(library(AlphaSimHlpR))
+# suppressMessages(library(tidyverse))
+# suppressMessages(library(genomicMateSelectR))
+# select <- dplyr::select
+# # This scheme _excludes_ the seedling stage from the simulation.
+# schemeDF<-read.csv(here::here("data","baselineScheme - IITA.csv"), 
+#                    header = T, stringsAsFactors = F) %>% 
+#   select(-PlantsPerPlot)
+# 
+# bsp<-specifyBSP(schemeDF = schemeDF,
+#                 nChr = 18,effPopSize = 1000,quickHaplo = F,
+#                 segSites = 500, nQTL = 50, nSNP = 100, genVar = 100,
+#                 gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+#                 meanDD = 1,varDD = 5,relAA = 0.1,
+#                 stageToGenotype = "CET",
+#                 nParents = 50, nCrosses = 100, nProgeny = 25,nClonesToNCRP = 3,
+#                 phenoF1toStage1 = F,errVarPreStage1 = 500,
+#                 useCurrentPhenoTrain = F, 
+#                 nCyclesToKeepRecords = 30,
+#                 # selCrits are overwritten by runBreedingScheme_wBurnIn
+#                 selCritPipeAdv = selCritIID, # thus have no actual effect
+#                 selCritPopImprov =  selCritIID) 
+```
+
+# Next steps
+
+1.  Complete burn-in simulations
+
+2.  Conduct a baseline GS vs. Conv. simulation
+
+3.  Begin the actual interesting sims
+
+    -   Optimize budgets
+
+    -   Compare alternative VDPs
+
+    -   Test *mate selection*, *optimal contributions* and ultimately optimizing *mating plans*.

@@ -10,7 +10,8 @@ editor_options:
 
 # Simulations
 
-1. [Baseline simulations](baselineSim.html): 
+1. [Burn-in simulations](burnInSims.html): 
+2. [Baseline simulations](baselineSim.html): 
 
 
 # Breeding Scheme Opt Group

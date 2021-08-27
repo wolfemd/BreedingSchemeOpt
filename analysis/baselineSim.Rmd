@@ -429,9 +429,8 @@ Plot the mean genetic value (y-axis) of the "CET" stage for all 20 simulations (
 
     -   Similar approach to with plot size.... simulate a spectrum and check for an effect?
 
-```{=html}
-<!-- -->
-```
 4.  Develop and test a errVar-plotSize scaling function
+
 5.  Complete a baseline simulation
+
 6.  Test alternative *mate selection* scenarios, etc.
