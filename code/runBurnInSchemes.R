@@ -7,13 +7,13 @@
 #' @param ncores Integer, number of cores to optionally execute replicate simulations in parallel
 #' @param bsp  A list of breeding scheme parameters.
 #' @param nBurnInCycles Integer number of cycles to as 'burn-in' using the \code{selCritPop} and \code{selCritPipe} settings.
-#' @param initializeFunc Function to initialize the breeding program.
-#' @param productPipeline Function to advance the product pipeline by one generation
-#' @param populationImprovement Function to improve the breeding population and select parents to initiate the next cycle of the breeding scheme
+#' @param iniFunc string, Function to initialize the breeding program.
+#' @param productFunc string, Function to advance the product pipeline by one generation
+#' @param popImprovFunc string, Function to improve the breeding population and select parents to initiate the next cycle of the breeding scheme
 #' @param nBLASthreads number of cores for each worker to use for multi-thread BLAS. Will speed up, for example, genomic predictions when using selCritGRM. Careful to balance with other forms of parallel processing.
 #' @param nThreadsMacs2 uses the nThreads argument in \code{runMacs2}, parallelizes founder sim by chrom.
 #' @param selCritPop string, overrides the selCrit in \code{bsp} for the burn-in stage.
-#' @param selCritPop string, overrides the selCrit in \code{bsp} for the burn-in stage.
+#' @param selCritPipe string, overrides the selCrit in \code{bsp} for the burn-in stage.
 #' @return A \code{records} object containing the phenotypic records retained of the breeding scheme
 #'
 #' @details A wrapper to initiate the breeding program then iterate cycles of product pipeline and population improvement
