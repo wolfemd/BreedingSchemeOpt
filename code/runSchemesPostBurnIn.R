@@ -11,12 +11,12 @@
 #' @param ncores Integer, number of cores to optionally execute replicate simulations in parallel
 #' @param newBSP optional, so you can specify a different bsp for post-burn in sims.
 #' @param nPostBurnInCycles Integer number of cycles to run the \code{selCritPop} and \code{selCritPipe} settings.
-#' @param productPipeline Function to advance the product pipeline by one generation
-#' @param populationImprovement Function to improve the breeding population and select parents to initiate the next cycle of the breeding scheme
+#' @param productFunc string, Function to advance the product pipeline by one generation
+#' @param popImprovFunc string, Function to improve the breeding population and select parents to initiate the next cycle of the breeding scheme
 #' @param nBLASthreads number of cores for each worker to use for multi-thread BLAS. Will speed up, for example, genomic predictions when using selCritGRM. Careful to balance with other forms of parallel processing.
 #' @param nThreadsMacs2 uses the nThreads argument in \code{runMacs2}, parallelizes founder sim by chrom.
-#' @param selCritPop string, overrides the selCrit in \code{bsp} for the burn-in stage.
-#' @param selCritPop string, overrides the selCrit in \code{bsp} for the burn-in stage.
+#' @param selCritPop string, overrides the selCrit in \code{bsp} for the post burn-in stage.
+#' @param selCritPipe string, overrides the selCrit in \code{bsp} for the post burn-in stage.
 #' @return A \code{records} object containing the phenotypic records retained of the breeding scheme
 #'
 #' @details A wrapper to initiate the breeding program then iterate cycles of product pipeline and population improvement
@@ -28,7 +28,7 @@ runSchemesPostBurnIn<-function(simulations,
                                selCritPop="selCritIID",
                                selCritPipe="selCritIID",
                                productFunc="productPipeline",
-                               popImprovFunc="popImprov1Cyc",
+                               popImprovFunc="popImprovByParentSel",
                                ncores=1,
                                nBLASthreads=NULL,nThreadsMacs2=NULL){
 
@@ -44,13 +44,18 @@ runSchemesPostBurnIn<-function(simulations,
 
       # This CONTINUES where previous sims left off
       ## no initialize step
+      ## Keep burn-in stage sim params "SP"
       SP<-burnInSim$SP
       ## specify a potentially new bsp object
-      if(!is.null(newBSP)){ bsp<-newBSP } else { bsp<-burnInSim$bsp }
+      ## (keep checks stored in burn-in stage's bsp)
+      if(!is.null(newBSP)){
+        bsp<-newBSP; bsp$checks<-burnInSim$bsp$checks
+      } else { bsp<-burnInSim$bsp }
+      ## 'historical' records from burn-in
       records<-burnInSim$records
+      ## override burn-in specified product and population improvement funcs
       bsp[["productPipeline"]] <- get(productFunc)
       bsp[["populationImprovement"]] <- get(popImprovFunc)
-      ## set the selection criteria for post burn-in
       bsp[["selCritPipeAdv"]] <- get(selCritPipe)
       bsp[["selCritPopImprov"]] <- get(selCritPop)
 
