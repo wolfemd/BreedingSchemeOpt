@@ -133,6 +133,47 @@ postBurnInGS_test<-runSchemesPostBurnIn(simulations = simulations,
                                         nBLASthreads=4)
 saveRDS(postBurnInGS_test,file = here::here("output","postBurnInGS_test.rds"))
 end<-proc.time()[3]; print(paste0((end-start)/60," mins elapsed"))
+# [1] "3.8908 mins elapsed"
+```
+
+```{r plot test sims}
+postBurnInGS<-readRDS(here::here("output","postBurnInGS_test.rds"))
+postBurnInPS<-readRDS(here::here("output","postBurnIn_test.rds"))
+
+forSimPlot<-postBurnInGS %>% 
+  mutate(PostBurnIn="GS") %>% 
+  bind_rows(postBurnInPS %>% 
+              mutate(PostBurnIn="PS")) %>% 
+  unnest_wider(SimOutput) %>% 
+  select(SimRep,PostBurnIn,records) %>% 
+  unnest_wider(records) %>% 
+  select(SimRep,PostBurnIn,stageOutputs) %>% 
+  unnest() %>% 
+  filter(stage=="F1") %>% 
+  mutate(YearPostBurnIn=year-10)
+ 
+library(patchwork)
+meanGplot<-forSimPlot %>% 
+  group_by(PostBurnIn,YearPostBurnIn,year,stage) %>% 
+  summarize(meanGenMean=mean(genValMean),
+            seGenMean=sd(genValMean)/n()) %>% 
+  ggplot(.,aes(x=YearPostBurnIn)) +
+  geom_ribbon(aes(ymin = meanGenMean - seGenMean, 
+                  ymax = meanGenMean + seGenMean,
+                  fill = PostBurnIn), 
+              alpha=0.75) + 
+  geom_line(aes(y = meanGenMean, color=PostBurnIn))
+sdGplot<-forSimPlot %>% 
+  group_by(PostBurnIn,YearPostBurnIn,year,stage) %>% 
+  summarize(meanGenSD=mean(genValSD),
+            seGenSD=sd(genValSD)/n()) %>% 
+  ggplot(.,aes(x=YearPostBurnIn)) +
+  geom_ribbon(aes(ymin = meanGenSD - seGenSD, 
+                  ymax = meanGenSD + seGenSD,
+                  fill = PostBurnIn), 
+              alpha=0.75) + 
+  geom_line(aes(y = meanGenSD, group=PostBurnIn))
+(meanGplot | sdGplot) & theme_bw() & geom_vline(xintercept = 0, color='darkred')
 ```
 
 ## Benchmark "full-scale" GS cycles
