@@ -11,9 +11,8 @@
 
 <meta name="author" content="Marnin Wolfe" />
 
-<meta name="date" content="2021-08-13" />
 
-<title>Empirically-driven simulation of an existing cassava GS program</title>
+<title>Baseline simulation of cassava GS</title>
 
 <script src="site_libs/header-attrs-2.10/header-attrs.js"></script>
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
@@ -35,8 +34,7 @@
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
-<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
-<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
 
@@ -136,6 +134,15 @@ code span.va { color: #27aeae; } /* Variable */
 code span.vs { color: #da4453; } /* VerbatimString */
 code span.wa { color: #da4453; } /* Warning */
 
+.sourceCode .row {
+  width: 100%;
+}
+.sourceCode {
+  overflow-x: auto;
+}
+.code-folding-btn {
+  margin-right: -30px;
+}
 </style>
 <script>
 // apply pandoc div.sourceCode style to pre.sourceCode instead
@@ -320,6 +327,9 @@ $(document).ready(function () {
 </style>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
 
 
 
@@ -486,11 +496,19 @@ div.tocify {
 
 <div id="header">
 
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
 
 
-<h1 class="title toc-ignore">Empirically-driven simulation of an existing cassava GS program</h1>
+
+<h1 class="title toc-ignore">Baseline simulation of cassava GS</h1>
 <h4 class="author">Marnin Wolfe</h4>
-<h4 class="date">2021-08-13</h4>
+<h4 class="date">2021-Aug-27</h4>
 
 </div>
 
@@ -515,7 +533,7 @@ div.tocify {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2021-08-27
+<strong>Last updated:</strong> 2021-08-31
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
@@ -606,16 +624,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomwolfemdBreedingSchemeOpttree9d369eec5ebd9563f44c7ebcd655785308368217targetblank9d369eea"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/wolfemd/BreedingSchemeOpt/tree/9d369eec5ebd9563f44c7ebcd655785308368217" target="_blank">9d369ee</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomwolfemdBreedingSchemeOpttree211ab4770a288dd10166aa1d4bbf6575ddcf1e0atargetblank211ab47a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/wolfemd/BreedingSchemeOpt/tree/211ab4770a288dd10166aa1d4bbf6575ddcf1e0a" target="_blank">211ab47</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomwolfemdBreedingSchemeOpttree9d369eec5ebd9563f44c7ebcd655785308368217targetblank9d369eea" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomwolfemdBreedingSchemeOpttree211ab4770a288dd10166aa1d4bbf6575ddcf1e0atargetblank211ab47a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/wolfemd/BreedingSchemeOpt/tree/9d369eec5ebd9563f44c7ebcd655785308368217" target="_blank">9d369ee</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/wolfemd/BreedingSchemeOpt/tree/211ab4770a288dd10166aa1d4bbf6575ddcf1e0a" target="_blank">211ab47</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -628,18 +646,22 @@ Ignored files:
     Ignored:    analysis/.DS_Store
     Ignored:    analysis/images/.DS_Store
     Ignored:    data/.DS_Store
+    Ignored:    output/.DS_Store
 
 Untracked files:
+    Untracked:  code/scrap.R
     Untracked:  data/baselineScheme.gsheet
     Untracked:  data/siErrorVarEst_byTrialType_directApproach_2021Aug25.rds
     Untracked:  output/benchmark_sim.rds
     Untracked:  output/benchmark_sims5.rds
+    Untracked:  output/burnInSims_bsp1_iita_2021Aug27.rds
+    Untracked:  output/burnInSims_bsp2_iita_2021Aug27.rds
+    Untracked:  output/burnInSims_bsp3_iita_2021Aug27.rds
+    Untracked:  output/burnInSims_iita_2021Aug27.rds
     Untracked:  output/burnIn_test.rds
+    Untracked:  output/postBurnInGS_test.rds
     Untracked:  output/postBurnIn_test.rds
     Untracked:  output/test_burnIn_sim.rds
-
-Unstaged changes:
-    Modified:   data/README.md
 
 </code></pre>
 <p>
@@ -678,6 +700,57 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/wolfemd/BreedingSchemeOpt/blob/211ab4770a288dd10166aa1d4bbf6575ddcf1e0a/analysis/baselineSim.Rmd" target="_blank">211ab47</a>
+</td>
+<td>
+wolfemd
+</td>
+<td>
+2021-08-31
+</td>
+<td>
+Small test simulations with post burn-in GS vs. PS
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/wolfemd/BreedingSchemeOpt/blob/8d65f27461f62115257a678c3b1daccd35b4a6f3/analysis/baselineSim.Rmd" target="_blank">8d65f27</a>
+</td>
+<td>
+wolfemd
+</td>
+<td>
+2021-08-30
+</td>
+<td>
+Post burn-in test of new GS functions underway
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/wolfemd/BreedingSchemeOpt/e0d20bd97e8e4f81059f0fecc3eea97f4ff53132/docs/baselineSim.html" target="_blank">e0d20bd</a>
+</td>
+<td>
+wolfemd
+</td>
+<td>
+2021-08-27
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -753,34 +826,31 @@ Rebuild repo removing the “Group” part. Project is to contain BOTH the “Gr
 </div>
 </div>
 </div>
-<p>See <a href="https://wolfemd.github.io/IITA_2021GS/inputsForSimulation.html">here</a> for an analysis of IITA trial data to derive empirical inputs for this analysis. I analyzed trial-by-trial to measure selection error and associate it with plot-size. While inconclusive, this exercise emphasized a key concern for conducting simulations that alter the VDP: that the cost-benefit balance could depend on the relative information value/selection accuracy/error variance of different plot sizes and trial configurations.</p>
-<p>As a result, I decided to simulate a range of error-vs-plot size scaling as part of the “baseline” simulations, starting with IITA as an example.</p>
-<p><strong><em>If</em></strong> we observe a shift-point in the cost-benefit analysis we can then work with breeding programs to determine where their data indicate they lie and what changes are subsequently recommended.</p>
-<div id="develop-a-simulation-with-burn-in-ps" class="section level1">
-<h1>Develop a simulation with burn-in PS</h1>
-<ul>
-<li>First thing is to complete un-finished work (<a href="example-simulation-reducing-error-with-new-tools.html">started here</a>) and build a <a href="https://wolfemd.github.io/AlphaSimHlpR/reference/runBreedingScheme_wBurnIn.html"><code>runBreedingScheme_wBurnIn()</code></a> function into <code>AlphaSimHlpR</code>. The new function enables a switch in selection criteria after a certain number of cycles, e.g. a phenotypic selection “burn-in” period followed by GS.</li>
-<li>Previously, used control files to set-up <code>bsp</code>. Implemented <a href="https://wolfemd.github.io/AlphaSimHlpR/reference/specifyBSP.html"><code>specifyBSP()</code></a> which creates a <code>bsp</code> using a <code>data.frame</code> of stage-specific breeding scheme <em>plus</em> all other <code>AlphaSimHlpR</code> arguments as inputs.</li>
-<li>I fully documented all new functions, integrated them into my forked-repo of <code>AlphaSimHlpR</code> <em>and</em> built a <code>pkgdown</code> web-documentation: <a href="https://wolfemd.github.io/AlphaSimHlpR/index.html">here</a></li>
-<li>(click the function refs above to see their specific details)</li>
-<li>Below, a quick demo before subsequently setting up a bigger analysis</li>
-</ul>
-<div id="set-up-a-singularity-shell-with-ropenblas" class="section level2">
-<h2>Set-up a singularity shell with R+OpenBLAS</h2>
-<p>This is not required. If you want the advantage of multi-threaded BLAS to speed up predictions within the simulations, you need an R instance that is linked to OpenBLAS (another example is Microsoft R Open). For CBSU, the recommended approach is currently to use singularity shells provided by the “rocker” project. They even come pre-installed with tidyverse :).</p>
-<p>Linked to OpenBLAS, using a simple function <code>RhpcBLASctl::blas_set_num_threads()</code> I can add arguments to functions to control this feature.</p>
-<p>For optimal performance, it is import to balance the number of threads each R session uses for BLAS against any other form of parallel processing being used and considering total available system resources.</p>
+<div id="previous-steps" class="section level1">
+<h1>Previous steps</h1>
+<ol style="list-style-type: decimal">
+<li><p>Empirical estimate of TrialType-specific error variances in terms of the IITA selection index (SELIND). See that analysis <a href="https://wolfemd.github.io/IITA_2021GS/inputsForSimulationV2.html">here</a>.</p></li>
+<li><p><a href="burnInSims.html">Burn-in simulations</a></p></li>
+</ol>
+</div>
+<div id="set-up-a-singularity-shell-with-ropenblas" class="section level1">
+<h1>Set-up a singularity shell with R+OpenBLAS</h1>
+<p><strong><em>This is optional and can be skipped.</em></strong></p>
+<p>If you want the advantage of multi-threaded BLAS to speed up predictions within the simulations, you need an R instance that is linked to OpenBLAS (another example is Microsoft R Open). For CBSU, the recommended approach is currently to use singularity shells provided by the “rocker” project. They even come pre-installed with tidyverse :). Linked to OpenBLAS, using a simple function <code>RhpcBLASctl::blas_set_num_threads()</code> I can add arguments to functions to control this feature. For optimal performance, it is import to balance the number of threads each R session uses for BLAS against any other form of parallel processing being used and considering total available system resources.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 0) Pull a singularity image with OpenBLAS enabled R + tidyverse from rocker/</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">singularity</span> pull ~/rocker2.sif docker://rocker/tidyverse:latest<span class="kw">;</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># only do above first time</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># singularity pull ~/rocker2.sif docker://rocker/tidyverse:latest;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 1) start a screen shell </span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">screen</span><span class="kw">;</span> <span class="co"># or screen -r if re-attaching...</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 3) start the singularity Linux shell inside that</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="ex">singularity</span> shell ~/rocker2.sif<span class="kw">;</span> </span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Project directory, so R will use as working dir.</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /home/mw489/BreedingSchemeOpt/<span class="kw">;</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 3) Start R</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="ex">R</span></span></code></pre></div>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">screen</span><span class="kw">;</span> </span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 2) reserve interactive slurm</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="ex">salloc</span> <span class="at">-n</span> 25 <span class="at">--mem</span> 60G<span class="kw">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># 3) start the singularity Linux shell inside that</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="ex">singularity</span> shell ~/rocker2.sif<span class="kw">;</span> </span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Project directory, so R will use as working dir.</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /home/mw489/BreedingSchemeOpt/<span class="kw">;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co"># 3) Start R</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">OMP_NUM_THREADS=</span>1<span class="kw">;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="ex">R</span></span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Install genomicMateSelectR to user-accessible libPath</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="do">### In a singularity shell, sintall as follows:</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>libPath<span class="ot">&lt;-</span><span class="st">&quot;/home/mw489/R/x86_64-pc-linux-gnu-library/4.1&quot;</span> <span class="co"># should be YOUR libPath</span></span>
@@ -792,469 +862,187 @@ Rebuild repo removing the “Group” part. Project is to contain BOTH the “Gr
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>withr<span class="sc">::</span><span class="fu">with_libpaths</span>(<span class="at">new=</span>libPath, <span class="fu">install.packages</span>(<span class="st">&quot;AlphaSimR&quot;</span>))</span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>withr<span class="sc">::</span><span class="fu">with_libpaths</span>(<span class="at">new=</span>libPath, <span class="fu">install.packages</span>(<span class="st">&quot;optiSel&quot;</span>))</span>
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>withr<span class="sc">::</span><span class="fu">with_libpaths</span>(<span class="at">new=</span>libPath, <span class="fu">install.packages</span>(<span class="st">&quot;rgl&quot;</span>))</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>withr<span class="sc">::</span><span class="fu">with_libpaths</span>(<span class="at">new=</span>libPath, devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;wolfemd/AlphaSimHlpR&quot;</span>, <span class="at">ref =</span> <span class="st">&#39;master&#39;</span>, <span class="at">force=</span>T))</span></code></pre></div>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>withr<span class="sc">::</span><span class="fu">with_libpaths</span>(<span class="at">new=</span>libPath, devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;wolfemd/AlphaSimHlpR&quot;</span>, <span class="at">ref =</span> <span class="st">&#39;master&#39;</span>, <span class="at">force=</span>T))</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># devtools::install_github(&quot;wolfemd/AlphaSimHlpR&quot;, ref = &#39;master&#39;, force=T)</span></span></code></pre></div>
 </div>
-<div id="a-small-example" class="section level2">
-<h2>A small example</h2>
+<div id="a-small-example" class="section level1">
+<h1>A small example</h1>
+<p><strong>Objective:</strong> develop a hopefully faster GS simulator which uses a fixed number of clones for predictions… hoping to constrain compute requirements better than using the <code>trainingPopCycles</code> parameter, without sacrificing much prediction accuracy.</p>
+<p>For specifying a <code>newBSP</code>, there are some considerations. The <code>bsp</code> from previous run contains an entry <code>bsp$checks</code> specifying a pop-object with randomly chosen checks from the burn-in phase. <em>For now</em>, I will ensure the burn-in checks are used post burn-in. Keep it simple. For that reason, <code>newBSP</code> should not alter the <code>nChks</code> value. If it does, might cause code to break…</p>
+<ul>
+<li><p>Set-up my own population improvement function</p></li>
+<li><p>Added some options to <code>bsp</code> objects to control which phenotype records are used, which clones are includedin the TP, and which clones are considered selection candidates</p></li>
+<li><p>JL’s original <code>popImprov1Cyc</code> drew <code>candidates</code> from the full <code>records$F1@id</code> (excluding potentially indivs only scored during the current year, if <code>useCurrentPhenoTrain=FALSE</code>).</p></li>
+<li><p>My changes:</p>
+<ul>
+<li><p><code>nTrainPopCycles</code>: draw training pop clones only from this number of recent cycles.</p></li>
+<li><p><code>nYrsAsCandidates</code>: candidates for selection only from this number of recent years</p></li>
+<li><p><code>maxTrainingPopSize</code>: From the lines in the most recent cycles (indicated by <code>nTrainPopCycles</code>), subsample this number of lines for training data.</p>
+<ul>
+<li>This is <em>in addition to</em> the “check” (<code>bsp$checks@id</code>) and the lines indicates as selection <code>candidates</code> according to the setting of <code>nYrsAsCandidates</code>.</li>
+<li>Phenotypic records of <code>candidates</code> will <em>also</em> be included in any predictions.</li>
+<li>All “historical” data will always be used, but the number of maximum training lines will be held constant.</li>
+<li>Replaces the stage-specific <code>bsp$trainingPopCycles</code>, which will be unused in this pipeline, but not deleted from the package.</li>
+</ul></li>
+</ul></li>
+</ul>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(AlphaSimHlpR))</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(tidyverse))</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(genomicMateSelectR))</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>select <span class="ot">&lt;-</span> dplyr<span class="sc">::</span>select</span></code></pre></div>
-<p>Run two cycles pre- and post with a small breeding scheme. Runs on a laptop.</p>
-<p>Use my newly created <code>specifyBSP()</code> function to create the <code>bsp</code> input for sims.</p>
-<ul>
-<li>3 chrom, Ne = 100, 300 SNP (100/chrom)</li>
-<li>Select 10 parents, make 4 random crosses with 50 progeny each</li>
-</ul>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>schemeDF<span class="ot">&lt;-</span><span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;baselineScheme - Test.csv&quot;</span>), </span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">header =</span> T, <span class="at">stringsAsFactors =</span> F)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>bsp<span class="ot">&lt;-</span><span class="fu">specifyBSP</span>(<span class="at">schemeDF =</span> schemeDF,</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">nChr =</span> <span class="dv">3</span>,<span class="at">effPopSize =</span> <span class="dv">100</span>,<span class="at">quickHaplo =</span> F,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">segSites =</span> <span class="dv">400</span>, <span class="at">nQTL =</span> <span class="dv">40</span>, <span class="at">nSNP =</span> <span class="dv">100</span>, <span class="at">genVar =</span> <span class="dv">40</span>,</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                <span class="at">gxeVar =</span> <span class="cn">NULL</span>, <span class="at">gxyVar =</span> <span class="dv">15</span>, <span class="at">gxlVar =</span> <span class="dv">10</span>,<span class="at">gxyxlVar =</span> <span class="dv">5</span>,</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                <span class="at">meanDD =</span> <span class="fl">0.5</span>,<span class="at">varDD =</span> <span class="fl">0.01</span>,<span class="at">relAA =</span> <span class="fl">0.5</span>,</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">stageToGenotype =</span> <span class="st">&quot;PYT&quot;</span>,</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">nParents =</span> <span class="dv">10</span>, <span class="at">nCrosses =</span> <span class="dv">4</span>, <span class="at">nProgeny =</span> <span class="dv">50</span>,<span class="at">nClonesToNCRP =</span> <span class="dv">3</span>,</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>                <span class="at">phenoF1toStage1 =</span> T,<span class="at">errVarPreStage1 =</span> <span class="dv">500</span>,</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                <span class="at">useCurrentPhenoTrain =</span> F, </span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>                <span class="at">nCyclesToKeepRecords =</span> <span class="dv">30</span>,</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPipeAdv =</span> selCritIID, </span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPopImprov =</span>  selCritIID)</span></code></pre></div>
-<p>I created a CSV to specify a data.frame <code>schemeDF</code> defining stage-specific breeding scheme inputs.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>schemeDF <span class="sc">%&gt;%</span> rmarkdown<span class="sc">::</span><span class="fu">paged_table</span>()</span></code></pre></div>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["stageNames"],"name":[1],"type":["chr"],"align":["left"]},{"label":["nEntries"],"name":[2],"type":["int"],"align":["right"]},{"label":["nLocs"],"name":[3],"type":["int"],"align":["right"]},{"label":["nReps"],"name":[4],"type":["int"],"align":["right"]},{"label":["nChks"],"name":[5],"type":["int"],"align":["right"]},{"label":["entryToChkRatio"],"name":[6],"type":["int"],"align":["right"]},{"label":["errVars"],"name":[7],"type":["int"],"align":["right"]},{"label":["trainingPopCycles"],"name":[8],"type":["int"],"align":["right"]},{"label":["PlantsPerPlot"],"name":[9],"type":["int"],"align":["right"]}],"data":[{"1":"PYT","2":"200","3":"1","4":"1","5":"2","6":"20","7":"100","8":"15","9":"10"},{"1":"AYT","2":"100","3":"1","4":"1","5":"2","6":"20","7":"50","8":"15","9":"25"},{"1":"UYT","2":"20","3":"1","4":"2","5":"2","6":"20","7":"25","8":"15","9":"42"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>select <span class="ot">&lt;-</span> dplyr<span class="sc">::</span>select</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>schemeDF<span class="ot">&lt;-</span><span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;baselineScheme - Test.csv&quot;</span>), </span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">header =</span> T, <span class="at">stringsAsFactors =</span> F)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;code&quot;</span>,<span class="st">&quot;runSchemesPostBurnIn.R&quot;</span>))</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>simulations<span class="ot">&lt;-</span><span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;burnIn_test.rds&quot;</span>))</span></code></pre></div>
+<div id="example" class="section level2">
+<h2>Example</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>newBSP<span class="ot">&lt;-</span><span class="fu">specifyBSP</span>(<span class="at">schemeDF =</span> schemeDF,</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">nChr =</span> <span class="dv">3</span>,<span class="at">effPopSize =</span> <span class="dv">100</span>,<span class="at">quickHaplo =</span> F,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                   <span class="at">segSites =</span> <span class="dv">400</span>, <span class="at">nQTL =</span> <span class="dv">40</span>, <span class="at">nSNP =</span> <span class="dv">100</span>, <span class="at">genVar =</span> <span class="dv">40</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                   <span class="at">gxeVar =</span> <span class="cn">NULL</span>, <span class="at">gxyVar =</span> <span class="dv">15</span>, <span class="at">gxlVar =</span> <span class="dv">10</span>,<span class="at">gxyxlVar =</span> <span class="dv">5</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                   <span class="at">meanDD =</span> <span class="fl">0.5</span>,<span class="at">varDD =</span> <span class="fl">0.01</span>,<span class="at">relAA =</span> <span class="fl">0.5</span>,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">stageToGenotype =</span> <span class="st">&quot;PYT&quot;</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">nParents =</span> <span class="dv">10</span>, <span class="at">nCrosses =</span> <span class="dv">4</span>, <span class="at">nProgeny =</span> <span class="dv">50</span>,<span class="at">nClonesToNCRP =</span> <span class="dv">3</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                   <span class="at">phenoF1toStage1 =</span> T,<span class="at">errVarPreStage1 =</span> <span class="dv">500</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>                   <span class="at">useCurrentPhenoTrain =</span> F, </span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>                   <span class="at">nCyclesToKeepRecords =</span> <span class="dv">30</span>,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                   <span class="at">selCritPipeAdv =</span> selCritIID, </span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>                   <span class="at">selCritPopImprov =</span>  selCritIID,</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>                   <span class="at">nTrainPopCycles=</span><span class="dv">6</span>,</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>                   <span class="at">nYrsAsCandidates=</span><span class="dv">2</span>,</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>                   <span class="at">maxTrainingPopSize=</span><span class="dv">500</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>start<span class="ot">&lt;-</span><span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>postBurnInGS_test<span class="ot">&lt;-</span><span class="fu">runSchemesPostBurnIn</span>(<span class="at">simulations =</span> simulations,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">newBSP=</span>newBSP,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">nPostBurnInCycles=</span><span class="dv">10</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">selCritPop=</span><span class="st">&quot;parentSelCritGEBV&quot;</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">selCritPipe=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">productFunc=</span><span class="st">&quot;productPipeline&quot;</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">popImprovFunc=</span><span class="st">&quot;popImprovByParentSel&quot;</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">ncores=</span><span class="dv">4</span>,</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">nBLASthreads=</span><span class="dv">4</span>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(postBurnInGS_test,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;postBurnInGS_test.rds&quot;</span>))</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>end<span class="ot">&lt;-</span><span class="fu">proc.time</span>()[<span class="dv">3</span>]; <span class="fu">print</span>(<span class="fu">paste0</span>((end<span class="sc">-</span>start)<span class="sc">/</span><span class="dv">60</span>,<span class="st">&quot; mins elapsed&quot;</span>))</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] &quot;3.8908 mins elapsed&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>postBurnInGS<span class="ot">&lt;-</span><span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;postBurnInGS_test.rds&quot;</span>))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>postBurnInPS<span class="ot">&lt;-</span><span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;postBurnIn_test.rds&quot;</span>))</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>forSimPlot<span class="ot">&lt;-</span>postBurnInGS <span class="sc">%&gt;%</span> </span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">PostBurnIn=</span><span class="st">&quot;GS&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(postBurnInPS <span class="sc">%&gt;%</span> </span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>              <span class="fu">mutate</span>(<span class="at">PostBurnIn=</span><span class="st">&quot;PS&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_wider</span>(SimOutput) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(SimRep,PostBurnIn,records) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_wider</span>(records) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(SimRep,PostBurnIn,stageOutputs) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(stage<span class="sc">==</span><span class="st">&quot;F1&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">YearPostBurnIn=</span>year<span class="dv">-10</span>)</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>meanGplot<span class="ot">&lt;-</span>forSimPlot <span class="sc">%&gt;%</span> </span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(PostBurnIn,YearPostBurnIn,year,stage) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">meanGenMean=</span><span class="fu">mean</span>(genValMean),</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>            <span class="at">seGenMean=</span><span class="fu">sd</span>(genValMean)<span class="sc">/</span><span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>YearPostBurnIn)) <span class="sc">+</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> meanGenMean <span class="sc">-</span> seGenMean, </span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>                  <span class="at">ymax =</span> meanGenMean <span class="sc">+</span> seGenMean,</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>                  <span class="at">fill =</span> PostBurnIn), </span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>              <span class="at">alpha=</span><span class="fl">0.75</span>) <span class="sc">+</span> </span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> meanGenMean, <span class="at">color=</span>PostBurnIn))</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>sdGplot<span class="ot">&lt;-</span>forSimPlot <span class="sc">%&gt;%</span> </span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(PostBurnIn,YearPostBurnIn,year,stage) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">meanGenSD=</span><span class="fu">mean</span>(genValSD),</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>            <span class="at">seGenSD=</span><span class="fu">sd</span>(genValSD)<span class="sc">/</span><span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>YearPostBurnIn)) <span class="sc">+</span></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> meanGenSD <span class="sc">-</span> seGenSD, </span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>                  <span class="at">ymax =</span> meanGenSD <span class="sc">+</span> seGenSD,</span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>                  <span class="at">fill =</span> PostBurnIn), </span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>              <span class="at">alpha=</span><span class="fl">0.75</span>) <span class="sc">+</span> </span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> meanGenSD, <span class="at">group=</span>PostBurnIn))</span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>(meanGplot <span class="sc">|</span> sdGplot) <span class="sc">&amp;</span> <span class="fu">theme_bw</span>() <span class="sc">&amp;</span> <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">color=</span><span class="st">&#39;darkred&#39;</span>)</span></code></pre></div>
+<p><img src="figure/baselineSim.Rmd/plot%20test%20sims-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
-<p>Now run <code>runBreedingScheme_wBurnIn()</code> which will simulate PS for burn-in cycles and GS post burn-in. Use <code>selCritIID</code> for VDP. Notice the new <code>parentSelCritGEBV</code> which is so far the same as <code>selCritGRM</code> but lays groundwork for mate selection and non-additive effects related sims.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>test_sim<span class="ot">&lt;-</span><span class="fu">runBreedingScheme_wBurnIn</span>(<span class="at">replication =</span> <span class="dv">1</span>, <span class="at">bsp =</span> bsp,</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">nBurnInCycles=</span><span class="dv">2</span>,<span class="at">nPostBurnInCycles=</span><span class="dv">2</span>,</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">selCritPopPre=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">selCritPopPost=</span><span class="st">&quot;parentSelCritGEBV&quot;</span>,</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">selCritPipePre=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">selCritPipePost=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">nBLASthreads=</span><span class="dv">3</span>,<span class="at">nThreadsMacs2=</span><span class="dv">3</span>)</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(test_sim,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;test_sim.rds&quot;</span>))</span></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>test_sim<span class="ot">&lt;-</span><span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;test_sim.rds&quot;</span>))</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>test_sim<span class="sc">$</span>records<span class="sc">$</span>stageOutputs <span class="sc">%&gt;%</span> </span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>year,<span class="at">y=</span>genValMean,<span class="at">color=</span>stage)) <span class="sc">+</span> </span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">2</span>)</span></code></pre></div>
-<p><img src="figure/baselineSim.Rmd/plot%20test%20sim-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-plot-test-sim-1">
-Past versions of “plot test sim-1.png”
-</button>
-</p>
-<div id="fig-no-spaces-plot-test-sim-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/wolfemd/BreedingSchemeOpt/blob/e210a1fba1639fa0723cf0a4e2a5ea0c0a975856/docs/figure/baselineSim.Rmd/plot test sim-1.png" target="_blank">e210a1f</a>
-</td>
-<td>
-wolfemd
-</td>
-<td>
-2021-08-19
-</td>
-</tr>
-</tbody>
-</table>
+<div id="benchmark-full-scale-gs-cycles" class="section level2">
+<h2>Benchmark “full-scale” GS cycles</h2>
 </div>
-</div>
-<p>This plot shows the mean genetic value (y-axis) by pipeline-stage (colors) versus the year. The vertical line indicates the point after which GS (<code>parentSelCritGEBV</code>) was used.</p>
-</div>
-</div>
-<div id="run-two-cycles-of-iita-sized-gs" class="section level1">
-<h1>Run two cycles of IITA-sized GS</h1>
-<p>First run a benchmark sim. How long will two cycles of IITA-sized GS rep take?</p>
-<p>After benchmarking, I will run a bigger analysis, with multiple iterations times a range of parameter settings. Will use at least one full large memory server for that (112 cores, 512GB RAM). Benchmark using <strong>cbsurobbins.biohpc.cornell.edu</strong>, which now uses SLURM. Reserve and set-up an interactive SLURM shell as follows:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1) start a screen shell </span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">screen</span><span class="kw">;</span> </span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 2) reserve interactive slurm</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="ex">salloc</span> <span class="at">-n</span> 10 <span class="at">--mem</span> 60G<span class="kw">;</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 3) start the singularity Linux shell inside that</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="ex">singularity</span> shell ~/rocker2.sif<span class="kw">;</span> </span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Project directory, so R will use as working dir.</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /home/mw489/BreedingSchemeOpt/<span class="kw">;</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 3) Start R</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="ex">R</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(AlphaSimHlpR))</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(tidyverse))</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(genomicMateSelectR))</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>select <span class="ot">&lt;-</span> dplyr<span class="sc">::</span>select</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co"># This scheme _excludes_ the seedling stage from the simulation.</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>schemeDF<span class="ot">&lt;-</span><span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;baselineScheme - IITA.csv&quot;</span>), </span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">header =</span> T, <span class="at">stringsAsFactors =</span> F)</span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>schemeDF <span class="sc">%&gt;%</span> rmarkdown<span class="sc">::</span><span class="fu">paged_table</span>()</span></code></pre></div>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["stageNames"],"name":[1],"type":["chr"],"align":["left"]},{"label":["nEntries"],"name":[2],"type":["int"],"align":["right"]},{"label":["nLocs"],"name":[3],"type":["int"],"align":["right"]},{"label":["nReps"],"name":[4],"type":["int"],"align":["right"]},{"label":["nChks"],"name":[5],"type":["int"],"align":["right"]},{"label":["entryToChkRatio"],"name":[6],"type":["int"],"align":["right"]},{"label":["errVars"],"name":[7],"type":["int"],"align":["right"]},{"label":["trainingPopCycles"],"name":[8],"type":["int"],"align":["right"]},{"label":["PlantsPerPlot"],"name":[9],"type":["int"],"align":["right"]}],"data":[{"1":"CET","2":"2500","3":"1","4":"1","5":"5","6":"50","7":"100","8":"15","9":"10"},{"1":"PYT","2":"800","3":"2","4":"3","5":"4","6":"25","7":"100","8":"15","9":"10"},{"1":"AYT","2":"80","3":"3","4":"3","5":"2","6":"20","7":"50","8":"15","9":"25"},{"1":"UYT","2":"30","3":"5","4":"3","5":"2","6":"20","7":"25","8":"15","9":"42"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<ul>
-<li>6 chrom, Ne = 1000, 600 SNP (100/chrom)</li>
-<li><code>genVar = 100</code> and <code>errVar</code> starting at 100</li>
-<li>Select 50 parents, Make 100 random crosses with 25 progeny each</li>
-<li><code>nCyclesToKeepRecords = 30</code></li>
-<li><code>trainingPopCycles = 15</code> for all stages.</li>
-<li>5 cores for BLAS</li>
-</ul>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>bsp<span class="ot">&lt;-</span><span class="fu">specifyBSP</span>(<span class="at">schemeDF =</span> schemeDF,</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">nChr =</span> <span class="dv">6</span>,<span class="at">effPopSize =</span> <span class="dv">1000</span>,<span class="at">quickHaplo =</span> F,</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">segSites =</span> <span class="dv">500</span>, <span class="at">nQTL =</span> <span class="dv">50</span>, <span class="at">nSNP =</span> <span class="dv">100</span>, <span class="at">genVar =</span> <span class="dv">100</span>,</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">gxeVar =</span> <span class="cn">NULL</span>, <span class="at">gxyVar =</span> <span class="dv">15</span>, <span class="at">gxlVar =</span> <span class="dv">10</span>,<span class="at">gxyxlVar =</span> <span class="dv">5</span>,</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">meanDD =</span> <span class="dv">1</span>,<span class="at">varDD =</span> <span class="dv">5</span>,<span class="at">relAA =</span> <span class="fl">0.1</span>,</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>                <span class="at">stageToGenotype =</span> <span class="st">&quot;CET&quot;</span>,</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>                <span class="at">nParents =</span> <span class="dv">50</span>, <span class="at">nCrosses =</span> <span class="dv">100</span>, <span class="at">nProgeny =</span> <span class="dv">25</span>,<span class="at">nClonesToNCRP =</span> <span class="dv">3</span>,</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">phenoF1toStage1 =</span> F,<span class="at">errVarPreStage1 =</span> <span class="dv">500</span>,</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">useCurrentPhenoTrain =</span> F, </span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>                <span class="at">nCyclesToKeepRecords =</span> <span class="dv">30</span>,</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>                <span class="co"># selCrits are overwritten by runBreedingScheme_wBurnIn</span></span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPipeAdv =</span> selCritIID, <span class="co"># thus have no actual effect</span></span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPopImprov =</span>  selCritIID) </span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>starttime<span class="ot">&lt;-</span><span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>benchmark_sim<span class="ot">&lt;-</span><span class="fu">runBreedingScheme_wBurnIn</span>(<span class="at">replication =</span> <span class="dv">1</span>, <span class="at">bsp =</span> bsp,</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>                                         <span class="at">nBurnInCycles=</span><span class="dv">2</span>,<span class="at">nPostBurnInCycles=</span><span class="dv">2</span>,</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>                                         <span class="at">selCritPopPre=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>                                         <span class="at">selCritPopPost=</span><span class="st">&quot;parentSelCritGEBV&quot;</span>,</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>                                         <span class="at">selCritPipePre=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>                                         <span class="at">selCritPipePost=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>                                         <span class="at">nBLASthreads=</span><span class="dv">5</span>,<span class="at">nThreadsMacs2=</span><span class="dv">5</span>)</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>endtime<span class="ot">&lt;-</span><span class="fu">proc.time</span>()[<span class="dv">3</span>]; <span class="fu">print</span>(<span class="fu">paste0</span>((endtime<span class="sc">-</span>starttime)<span class="sc">/</span><span class="dv">60</span>,<span class="st">&quot; mins elapsed.&quot;</span>));</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(benchmark_sim,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;benchmark_sim.rds&quot;</span>))</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] &quot;866.377616666667 mins elapsed.&quot;</span></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="co"># ~14 hrs for 2 cycles of GS.</span></span></code></pre></div>
-<p>~14 hrs for 2 cycles of GS. Up to 40 or 50GB RAM.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;benchmark_sim.rds&quot;</span>))<span class="sc">$</span>records<span class="sc">$</span>stageOutputs <span class="sc">%&gt;%</span> </span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>year,<span class="at">y=</span>genValMean,<span class="at">color=</span>stage)) <span class="sc">+</span> </span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">2</span>)</span></code></pre></div>
-<p><img src="figure/baselineSim.Rmd/plot%20benchmark%20sim-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-plot-benchmark-sim-1">
-Past versions of “plot benchmark sim-1.png”
-</button>
-</p>
-<div id="fig-no-spaces-plot-benchmark-sim-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/wolfemd/BreedingSchemeOpt/blob/e210a1fba1639fa0723cf0a4e2a5ea0c0a975856/docs/figure/baselineSim.Rmd/plot benchmark sim-1.png" target="_blank">e210a1f</a>
-</td>
-<td>
-wolfemd
-</td>
-<td>
-2021-08-19
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p>This plot shows the mean genetic value (y-axis) by pipeline-stage (colors) versus the year. The vertical line indicates the point after which GS (<code>parentSelCritGEBV</code>) was used. Obviously this is a test. So not digging in more yet.</p>
-</div>
-<div id="run-a-scaled-down-simulation" class="section level1">
-<h1>Run a scaled-down simulation</h1>
-<p>It seems prudent to scale down and run additional tests, before scaling back up for full experiments.</p>
-<ul>
-<li><p>cbsulm09,</p></li>
-<li><p>Reduce to <code>trainingPopCycles=5</code></p></li>
-<li><p>Reduce pop size to 1/3 scale</p>
-<ul>
-<li><code>nEntries=ceiling(nEntries/3)</code></li>
-<li><code>nChks=ceiling(nChks/3)</code></li>
-<li>Select 17 parents, Make 33 random crosses with 26 progeny each</li>
-<li>Reduce to 3 chrom, Ne = 500, 300 SNP (100/chrom)</li>
-</ul></li>
-</ul>
-<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">screen</span><span class="kw">;</span> </span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="ex">singularity</span> shell ~/rocker2.sif<span class="kw">;</span> </span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /home/mw489/BreedingSchemeOpt/<span class="kw">;</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="ex">R</span></span></code></pre></div>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(AlphaSimHlpR))</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(tidyverse))</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(genomicMateSelectR))</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>select <span class="ot">&lt;-</span> dplyr<span class="sc">::</span>select</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co"># This scheme _excludes_ the seedling stage from the simulation.</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>schemeDF<span class="ot">&lt;-</span><span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;baselineScheme - IITA.csv&quot;</span>), </span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>                   <span class="at">header =</span> T, <span class="at">stringsAsFactors =</span> F) <span class="sc">%&gt;%</span> </span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="sc">-</span>PlantsPerPlot) <span class="sc">%&gt;%</span> </span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">trainingPopCycles=</span><span class="dv">5</span>,</span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>                <span class="at">nEntries=</span><span class="fu">ceiling</span>(nEntries<span class="sc">/</span><span class="dv">3</span>),</span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>                <span class="at">nChks=</span><span class="fu">ceiling</span>(nChks<span class="sc">/</span><span class="dv">3</span>))</span></code></pre></div>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>schemeDF <span class="sc">%&gt;%</span> rmarkdown<span class="sc">::</span><span class="fu">paged_table</span>()</span></code></pre></div>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["stageNames"],"name":[1],"type":["chr"],"align":["left"]},{"label":["nEntries"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["nLocs"],"name":[3],"type":["int"],"align":["right"]},{"label":["nReps"],"name":[4],"type":["int"],"align":["right"]},{"label":["nChks"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["entryToChkRatio"],"name":[6],"type":["int"],"align":["right"]},{"label":["errVars"],"name":[7],"type":["int"],"align":["right"]},{"label":["trainingPopCycles"],"name":[8],"type":["dbl"],"align":["right"]}],"data":[{"1":"CET","2":"834","3":"1","4":"1","5":"2","6":"50","7":"100","8":"5"},{"1":"PYT","2":"267","3":"2","4":"3","5":"2","6":"25","7":"100","8":"5"},{"1":"AYT","2":"27","3":"3","4":"3","5":"1","6":"20","7":"50","8":"5"},{"1":"UYT","2":"10","3":"5","4":"3","5":"1","6":"20","7":"25","8":"5"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>bsp<span class="ot">&lt;-</span><span class="fu">specifyBSP</span>(<span class="at">schemeDF =</span> schemeDF,</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">nChr =</span> <span class="dv">3</span>,<span class="at">effPopSize =</span> <span class="dv">500</span>,<span class="at">quickHaplo =</span> F,</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">segSites =</span> <span class="dv">200</span>, <span class="at">nQTL =</span> <span class="dv">30</span>, <span class="at">nSNP =</span> <span class="dv">100</span>, <span class="at">genVar =</span> <span class="dv">100</span>,</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">gxeVar =</span> <span class="cn">NULL</span>, <span class="at">gxyVar =</span> <span class="dv">15</span>, <span class="at">gxlVar =</span> <span class="dv">10</span>,<span class="at">gxyxlVar =</span> <span class="dv">5</span>,</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">meanDD =</span> <span class="dv">1</span>,<span class="at">varDD =</span> <span class="dv">5</span>,<span class="at">relAA =</span> <span class="fl">0.1</span>,</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>                <span class="at">stageToGenotype =</span> <span class="st">&quot;CET&quot;</span>,</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>                <span class="at">nParents =</span> <span class="dv">17</span>, <span class="at">nCrosses =</span> <span class="dv">33</span>, <span class="at">nProgeny =</span> <span class="dv">26</span>,<span class="at">nClonesToNCRP =</span> <span class="dv">3</span>,</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">phenoF1toStage1 =</span> F,<span class="at">errVarPreStage1 =</span> <span class="dv">500</span>,</span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">useCurrentPhenoTrain =</span> F, </span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>                <span class="at">nCyclesToKeepRecords =</span> <span class="dv">5</span>,</span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>                <span class="co"># selCrits are overwritten by runBreedingScheme_wBurnIn</span></span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPipeAdv =</span> selCritIID, </span>
-<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPopImprov =</span>  selCritIID) <span class="co"># thus have no actual effect</span></span></code></pre></div>
-<ul>
-<li><p>Ran the scaled down simulation three times</p>
-<ol style="list-style-type: decimal">
-<li><p>Set <code>nBLASthreads=60</code> to go as-fast-as-possible… Took 7 mins.</p></li>
-<li><p>Set a more reasonable <code>nBLASthreads=5</code> to see how much speed comes from scaled-down sim. size… Took 10 mins.</p></li>
-<li><p>Ran <code>nBurnInCycles=15</code> and <code>nPostBurnInCycles=15</code>… took 68 mins.</p></li>
-</ol></li>
-</ul>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>starttime<span class="ot">&lt;-</span><span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>benchmark_sim2<span class="ot">&lt;-</span><span class="fu">runBreedingScheme_wBurnIn</span>(<span class="at">replication =</span> <span class="dv">1</span>, <span class="at">bsp =</span> bsp,</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">nBurnInCycles=</span><span class="dv">2</span>,<span class="at">nPostBurnInCycles=</span><span class="dv">2</span>,</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">selCritPopPre=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">selCritPopPost=</span><span class="st">&quot;parentSelCritGEBV&quot;</span>,</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">selCritPipePre=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">selCritPipePost=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">nBLASthreads=</span><span class="dv">60</span>,<span class="at">nThreadsMacs2=</span><span class="dv">60</span>)</span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>endtime<span class="ot">&lt;-</span><span class="fu">proc.time</span>()[<span class="dv">3</span>]; <span class="fu">print</span>(<span class="fu">paste0</span>((endtime<span class="sc">-</span>starttime)<span class="sc">/</span><span class="dv">60</span>,<span class="st">&quot; mins elapsed.&quot;</span>));</span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(benchmark_sim2,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;benchmark_sim2.rds&quot;</span>))</span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] &quot;6.93941666666667 mins elapsed.&quot;</span></span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>starttime<span class="ot">&lt;-</span><span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
-<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>benchmark_sim3<span class="ot">&lt;-</span><span class="fu">runBreedingScheme_wBurnIn</span>(<span class="at">replication =</span> <span class="dv">1</span>, <span class="at">bsp =</span> bsp,</span>
-<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">nBurnInCycles=</span><span class="dv">2</span>,<span class="at">nPostBurnInCycles=</span><span class="dv">2</span>,</span>
-<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">selCritPopPre=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">selCritPopPost=</span><span class="st">&quot;parentSelCritGEBV&quot;</span>,</span>
-<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">selCritPipePre=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">selCritPipePost=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">nBLASthreads=</span><span class="dv">5</span>,<span class="at">nThreadsMacs2=</span><span class="dv">5</span>)</span>
-<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>endtime<span class="ot">&lt;-</span><span class="fu">proc.time</span>()[<span class="dv">3</span>]; <span class="fu">print</span>(<span class="fu">paste0</span>((endtime<span class="sc">-</span>starttime)<span class="sc">/</span><span class="dv">60</span>,<span class="st">&quot; mins elapsed.&quot;</span>));</span>
-<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(benchmark_sim3,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;benchmark_sim3.rds&quot;</span>))</span>
-<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] &quot;10.0116333333333 mins elapsed.&quot;</span></span>
-<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>starttime<span class="ot">&lt;-</span><span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
-<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>benchmark_sim4<span class="ot">&lt;-</span><span class="fu">runBreedingScheme_wBurnIn</span>(<span class="at">replication =</span> <span class="dv">1</span>, <span class="at">bsp =</span> bsp,</span>
-<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">nBurnInCycles=</span><span class="dv">15</span>,<span class="at">nPostBurnInCycles=</span><span class="dv">15</span>,</span>
-<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">selCritPopPre=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">selCritPopPost=</span><span class="st">&quot;parentSelCritGEBV&quot;</span>,</span>
-<span id="cb18-30"><a href="#cb18-30" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">selCritPipePre=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb18-31"><a href="#cb18-31" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">selCritPipePost=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">nBLASthreads=</span><span class="dv">5</span>,<span class="at">nThreadsMacs2=</span><span class="dv">5</span>)</span>
-<span id="cb18-33"><a href="#cb18-33" aria-hidden="true" tabindex="-1"></a>endtime<span class="ot">&lt;-</span><span class="fu">proc.time</span>()[<span class="dv">3</span>]; <span class="fu">print</span>(<span class="fu">paste0</span>((endtime<span class="sc">-</span>starttime)<span class="sc">/</span><span class="dv">60</span>,<span class="st">&quot; mins elapsed.&quot;</span>));</span>
-<span id="cb18-34"><a href="#cb18-34" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(benchmark_sim4,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;benchmark_sim4.rds&quot;</span>))</span>
-<span id="cb18-35"><a href="#cb18-35" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] &quot;67.8371833333333 mins elapsed.&quot;</span></span></code></pre></div>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;benchmark_sim4.rds&quot;</span>))<span class="sc">$</span>records<span class="sc">$</span>stageOutputs <span class="sc">%&gt;%</span> </span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>year,<span class="at">y=</span>genValMean,<span class="at">color=</span>stage)) <span class="sc">+</span> </span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">15</span>)</span></code></pre></div>
-<p><img src="figure/baselineSim.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-10-1">
-Past versions of unnamed-chunk-10-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-10-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/wolfemd/BreedingSchemeOpt/blob/e210a1fba1639fa0723cf0a4e2a5ea0c0a975856/docs/figure/baselineSim.Rmd/unnamed-chunk-10-1.png" target="_blank">e210a1f</a>
-</td>
-<td>
-wolfemd
-</td>
-<td>
-2021-08-19
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-<div id="run-multiple-scaled-down-sims-in-parallel" class="section level1">
-<h1>Run multiple scaled-down sims in parallel</h1>
-<p>Set-up 10 iterations of a simulation with 15 pre- and 15-post burn-in cycles.</p>
-<p>For a bonus, set-up 10 additional iterations that uses PS (<code>selCritIID</code> the entire 30 cycles).</p>
-<p>Made a few changes to the sims so they would exhaust variation (hopefully):</p>
-<ul>
-<li>Increase to <code>effPopSize=1000</code></li>
-<li>Increase stage-specific errors: <code>errVars*3</code></li>
-<li>Increase <code>gxyVar</code>, <code>gxlVar</code>, <code>gxyxlVar</code>.</li>
-</ul>
-<p>Also:</p>
-<ul>
-<li>Increase to <code>trainingPopCycles=10</code> to use more training data</li>
-<li>Set <code>nCyclesToKeepRecords = 30</code> to keep all records</li>
-</ul>
-<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">screen</span><span class="kw">;</span> </span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="ex">singularity</span> shell ~/rocker2.sif<span class="kw">;</span> </span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /home/mw489/BreedingSchemeOpt/<span class="kw">;</span></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="ex">R</span></span></code></pre></div>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(AlphaSimHlpR))</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(tidyverse))</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(genomicMateSelectR))</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>select <span class="ot">&lt;-</span> dplyr<span class="sc">::</span>select</span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="co"># This scheme _excludes_ the seedling stage from the simulation.</span></span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>schemeDF<span class="ot">&lt;-</span><span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;baselineScheme - IITA.csv&quot;</span>), </span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">header =</span> T, <span class="at">stringsAsFactors =</span> F) <span class="sc">%&gt;%</span> </span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>PlantsPerPlot) <span class="sc">%&gt;%</span> </span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">trainingPopCycles=</span><span class="dv">10</span>,</span>
-<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">nEntries=</span><span class="fu">ceiling</span>(nEntries<span class="sc">/</span><span class="dv">3</span>),</span>
-<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">nChks=</span><span class="fu">ceiling</span>(nChks<span class="sc">/</span><span class="dv">3</span>),</span>
-<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>         <span class="at">errVars=</span>errVars<span class="sc">*</span><span class="dv">3</span>)</span>
-<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>bsp<span class="ot">&lt;-</span><span class="fu">specifyBSP</span>(<span class="at">schemeDF =</span> schemeDF,</span>
-<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>                <span class="at">nChr =</span> <span class="dv">3</span>,<span class="at">effPopSize =</span> <span class="dv">1000</span>,<span class="at">quickHaplo =</span> F,</span>
-<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>                <span class="at">segSites =</span> <span class="dv">200</span>, <span class="at">nQTL =</span> <span class="dv">30</span>, <span class="at">nSNP =</span> <span class="dv">100</span>, <span class="at">genVar =</span> <span class="dv">200</span>,</span>
-<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>                <span class="at">gxeVar =</span> <span class="cn">NULL</span>, <span class="at">gxyVar =</span> <span class="dv">20</span>, <span class="at">gxlVar =</span> <span class="dv">15</span>,<span class="at">gxyxlVar =</span> <span class="dv">10</span>,</span>
-<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>                <span class="at">meanDD =</span> <span class="dv">1</span>,<span class="at">varDD =</span> <span class="dv">5</span>,<span class="at">relAA =</span> <span class="fl">0.1</span>,</span>
-<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>                <span class="at">stageToGenotype =</span> <span class="st">&quot;CET&quot;</span>,</span>
-<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>                <span class="at">nParents =</span> <span class="dv">17</span>, <span class="at">nCrosses =</span> <span class="dv">33</span>, <span class="at">nProgeny =</span> <span class="dv">26</span>,<span class="at">nClonesToNCRP =</span> <span class="dv">3</span>,</span>
-<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>                <span class="at">phenoF1toStage1 =</span> F,<span class="at">errVarPreStage1 =</span> <span class="dv">500</span>,</span>
-<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>                <span class="at">useCurrentPhenoTrain =</span> F, </span>
-<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>                <span class="at">nCyclesToKeepRecords =</span> <span class="dv">30</span>,</span>
-<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>                <span class="co"># selCrits are overwritten by runBreedingScheme_wBurnIn</span></span>
-<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPipeAdv =</span> selCritIID, </span>
-<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPopImprov =</span>  selCritIID) <span class="co"># thus have no actual effect</span></span>
-<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a>benchmark_sims<span class="ot">&lt;-</span><span class="fu">crossing</span>(<span class="at">replication=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,</span>
-<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a>                         <span class="at">postBurnIn=</span><span class="fu">c</span>(<span class="st">&quot;parentSelCritGEBV&quot;</span>,<span class="st">&quot;selCritIID&quot;</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(postBurnIn)</span></code></pre></div>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>benchmark_sims <span class="sc">%&gt;%</span> rmarkdown<span class="sc">::</span><span class="fu">paged_table</span>()</span></code></pre></div>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["replication"],"name":[1],"type":["int"],"align":["right"]},{"label":["postBurnIn"],"name":[2],"type":["chr"],"align":["left"]}],"data":[{"1":"1","2":"parentSelCritGEBV"},{"1":"2","2":"parentSelCritGEBV"},{"1":"3","2":"parentSelCritGEBV"},{"1":"4","2":"parentSelCritGEBV"},{"1":"5","2":"parentSelCritGEBV"},{"1":"6","2":"parentSelCritGEBV"},{"1":"7","2":"parentSelCritGEBV"},{"1":"8","2":"parentSelCritGEBV"},{"1":"9","2":"parentSelCritGEBV"},{"1":"10","2":"parentSelCritGEBV"},{"1":"1","2":"selCritIID"},{"1":"2","2":"selCritIID"},{"1":"3","2":"selCritIID"},{"1":"4","2":"selCritIID"},{"1":"5","2":"selCritIID"},{"1":"6","2":"selCritIID"},{"1":"7","2":"selCritIID"},{"1":"8","2":"selCritIID"},{"1":"9","2":"selCritIID"},{"1":"10","2":"selCritIID"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<p>Run 10 sims in parallel, each sim gets 10 additional threads for BLAS to speed GP.</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>starttime<span class="ot">&lt;-</span><span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">require</span>(furrr); <span class="fu">plan</span>(multisession, <span class="at">workers =</span> <span class="dv">10</span>)</span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">future.globals.maxSize=</span><span class="sc">+</span><span class="cn">Inf</span>); <span class="fu">options</span>(<span class="at">future.rng.onMisuse=</span><span class="st">&quot;ignore&quot;</span>)</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>benchmark_sims <span class="sc">%&lt;&gt;%</span> </span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sim=</span><span class="fu">future_map2</span>(replication,postBurnIn,</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>                         <span class="sc">~</span><span class="fu">runBreedingScheme_wBurnIn</span>(<span class="at">replication =</span> .x, </span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>                                                    <span class="at">bsp =</span> bsp,</span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>                                                    <span class="at">nBurnInCycles=</span><span class="dv">15</span>,<span class="at">nPostBurnInCycles=</span><span class="dv">15</span>,</span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>                                                    <span class="at">selCritPopPre=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>                                                    <span class="at">selCritPopPost=</span>.y,</span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>                                                    <span class="at">selCritPipePre=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>                                                    <span class="at">selCritPipePost=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>                                                    <span class="at">nBLASthreads=</span><span class="dv">10</span>,<span class="at">nThreadsMacs2=</span><span class="dv">10</span>)))</span>
-<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>endtime<span class="ot">&lt;-</span><span class="fu">proc.time</span>()[<span class="dv">3</span>]; <span class="fu">print</span>(<span class="fu">paste0</span>((endtime<span class="sc">-</span>starttime)<span class="sc">/</span><span class="dv">60</span>,<span class="st">&quot; mins elapsed.&quot;</span>));</span>
-<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(benchmark_sims,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;benchmark_sims5.rds&quot;</span>))</span>
-<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a><span class="fu">plan</span>(sequential)</span>
-<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] &quot;499.316183333333 mins elapsed.&quot;</span></span></code></pre></div>
-<p>Took ~8.3 hrs to run.</p>
-<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>sims<span class="ot">&lt;-</span><span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;benchmark_sims5.rds&quot;</span>))</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>sims <span class="sc">%&gt;%</span> </span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sim=</span><span class="fu">map</span>(sim,<span class="sc">~</span>.<span class="sc">$</span>records<span class="sc">$</span>stageOutputs)) <span class="sc">%&gt;%</span> </span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(sim) <span class="sc">%&gt;%</span> </span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(stage<span class="sc">==</span><span class="st">&quot;CET&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">rep=</span><span class="fu">paste0</span>(postBurnIn,replication)) <span class="sc">%&gt;%</span> </span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">#as.character(replication)) %&gt;% </span></span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">#stage=factor(stage,levels = c(&quot;F1&quot;,&quot;CET&quot;,&quot;PYT&quot;,&quot;AYT&quot;,&quot;UYT&quot;)))</span></span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>year,<span class="at">y=</span>genValMean,<span class="at">color=</span>postBurnIn, <span class="at">group=</span>rep)) <span class="sc">+</span> </span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">15</span>)</span></code></pre></div>
-<p><img src="figure/baselineSim.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-13-1">
-Past versions of unnamed-chunk-13-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-13-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/wolfemd/BreedingSchemeOpt/blob/e210a1fba1639fa0723cf0a4e2a5ea0c0a975856/docs/figure/baselineSim.Rmd/unnamed-chunk-13-1.png" target="_blank">e210a1f</a>
-</td>
-<td>
-wolfemd
-</td>
-<td>
-2021-08-19
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p>Plot the mean genetic value (y-axis) of the “CET” stage for all 20 simulations (10 with <code>selCritIID</code> PS and 10 with <code>parentSelCritGEBV</code> GS used after the first 15 cycles of PS). <strong>NOTE:</strong> In retrospect, it is not entirely fair to compare the post-burn-in PS (blue) and GS (red). Next time, I will set-up a <code>runBreedingScheme</code> function that simulations a single population pre-burn-in and then diverges that population post-burn-in. A proper simulation would diver</p>
-</div>
-<div id="questions-and-next-steps" class="section level1">
-<h1>Questions and next steps</h1>
-<ol style="list-style-type: decimal">
-<li><p>Correct <code>runBreedingScheme_wBurnIn</code> to diverge single pop after burn-in.</p></li>
-<li><p>I am not yet seeing a notable effect of switching from PS to GS after 15 cycles. What parameters need to be changed?</p></li>
-<li><p>How to handle all the breeding simulation options, e.g.:</p>
-<ul>
-<li><p>Ne, <code>entryToChkRatio</code>, etc.</p></li>
-<li><p>Similar approach to with plot size…. simulate a spectrum and check for an effect?</p></li>
-</ul></li>
-<li><p>Develop and test a errVar-plotSize scaling function</p></li>
-<li><p>Complete a baseline simulation</p></li>
-<li><p>Test alternative <em>mate selection</em> scenarios, etc.</p></li>
-</ol>
+<div id="debug" class="section level2">
+<h2>Debug</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># burnInSim&lt;-simulations$burnInSim[[1]]</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># selCritPop=&quot;parentSelCritGEBV&quot;;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># selCritPipe=&quot;selCritIID&quot;;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># productFunc=&quot;productPipeline&quot;;</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># popImprovFunc=&quot;popImprov1Cyc&quot;;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co"># newBSP=burnInSim$bsp</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># newBSP[[&quot;maxTrainingPopSize&quot;]]&lt;-500</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co"># newBSP[[&quot;nYrsAsCandidates&quot;]]&lt;-2</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co"># newBSP[[&quot;nTrainPopCycles&quot;]]&lt;-10</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># newBSP$checks&lt;-NULL</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># runSchemesPostBurnIn&lt;-function(simulations,</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">#                                newBSP=NULL, # so you can change the scheme entirely after burn-in</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">#                                nPostBurnInCycles,</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">#                                selCritPop=&quot;selCritIID&quot;,</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">#                                selCritPipe=&quot;selCritIID&quot;,</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">#                                productFunc=&quot;productPipeline&quot;,</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">#                                popImprovFunc=&quot;popImprovByParentSel&quot;,</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co">#                                ncores=1,</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">#                                nBLASthreads=NULL,nThreadsMacs2=NULL){</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co">#   require(furrr); plan(multisession, workers = ncores)</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co">#   options(future.globals.maxSize=+Inf); options(future.rng.onMisuse=&quot;ignore&quot;)</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co">#   simulations&lt;-simulations %&gt;%</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="co">#     mutate(SimOutput=future_map2(SimRep,burnInSim,function(SimRep,burnInSim,...){</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="co">#       # debug </span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="co">#       # burnInSim&lt;-simulations$burnInSim[[1]]</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="co">#       if(!is.null(nBLASthreads)) { RhpcBLASctl::blas_set_num_threads(nBLASthreads) }</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="co">#       cat(&quot;******&quot;, SimRep, &quot;\n&quot;)</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a><span class="co">#       # This CONTINUES where previous sims left off</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="co">#       ## no initialize step</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a><span class="co">#       ## Keep burn-in stage sim params &quot;SP&quot;</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a><span class="co">#       SP&lt;-burnInSim$SP</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a><span class="co">#       ## specify a potentially new bsp object </span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a><span class="co">#       ## (keep checks stored in burn-in stage&#39;s bsp)</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a><span class="co">#       if(!is.null(newBSP)){ </span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a><span class="co">#         bsp&lt;-newBSP; bsp$checks&lt;-burnInSim$bsp$checks </span></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a><span class="co">#       } else { bsp&lt;-burnInSim$bsp }</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a><span class="co">#       ## &#39;historical&#39; records from burn-in</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a><span class="co">#       records&lt;-burnInSim$records</span></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a><span class="co">#       ## override burn-in specified product and population improvement funcs </span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a><span class="co">#       bsp[[&quot;productPipeline&quot;]] &lt;- get(productFunc)</span></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a><span class="co">#       bsp[[&quot;populationImprovement&quot;]] &lt;- get(popImprovFunc)</span></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a><span class="co">#       bsp[[&quot;selCritPipeAdv&quot;]] &lt;- get(selCritPipe)</span></span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a><span class="co">#       bsp[[&quot;selCritPopImprov&quot;]] &lt;- get(selCritPop)</span></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a><span class="co">#       # Post burn-in cycles</span></span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a><span class="co">#       cat(&quot;\n&quot;); cat(&quot;Post burn-in cycles&quot;); cat(&quot;\n&quot;)</span></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a><span class="co">#       for (cycle in 1:nPostBurnInCycles){</span></span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a><span class="co">#         cat(cycle, &quot; &quot;)</span></span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a><span class="co">#         records &lt;- bsp$productPipeline(records, bsp, SP)</span></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a><span class="co">#         records &lt;- bsp$populationImprovement(records, bsp, SP)</span></span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a><span class="co">#       }</span></span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a><span class="co">#       # Finalize the stageOutputs</span></span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a><span class="co">#       records &lt;- AlphaSimHlpR:::lastCycStgOut(records, bsp, SP)</span></span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a><span class="co">#       return(list(records=records,</span></span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a><span class="co">#                   bsp=bsp,</span></span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a><span class="co">#                   SP=SP))</span></span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a><span class="co">#     },</span></span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a><span class="co">#     nPostBurnInCycles=nPostBurnInCycles,</span></span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a><span class="co">#     selCritPop=selCritPop,</span></span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a><span class="co">#     selCritPipe=selCritPipe,</span></span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a><span class="co">#     productFunc=productFunc,</span></span>
+<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a><span class="co">#     popImprovFunc=popImprovFunc,</span></span>
+<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a><span class="co">#     nBLASthreads=nBLASthreads,</span></span>
+<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a><span class="co">#     nThreadsMacs2=nThreadsMacs2))</span></span>
+<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a><span class="co">#   plan(sequential)</span></span>
+<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a><span class="co">#   return(simulations)</span></span>
+<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a><span class="co"># }</span></span></code></pre></div>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -1262,7 +1050,7 @@ wolfemd
 </button>
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
-<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
 <pre><code>R version 4.1.0 (2021-05-18)
 Platform: x86_64-apple-darwin17.0 (64-bit)
 Running under: macOS Big Sur 10.16
@@ -1278,29 +1066,30 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] genomicMateSelectR_0.2.0 forcats_0.5.1            stringr_1.4.0           
- [4] purrr_0.3.4              readr_2.0.1              tidyr_1.1.3             
- [7] tibble_3.1.3             ggplot2_3.3.5            tidyverse_1.3.1         
-[10] AlphaSimHlpR_0.2.1       dplyr_1.0.7              AlphaSimR_1.0.3         
-[13] R6_2.5.0                 workflowr_1.6.2         
+ [1] patchwork_1.1.1          genomicMateSelectR_0.2.0 forcats_0.5.1           
+ [4] stringr_1.4.0            purrr_0.3.4              readr_2.0.1             
+ [7] tidyr_1.1.3              tibble_3.1.4             ggplot2_3.3.5           
+[10] tidyverse_1.3.1          AlphaSimHlpR_0.2.1       dplyr_1.0.7             
+[13] AlphaSimR_1.0.3          R6_2.5.1                 workflowr_1.6.2         
 
 loaded via a namespace (and not attached):
- [1] Rcpp_1.0.7        here_1.0.1        lubridate_1.7.10  assertthat_0.2.1 
- [5] rprojroot_2.0.2   digest_0.6.27     utf8_1.2.2        cellranger_1.1.0 
- [9] backports_1.2.1   reprex_2.0.1      evaluate_0.14     highr_0.9        
-[13] httr_1.4.2        pillar_1.6.2      rlang_0.4.11      readxl_1.3.1     
-[17] rstudioapi_0.13   whisker_0.4       jquerylib_0.1.4   rmarkdown_2.10   
-[21] labeling_0.4.2    munsell_0.5.0     broom_0.7.9       compiler_4.1.0   
-[25] httpuv_1.6.1      modelr_0.1.8      xfun_0.25         pkgconfig_2.0.3  
-[29] htmltools_0.5.1.1 tidyselect_1.1.1  fansi_0.5.0       crayon_1.4.1     
-[33] tzdb_0.1.2        dbplyr_2.1.1      withr_2.4.2       later_1.2.0      
-[37] grid_4.1.0        jsonlite_1.7.2    gtable_0.3.0      lifecycle_1.0.0  
-[41] DBI_1.1.1         git2r_0.28.0      magrittr_2.0.1    scales_1.1.1     
-[45] cli_3.0.1         stringi_1.7.3     farver_2.1.0      fs_1.5.0         
-[49] promises_1.2.0.1  xml2_1.3.2        bslib_0.2.5.1     ellipsis_0.3.2   
-[53] generics_0.1.0    vctrs_0.3.8       tools_4.1.0       glue_1.4.2       
-[57] hms_1.1.0         yaml_2.2.1        colorspace_2.0-2  rvest_1.0.1      
-[61] knitr_1.33        haven_2.4.3       sass_0.4.0       </code></pre>
+ [1] Rcpp_1.0.7       here_1.0.1       lubridate_1.7.10 assertthat_0.2.1
+ [5] rprojroot_2.0.2  digest_0.6.27    utf8_1.2.2       cellranger_1.1.0
+ [9] backports_1.2.1  reprex_2.0.1     evaluate_0.14    highr_0.9       
+[13] httr_1.4.2       pillar_1.6.2     rlang_0.4.11     readxl_1.3.1    
+[17] rstudioapi_0.13  whisker_0.4      jquerylib_0.1.4  rmarkdown_2.10  
+[21] labeling_0.4.2   munsell_0.5.0    broom_0.7.9      compiler_4.1.0  
+[25] httpuv_1.6.2     modelr_0.1.8     xfun_0.25        pkgconfig_2.0.3 
+[29] htmltools_0.5.2  tidyselect_1.1.1 fansi_0.5.0      crayon_1.4.1    
+[33] tzdb_0.1.2       dbplyr_2.1.1     withr_2.4.2      later_1.3.0     
+[37] grid_4.1.0       jsonlite_1.7.2   gtable_0.3.0     lifecycle_1.0.0 
+[41] DBI_1.1.1        git2r_0.28.0     magrittr_2.0.1   scales_1.1.1    
+[45] cli_3.0.1        stringi_1.7.4    farver_2.1.0     fs_1.5.0        
+[49] promises_1.2.0.1 xml2_1.3.2       bslib_0.2.5.1    ellipsis_0.3.2  
+[53] generics_0.1.0   vctrs_0.3.8      tools_4.1.0      glue_1.4.2      
+[57] hms_1.1.0        fastmap_1.1.0    yaml_2.2.1       colorspace_2.0-2
+[61] rvest_1.0.1      knitr_1.33       haven_2.4.3      sass_0.4.0      </code></pre>
+</div>
 </div>
 </div>
 
@@ -1353,6 +1142,11 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
 
 <script>
 $(document).ready(function ()  {
