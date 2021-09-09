@@ -8,7 +8,7 @@
 #' @param simulations tibble, each row is a simulation, 2 columns: SimRep and burnInSim.
 #' SimRep is an identifier. burnInSim is a list with 3 named elements:
 #' "records", "bsp" and "SP"
-#' @param ncores Integer, number of cores to optionally execute replicate simulations in parallel
+#' @param nSimCores Integer, number of cores to optionally execute replicate simulations in parallel
 #' @param newBSP optional, so you can specify a different bsp for post-burn in sims.
 #' @param nPostBurnInCycles Integer number of cycles to run the \code{selCritPop} and \code{selCritPipe} settings.
 #' @param productFunc string, Function to advance the product pipeline by one generation
@@ -28,10 +28,10 @@ runSchemesPostBurnIn<-function(simulations,
                                selCritPipe="selCritIID",
                                productFunc="productPipeline",
                                popImprovFunc="popImprovByParentSel",
-                               ncores=1,
+                               nSimCores=1,
                                nBLASthreads=NULL){
 
-  require(furrr); plan(multisession, workers = ncores)
+  require(furrr); plan(multisession, workers = nSimCores)
   options(future.globals.maxSize=+Inf); options(future.rng.onMisuse="ignore")
 
   simulations<-simulations %>%
