@@ -1,0 +1,2260 @@
+---
+title: "Simulate genomic mate selection"
+author: "Marnin Wolfe"
+date: "2021-09-02"
+output: 
+  workflowr::wflow_html:
+    code_folding: hide
+    toc: true
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
+                      tidy='styler', 
+                      tidy.opts=list(strict=FALSE,width.cutoff=100), 
+                      highlight=TRUE)
+```
+
+
+```{bash environ, eval=F}
+# 0) Pull a singularity image with OpenBLAS enabled R + tidyverse from rocker/
+# singularity pull ~/rocker2.sif docker://rocker/tidyverse:latest;
+
+# 1) start a screen shell 
+screen; 
+# 2) reserve interactive slurm
+#salloc -n 20 --mem 60G;
+# 3) start the singularity Linux shell inside that
+singularity shell ~/rocker2.sif; 
+# Project directory, so R will use as working dir.
+cd /home/mw489/BreedingSchemeOpt/;
+# 3) Start R
+export OMP_NUM_THREADS=1;
+R
+```
+
+# Small example
+```{r inputs,eval=T}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+
+source(here::here("code","runSchemesPostBurnIn.R"))
+
+simulations<-readRDS(here::here("output","burnIn_test.rds"))
+
+newBSP<-specifyBSP(schemeDF = schemeDF,
+                   nChr = 3,effPopSize = 100,quickHaplo = F,
+                   segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                   gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                   meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                   stageToGenotype = "PYT",
+                   nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                   phenoF1toStage1 = T,errVarPreStage1 = 500,
+                   useCurrentPhenoTrain = F, 
+                   nCyclesToKeepRecords = 30,
+                   selCritPipeAdv = selCritIID, 
+                   selCritPopImprov =  selCritIID,
+                   nTrainPopCycles=6,
+                   nYrsAsCandidates=2,
+                   maxTrainingPopSize=500,
+                   modelType="DirDom",
+                   propSel=0.05,
+                   crossSelCrit="UCparent")
+```
+
+```{r continue after burn-in with GMS, eval=F}
+start<-proc.time()[3]
+postBurnInGMS_test<-runSchemesPostBurnIn(simulations = simulations,
+                                        newBSP=newBSP,
+                                        nPostBurnInCycles=10,
+                                        selCritPop="genomicMateSelCrit",
+                                        selCritPipe="selCritIID",
+                                        productFunc="productPipeline",
+                                        popImprovFunc="popImprovByMateSel",
+                                        ncores=4,
+                                        nBLASthreads=3)
+saveRDS(postBurnInGMS_test,file = here::here("output","postBurnInGMS_test_DirDom_UCparent.rds"))
+end<-proc.time()[3]; print(paste0((end-start)/60," mins elapsed"))
+# [1] "60.21885 mins elapsed"
+```
+
+```{r plot test sims}
+postBurnInGMS<-readRDS(here::here("output","postBurnInGMS_test_DirDom_UCparent.rds"))
+postBurnInGS<-readRDS(here::here("output","postBurnInGS_test.rds"))
+postBurnInPS<-readRDS(here::here("output","postBurnIn_test.rds"))
+
+forSimPlot<-postBurnInGMS %>% 
+  mutate(PostBurnIn="GMS") %>% 
+  bind_rows(postBurnInGS %>% 
+              mutate(PostBurnIn="GS")) %>% 
+  bind_rows(postBurnInPS %>% 
+              mutate(PostBurnIn="PS")) %>% 
+  unnest_wider(SimOutput) %>% 
+  select(SimRep,PostBurnIn,records) %>% 
+  unnest_wider(records) %>% 
+  select(SimRep,PostBurnIn,stageOutputs) %>% 
+  unnest() %>% 
+  filter(stage=="F1") %>% 
+  mutate(YearPostBurnIn=year-10)
+ 
+library(patchwork)
+meanGplot<-forSimPlot %>% 
+  group_by(PostBurnIn,YearPostBurnIn,year,stage) %>% 
+  summarize(meanGenMean=mean(genValMean),
+            seGenMean=sd(genValMean)/sqrt(n())) %>% 
+  ggplot(.,aes(x=YearPostBurnIn)) +
+  geom_ribbon(aes(ymin = meanGenMean - seGenMean, 
+                  ymax = meanGenMean + seGenMean,
+                  fill = PostBurnIn), 
+              alpha=0.75) + 
+  geom_line(aes(y = meanGenMean, color=PostBurnIn))
+sdGplot<-forSimPlot %>% 
+  group_by(PostBurnIn,YearPostBurnIn,year,stage) %>% 
+  summarize(meanGenSD=mean(genValSD),
+            seGenSD=sd(genValSD)/sqrt(n())) %>% 
+  ggplot(.,aes(x=YearPostBurnIn)) +
+  geom_ribbon(aes(ymin = meanGenSD - seGenSD, 
+                  ymax = meanGenSD + seGenSD,
+                  fill = PostBurnIn), 
+              alpha=0.75) + 
+  geom_line(aes(y = meanGenSD, group=PostBurnIn))
+(meanGplot | sdGplot) + patchwork::plot_layout(guides = 'collect') & 
+  theme_bw() & geom_vline(xintercept = 0, color='darkred')
+```
+
+# Another set of (small) GMS sims
+
+Obviously, my first attempt used what I'm guessing is far too much weight on the predicted cross-variance. 
+
+Whatever happened, I need to fiddle with the parameters to get a sense for what is happening.
+```{r}
+# nParents --> n CrossesToPredict --> compute time estimate
+# 100=5050 (90 mins estimated)
+# 50=1275 (23 mins estimated)
+# 10=55 (1 mins observed)
+```
+
+## Try a few things
+```{r UCparent_DirDom_propSel0pt20,eval=T}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+
+source(here::here("code","runSchemesPostBurnIn.R"))
+
+simulations<-readRDS(here::here("output","burnIn_test.rds"))
+
+# First the same "newBSP" used for the initial GMS test above
+newBSP1<-specifyBSP(schemeDF = schemeDF,
+                   nChr = 3,effPopSize = 100,quickHaplo = F,
+                   segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                   gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                   meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                   stageToGenotype = "PYT",
+                   nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                   phenoF1toStage1 = T,errVarPreStage1 = 500,
+                   useCurrentPhenoTrain = F, 
+                   nCyclesToKeepRecords = 30,
+                   selCritPipeAdv = selCritIID, 
+                   selCritPopImprov =  selCritIID,
+                   nTrainPopCycles=6,
+                   nYrsAsCandidates=2,
+                   maxTrainingPopSize=500,
+                   modelType="DirDom",
+                   propSel=0.2, # lower the effective weight on predict SD
+                   crossSelCrit="UCparent")
+start<-proc.time()[3]
+postBurnInGMS_test<-runSchemesPostBurnIn(simulations = simulations,
+                                        newBSP=newBSP1,
+                                        nPostBurnInCycles=10,
+                                        selCritPop="genomicMateSelCrit",
+                                        selCritPipe="selCritIID",
+                                        productFunc="productPipeline",
+                                        popImprovFunc="popImprovByMateSel",
+                                        ncores=4,
+                                        nBLASthreads=3)
+saveRDS(postBurnInGMS_test,file = here::here("output","postBurnInGMS_test_UCparent_DirDom_propSel0pt20.rds"))
+end<-proc.time()[3]; timebsp<-end-start;
+print(paste0((timebsp)/60," mins elapsed"))
+# Error: Problem with `mutate()` column `SimOutput`.
+# ℹ `SimOutput = future_map2(...)`.
+# ✖ invalid class “Pop” object: nInd!=length(fixEff)
+# Run `rlang::last_error()` to see where the error occurred.
+# > rlang::last_trace()
+# <error/dplyr:::mutate_error>
+# Problem with `mutate()` column `SimOutput`.
+# ℹ `SimOutput = future_map2(...)`.
+# ✖ invalid class “Pop” object: nInd!=length(fixEff)
+# Backtrace:
+#      █
+#   1. ├─global::runSchemesPostBurnIn(...)
+#   2. │ └─`%>%`(...) code/runSchemesPostBurnIn.R:37:2
+```
+cbsumm13 - 24 cores
+```{r UCparent_A_propSel0pt20,eval=T}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+
+source(here::here("code","runSchemesPostBurnIn.R"))
+
+simulations<-readRDS(here::here("output","burnIn_test.rds"))
+
+# First the same "newBSP" used for the initial GMS test above
+newBSP2<-specifyBSP(schemeDF = schemeDF,
+                   nChr = 3,effPopSize = 100,quickHaplo = F,
+                   segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                   gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                   meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                   stageToGenotype = "PYT",
+                   nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                   phenoF1toStage1 = T,errVarPreStage1 = 500,
+                   useCurrentPhenoTrain = F, 
+                   nCyclesToKeepRecords = 30,
+                   selCritPipeAdv = selCritIID, 
+                   selCritPopImprov =  selCritIID,
+                   nTrainPopCycles=6,
+                   nYrsAsCandidates=2,
+                   maxTrainingPopSize=500,
+                   modelType="A", # standard additive only model
+                   propSel=0.2, # lower the effective weight on predict SD
+                   crossSelCrit="UCparent")
+start<-proc.time()[3]
+postBurnInGMS_test<-runSchemesPostBurnIn(simulations = simulations,
+                                        newBSP=newBSP2,
+                                        nPostBurnInCycles=10,
+                                        selCritPop="genomicMateSelCrit",
+                                        selCritPipe="selCritIID",
+                                        productFunc="productPipeline",
+                                        popImprovFunc="popImprovByMateSel",
+                                        ncores=4,
+                                        nBLASthreads=5)
+saveRDS(postBurnInGMS_test,file = here::here("output","postBurnInGMS_test_UCparent_A_propSel0pt20.rds"))
+end<-proc.time()[3]; timebsp<-end-start;
+print(paste0((timebsp)/60," mins elapsed"))
+# Error: Problem with `mutate()` column `SimOutput`.
+# ℹ `SimOutput = future_map2(...)`.
+# ✖ invalid class “Pop” object: nInd!=length(fixEff)
+# 
+# 10: Problem with `mutate()` column `SimOutput`.
+# ℹ `SimOutput = future_map2(...)`.
+# ℹ ‘MASS’ namespace cannot be unloaded:
+#   namespace ‘MASS’ is imported by ‘lme4’ so cannot be unloaded
+```
+cbsulm05 - 64 cores
+```{r MeanBV_A_propSel0pt20,eval=T}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+
+source(here::here("code","runSchemesPostBurnIn.R"))
+
+simulations<-readRDS(here::here("output","burnIn_test.rds"))
+
+# First the same "newBSP" used for the initial GMS test above
+newBSP3<-specifyBSP(schemeDF = schemeDF,
+                   nChr = 3,effPopSize = 100,quickHaplo = F,
+                   segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                   gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                   meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                   stageToGenotype = "PYT",
+                   nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                   phenoF1toStage1 = T,errVarPreStage1 = 500,
+                   useCurrentPhenoTrain = F, 
+                   nCyclesToKeepRecords = 30,
+                   selCritPipeAdv = selCritIID, 
+                   selCritPopImprov =  selCritIID,
+                   nTrainPopCycles=6,
+                   nYrsAsCandidates=2,
+                   maxTrainingPopSize=500,
+                   modelType="A", # standard additive only model
+                   propSel=0.2, # lower the effective weight on predict SD
+                   crossSelCrit="MeanBV") # select based on mean BV instead of Usefulness
+start<-proc.time()[3]
+postBurnInGMS_test<-runSchemesPostBurnIn(simulations = simulations,
+                                        newBSP=newBSP3,
+                                        nPostBurnInCycles=10,
+                                        selCritPop="genomicMateSelCrit",
+                                        selCritPipe="selCritIID",
+                                        productFunc="productPipeline",
+                                        popImprovFunc="popImprovByMateSel",
+                                        ncores=4,
+                                        nBLASthreads=5)
+saveRDS(postBurnInGMS_test,file = here::here("output","postBurnInGMS_test_MeanBV_A_propSel0pt20.rds"))
+end<-proc.time()[3]; timebsp<-end-start;
+print(paste0((timebsp)/60," mins elapsed"))
+# Error: Problem with `mutate()` column `SimOutput`.
+# ℹ `SimOutput = future_map2(...)`.
+# ✖ invalid class “Pop” object: nInd!=length(fixEff)
+# Run `rlang::last_error()` to see where the error occurred.
+```
+
+```{r continue after burn-in with GMS, eval=F}
+# start<-proc.time()[3]
+# postBurnInGMS_test<-runSchemesPostBurnIn(simulations = simulations,
+#                                         newBSP=newBSP1,
+#                                         nPostBurnInCycles=10,
+#                                         selCritPop="genomicMateSelCrit",
+#                                         selCritPipe="selCritIID",
+#                                         productFunc="productPipeline",
+#                                         popImprovFunc="popImprovByMateSel",
+#                                         ncores=4,
+#                                         nBLASthreads=3)
+# saveRDS(postBurnInGMS_test,file = here::here("output","postBurnInGMS_test_newBSP1.rds"))
+# end<-proc.time()[3]; timebsp1<-end-start;
+# start<-proc.time()[3]
+# postBurnInGMS_test<-runSchemesPostBurnIn(simulations = simulations,
+#                                         newBSP=newBSP2,
+#                                         nPostBurnInCycles=10,
+#                                         selCritPop="genomicMateSelCrit",
+#                                         selCritPipe="selCritIID",
+#                                         productFunc="productPipeline",
+#                                         popImprovFunc="popImprovByMateSel",
+#                                         ncores=4,
+#                                         nBLASthreads=3)
+# saveRDS(postBurnInGMS_test,file = here::here("output","postBurnInGMS_test_newBSP2.rds"))
+# end<-proc.time()[3]; timebsp2<-end-start;
+# start<-proc.time()[3]
+# postBurnInGMS_test<-runSchemesPostBurnIn(simulations = simulations,
+#                                         newBSP=newBSP3,
+#                                         nPostBurnInCycles=10,
+#                                         selCritPop="genomicMateSelCrit",
+#                                         selCritPipe="selCritIID",
+#                                         productFunc="productPipeline",
+#                                         popImprovFunc="popImprovByMateSel",
+#                                         ncores=4,
+#                                         nBLASthreads=3)
+# saveRDS(postBurnInGMS_test,file = here::here("output","postBurnInGMS_test_newBSP3.rds"))
+# end<-proc.time()[3]; timebsp3<-end-start;
+```
+
+```{r MeanBV_A_propSel0pt20,eval=T}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+
+source(here::here("code","runSchemesPostBurnIn.R"))
+
+simulations<-readRDS(here::here("output","burnIn_test.rds"))
+
+# First the same "newBSP" used for the initial GMS test above
+newBSP4<-specifyBSP(schemeDF = schemeDF,
+                   nChr = 3,effPopSize = 100,quickHaplo = F,
+                   segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                   gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                   meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                   stageToGenotype = "PYT",
+                   nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                   phenoF1toStage1 = T,errVarPreStage1 = 500,
+                   useCurrentPhenoTrain = F, 
+                   nCyclesToKeepRecords = 30,
+                   selCritPipeAdv = selCritIID, 
+                   selCritPopImprov =  selCritIID,
+                   nTrainPopCycles=6,
+                   nYrsAsCandidates=2,
+                   maxTrainingPopSize=500)
+start<-proc.time()[3]
+postBurnInGMS_test<-runSchemesPostBurnIn(simulations = simulations,
+                                        newBSP=newBSP4,
+                                        nPostBurnInCycles=10,
+                                        selCritPop="parentSelCritGEBV",
+                                        selCritPipe="selCritIID",
+                                        productFunc="productPipeline",
+                                        popImprovFunc="popImprovByParentSel",
+                                        ncores=4,
+                                        nBLASthreads=5)
+saveRDS(postBurnInGMS_test,file = here::here("output","postBurnInGMS_test_ParentSel_GS.rds"))
+end<-proc.time()[3]; timebsp<-end-start;
+print(paste0((timebsp)/60," mins elapsed"))
+```
+
+```{r continue after burn-in with GMS, eval=F}
+start<-proc.time()[3]
+postBurnInGMS_test<-runSchemesPostBurnIn(simulations = simulations,
+                                        newBSP=newBSP3,
+                                        nPostBurnInCycles=10,
+                                        selCritPop="parentSelCritGEBV",
+                                        selCritPipe="selCritIID",
+                                        productFunc="productPipeline",
+                                        popImprovFunc="popImprovByParentSel",
+                                        ncores=4,
+                                        nBLASthreads=3)
+saveRDS(postBurnInGMS_test,file = here::here("output","postBurnInGMS_test_newBSP3_GS.rds"))
+end<-proc.time()[3]; timebsp3_gs<-end-start;
+start<-proc.time()[3]
+postBurnInGMS_test<-runSchemesPostBurnIn(simulations = simulations,
+                                        newBSP=newBSP3,
+                                        nPostBurnInCycles=10,
+                                        selCritPop="parentSelCritBLUP",
+                                        selCritPipe="selCritIID",
+                                        productFunc="productPipeline",
+                                        popImprovFunc="popImprovByParentSel",
+                                        ncores=4,
+                                        nBLASthreads=3)
+saveRDS(postBurnInGMS_test,file = here::here("output","postBurnInGMS_test_newBSP3_PS.rds"))
+end<-proc.time()[3]; timebsp3_ps<-end-start;
+print(paste0((timebsp1)/60," mins elapsed"))
+print(paste0((timebsp2)/60," mins elapsed"))
+print(paste0((timebsp3)/60," mins elapsed"))
+print(paste0((timebsp3_gs)/60," mins elapsed"))
+print(paste0((timebsp3_ps)/60," mins elapsed"))
+# > print(paste0((timebsp1)/60," mins elapsed"))
+# [1] "61.0738166666667 mins elapsed"
+# > print(paste0((timebsp2)/60," mins elapsed"))
+# [1] "3.4599 mins elapsed"
+# > print(paste0((timebsp3)/60," mins elapsed"))
+# [1] "0.80013333333333 mins elapsed"
+# > print(paste0((timebsp3_gs)/60," mins elapsed"))
+# [1] "4.21411666666667 mins elapsed"
+# > print(paste0((timebsp3_ps)/60," mins elapsed"))
+# [1] "0.897616666666666 mins elapsed"
+```
+, fig.width=10
+```{r plot additional test sims, fig.width=8}
+forSimPlot<-readRDS(here::here("output","postBurnInGMS_test_DirDom_UCparent.rds")) %>% 
+  mutate(PostBurnIn="GMS_UCparent_DirDom_propSel0pt05") %>% 
+  bind_rows(readRDS(here::here("output","postBurnInGMS_test_newBSP1.rds")) %>% 
+              mutate(PostBurnIn="GMS_UCparent_DirDom_propSel0pt20")) %>% 
+  bind_rows(readRDS(here::here("output","postBurnInGMS_test_newBSP2.rds")) %>% 
+              mutate(PostBurnIn="GMS_UCparent_A_propSel0pt20")) %>% 
+  bind_rows(readRDS(here::here("output","postBurnInGMS_test_newBSP3.rds")) %>% 
+              mutate(PostBurnIn="GMS_MeanBV_A_propSel0pt20")) %>% 
+  bind_rows(readRDS(here::here("output","postBurnInGMS_test_newBSP3_GS.rds")) %>% 
+              mutate(PostBurnIn="GS_GEBV_A")) %>% 
+  bind_rows(readRDS(here::here("output","postBurnInGMS_test_newBSP3_PS.rds")) %>% 
+              mutate(PostBurnIn="PS_BLUP")) %>% 
+  unnest_wider(SimOutput) %>% 
+  select(SimRep,PostBurnIn,records) %>% 
+  unnest_wider(records) %>% 
+  select(SimRep,PostBurnIn,stageOutputs) %>% 
+  unnest() %>% 
+  filter(stage %in% c("F1","UYT")) %>% 
+  mutate(YearPostBurnIn=year-10)
+#forSimPlot %>% count(PostBurnIn)
+library(patchwork)
+meanGplot<-forSimPlot %>% 
+  filter(stage=="F1") %>% 
+  group_by(PostBurnIn,YearPostBurnIn,year,.drop = F) %>% 
+  summarize(meanGenMean=mean(genValMean),
+            seGenMean=sd(genValMean)/n()) %>% ungroup() %>% 
+  ggplot(.,aes(x=YearPostBurnIn)) +
+  geom_ribbon(aes(ymin = meanGenMean - seGenMean, 
+                  ymax = meanGenMean + seGenMean,
+                  fill = PostBurnIn), 
+              alpha=0.4) + #theme(legend.position = 'bottom') + 
+  geom_line(aes(y = meanGenMean, color=PostBurnIn)) + 
+  geom_vline(xintercept = 0, color='darkred')
+sdGplot<-forSimPlot %>% 
+  filter(stage=="F1") %>% 
+  group_by(PostBurnIn,YearPostBurnIn,year,.drop = F) %>% 
+  summarize(meanGenSD=mean(genValSD),
+            seGenSD=sd(genValSD)/n()) %>% ungroup() %>% 
+  ggplot(.,aes(x=YearPostBurnIn)) +
+  geom_ribbon(aes(ymin = meanGenSD - seGenSD, 
+                  ymax = meanGenSD + seGenSD,
+                  fill = PostBurnIn), 
+              alpha=0.4) + #theme(legend.position = 'bottom') + 
+  geom_line(aes(y = meanGenSD, color=PostBurnIn)) + 
+  geom_vline(xintercept = 0, color='darkred')
+(meanGplot | sdGplot) + 
+  plot_layout(guides = 'collect') & 
+  theme_bw() & 
+  theme(legend.position = 'bottom')
+   
+```
+```{r plot additional test sims, fig.width=8}
+library(patchwork)
+meanGplot<-forSimPlot %>% 
+  filter(stage=="F1") %>% 
+  group_by(PostBurnIn,YearPostBurnIn,year,.drop = F) %>% 
+  summarize(meanGenMean=mean(genValMean),
+            seGenMean=sd(genValMean)/n()) %>% ungroup() %>% 
+  ggplot(.,aes(x=YearPostBurnIn)) +
+  geom_ribbon(aes(ymin = meanGenMean - seGenMean, 
+                  ymax = meanGenMean + seGenMean,
+                  fill = PostBurnIn), 
+              alpha=0.4) + 
+  geom_line(aes(y = meanGenMean, color=PostBurnIn)) + 
+  geom_vline(xintercept = 0, color='darkred') +
+  facet_grid(.~PostBurnIn,scales='free')
+sdGplot<-forSimPlot %>% 
+  filter(stage=="F1") %>% 
+  group_by(PostBurnIn,YearPostBurnIn,year,.drop = F) %>% 
+  summarize(meanGenSD=mean(genValSD),
+            seGenSD=sd(genValSD)/n()) %>% ungroup() %>% 
+  ggplot(.,aes(x=YearPostBurnIn)) +
+  geom_ribbon(aes(ymin = meanGenSD - seGenSD, 
+                  ymax = meanGenSD + seGenSD,
+                  fill = PostBurnIn), 
+              alpha=0.4) + 
+  geom_line(aes(y = meanGenSD, color=PostBurnIn)) + 
+  geom_vline(xintercept = 0, color='darkred') + 
+  facet_grid(.~PostBurnIn,scales='free')
+(meanGplot / sdGplot) +
+  plot_layout(guides = 'collect') & 
+  theme_bw() & 
+  theme(legend.position = 'bottom',
+        strip.background.x = element_blank(),
+        strip.text.x = element_text(size=10))
+```
+```{r}
+forSimPlot %>% 
+  select(SimRep,PostBurnIn,YearPostBurnIn,year,stage,genValMean) %>% 
+  filter(YearPostBurnIn>0,stage=="F1") %>% 
+  spread(PostBurnIn,genValMean)
+```
+
+## Try again
+
+MeanBV_A
+UCparent_A
+UCparent_DirDom_propSel0pt20
+```{r}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+
+source(here::here("code","runSchemesPostBurnIn.R"))
+
+simulations<-readRDS(here::here("output","burnIn_test.rds"))
+
+# First the same "newBSP" used for the initial GMS test above
+newBSP<-specifyBSP(schemeDF = schemeDF,
+                   nChr = 3,effPopSize = 100,quickHaplo = F,
+                   segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                   gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                   meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                   stageToGenotype = "PYT",
+                   nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                   phenoF1toStage1 = T,errVarPreStage1 = 500,
+                   useCurrentPhenoTrain = F, 
+                   nCyclesToKeepRecords = 30,
+                   selCritPipeAdv = selCritIID, 
+                   selCritPopImprov =  selCritIID,
+                   nTrainPopCycles=6,
+                   nYrsAsCandidates=2,
+                   maxTrainingPopSize=500,
+                   modelType="DirDom",
+                   propSel=0.05,
+                   crossSelCrit="UCparent")
+
+# Make a few variants
+newBSP1<-newBSP; newBSP1$propSel<-0.2 # lower the effective weight on predict SD
+newBSP2<-newBSP1; newBSP2$modelType<-"A" # standard additive model
+newBSP3<-newBSP2; newBSP3$crossSelCrit<-"MeanBV" # select based on mean BV instead of Usefulness
+```
+
+```{r}
+start<-proc.time()[3]
+postBurnInGMS_test<-runSchemesPostBurnIn(simulations = simulations,
+                                        newBSP=newBSP1,
+                                        nPostBurnInCycles=10,
+                                        selCritPop="genomicMateSelCrit",
+                                        selCritPipe="selCritIID",
+                                        productFunc="productPipeline",
+                                        popImprovFunc="popImprovByMateSel",
+                                        ncores=4,
+                                        nBLASthreads=3)
+saveRDS(postBurnInGMS_test,file = here::here("output","postBurnInGMS_test_newBSP1.rds"))
+end<-proc.time()[3]; timebsp1<-end-start;
+start<-proc.time()[3]
+postBurnInGMS_test<-runSchemesPostBurnIn(simulations = simulations,
+                                        newBSP=newBSP2,
+                                        nPostBurnInCycles=10,
+                                        selCritPop="genomicMateSelCrit",
+                                        selCritPipe="selCritIID",
+                                        productFunc="productPipeline",
+                                        popImprovFunc="popImprovByMateSel",
+                                        ncores=4,
+                                        nBLASthreads=3)
+saveRDS(postBurnInGMS_test,file = here::here("output","postBurnInGMS_test_newBSP2.rds"))
+end<-proc.time()[3]; timebsp2<-end-start;
+start<-proc.time()[3]
+postBurnInGMS_test<-runSchemesPostBurnIn(simulations = simulations,
+                                        newBSP=newBSP3,
+                                        nPostBurnInCycles=10,
+                                        selCritPop="genomicMateSelCrit",
+                                        selCritPipe="selCritIID",
+                                        productFunc="productPipeline",
+                                        popImprovFunc="popImprovByMateSel",
+                                        ncores=4,
+                                        nBLASthreads=3)
+saveRDS(postBurnInGMS_test,file = here::here("output","postBurnInGMS_test_newBSP3.rds"))
+end<-proc.time()[3]; timebsp3<-end-start;
+```
+
+
+## Set-up a complete comparison
+
+Change my `AlphaSimHlpR` functions again: 
+
+- Run a comparison of PS, GS and GMS that uses the same strategy for determining the set-of candidates
+    * With vs. Without checks as candidates
+    * With vs. Without the extra TP members used to make the prediction as selection candidates.
+    * modelTypes: A vs. AD vs. DirDom
+    * propSel: 0.01, 0.05, 0.2
+    * crossSelCrit: "MeanBG", "MeanTGV", "UCparent", "UCvariety"
+- Run it even longer?
+- 
+    * (1) consider only the most re 
+
+
+
+# Testing / Debugging
+## round 1
+```{r debugging params}
+# burnInSim<-simulations$burnInSim[[1]]
+# selCritPop="genomicMateSelCrit";
+# selCritPipe="selCritIID";
+# productFunc="productPipeline";
+# popImprovFunc="popImprovByMateSel";
+# nBLASthreads=5; ncores=1
+```
+```{r runSchemesPostBurnIn - thru prodPipe}
+# start<-proc.time()[3]
+# if(!is.null(nBLASthreads)) { RhpcBLASctl::blas_set_num_threads(nBLASthreads) }
+# SP<-burnInSim$SP
+# if(!is.null(newBSP)){
+#   bsp<-newBSP; bsp$checks<-burnInSim$bsp$checks
+# } else { bsp<-burnInSim$bsp }
+# records<-burnInSim$records
+# bsp[["productPipeline"]] <- get(productFunc)
+# bsp[["populationImprovement"]] <- get(popImprovFunc)
+# bsp[["selCritPipeAdv"]] <- get(selCritPipe)
+# bsp[["selCritPopImprov"]] <- get(selCritPop)
+# records <- bsp$productPipeline(records, bsp, SP) 
+# records <- bsp$populationImprovement(records, bsp, SP)
+#records$F1
+# end<-proc.time()[3]; print(paste0((end-start)/60," mins elapsed"))
+```
+```{r debug settings for genomicMateSelCrit}
+# bsp[["modelType"]]<-"DirDom"
+# bsp[["propSel"]]<-0.05 # only has effect if "UCparent" or "UCvariety"
+# bsp[["crossSelCrit"]]<-"MeanBV" # modelTypes: "A", "AD", "DirDom"
+# bsp[["crossSelCrit"]]<-"MeanTGV" # only with modelType="DirDom"
+# bsp[["crossSelCrit"]]<-"UCparent" # modelTypes: "A", "AD", "DirDom"
+# bsp[["crossSelCrit"]]<-"UCvariety" # modelTypes: "AD", "DirDom"
+# records<-trainRec
+```
+## round 2
+```{r continue after burn-in with GMS, eval=F}
+# Joining, by = "GID"
+# Joining, by = "GID"
+# Joining, by = "sireID"
+# Joining, by = "damID"
+# Joining, by = c("sireID", "damID", "predOf", "Trait1", "Trait2")
+# Error: Problem with `mutate()` column `SimOutput`.
+# ℹ `SimOutput = future_map2(...)`.
+# ✖ Trying to select invalid individuals
+# Run `rlang::last_error()` to see where the error occurred.
+# In addition: Warning messages:
+# 1: Problem with `mutate()` column `SimOutput`.
+# ℹ `SimOutput = future_map2(...)`.
+# ℹ Outer names are only allowed for unnamed scalar atomic inputs 
+# 2: Problem with `mutate()` column `SimOutput`.
+# ℹ `SimOutput = future_map2(...)`.
+# ℹ ‘MASS’ namespace cannot be unloaded:
+#   namespace ‘MASS’ is imported by ‘lme4’ so cannot be unloaded 
+# > saveRDS(postBurnInGMS_test,file = here::here("output","postBurnInGMS_test_DirDom_UCparent.rds"))
+# Error in saveRDS(postBurnInGMS_test, file = here::here("output", "postBurnInGMS_test_DirDom_UCparent.rds")) : 
+#   object 'postBurnInGMS_test' not found
+# > end<-proc.time()[3]; print(paste0((end-start)/60," mins elapsed"))
+# [1] "1.46896666666667 mins elapsed"
+
+```
+```{r more test input}
+# nPostBurnInCycles=10;
+# selCritPop="genomicMateSelCrit";
+# selCritPipe="selCritIID";
+# productFunc="productPipeline";
+# popImprovFunc="popImprovByMateSel";
+# ncores=4;
+# nBLASthreads=5
+# SimRep<-simulations$SimRep[[1]]
+# burnInSim<-simulations$burnInSim[[1]]
+```
+```{r more debug}
+# if(!is.null(nBLASthreads)) { RhpcBLASctl::blas_set_num_threads(nBLASthreads) }
+# cat("******", SimRep, "\n")
+# 
+# # This CONTINUES where previous sims left off
+# ## no initialize step
+# ## Keep burn-in stage sim params "SP"
+# SP<-burnInSim$SP
+# ## specify a potentially new bsp object
+# ## (keep checks stored in burn-in stage's bsp)
+# if(!is.null(newBSP)){
+#   bsp<-newBSP; bsp$checks<-burnInSim$bsp$checks
+# } else { bsp<-burnInSim$bsp }
+# ## 'historical' records from burn-in
+# records<-burnInSim$records
+# ## override burn-in specified product and population improvement funcs
+# bsp[["productPipeline"]] <- get(productFunc)
+# bsp[["populationImprovement"]] <- get(popImprovFunc)
+# bsp[["selCritPipeAdv"]] <- get(selCritPipe)
+# bsp[["selCritPopImprov"]] <- get(selCritPop)
+# 
+# # Post burn-in cycles
+# cat("\n"); cat("Post burn-in cycles"); cat("\n")
+# for (cycle in 1:nPostBurnInCycles){
+#   cat(cycle, " ")
+#   records <- bsp$productPipeline(records, bsp, SP)
+#   records <- bsp$populationImprovement(records, bsp, SP)
+# }
+#       records <- AlphaSimHlpR:::lastCycStgOut(records, bsp, SP)
+
+```
+```{r popImprove Func debug}
+# Joining, by = "sireID"
+# Joining, by = "damID"
+# Joining, by = c("sireID", "damID", "predOf", "Trait1", "Trait2")
+# Error in .local(x, i, ...) : Trying to select invalid individuals
+# In addition: There were 20 warnings (use warnings() to see them)
+# > cycle
+# [1] 10
+
+#popImprovByMateSel <- function(records, bsp, SP){
+  require(genomicMateSelectR)
+
+  # Which phenotypes can be included for model training?
+  ### Current year phenotypes?
+  trainRec <- records
+  if (!bsp$useCurrentPhenoTrain){
+    for (stage in 1+1:bsp$nStages){
+      trainRec[[stage]] <- trainRec[[stage]][-length(trainRec[[stage]])]
+    }
+  }
+
+  # Which individuals can be selection candidates?
+  ## only individuals that have been genoytped in the last "nYrsAsCandidates"
+  if(bsp$stageToGenotype=="F1"){
+    NrecentProgenySelCands<-(bsp$nProgeny*bsp$nCrosses)*bsp$nYrsAsCandidates
+    candidates<-records$F1@id %>% tail(.,n = NrecentProgenySelCands)
+  } else {
+    candidates<-records[[bsp$stageToGenotype]] %>%
+      tail(.,n=bsp$nYrsAsCandidates) %>%
+      map_df(.,rbind) %$%
+      unique(id) %>%
+      # exclude checks
+      setdiff(.,bsp$checks@id)
+  }
+
+  # How many additional individuals to use as training?
+  ## these are individuals with phenotypes
+  ## but not in the list of selection candidates
+  ## Drawn from the most recent cycles according to "nTrainPopCycles"
+  ## Potentially subsampled according to "maxTrainingPopSize"
+  phenotypedLines<-trainRec[bsp$stageNames] %>%
+    map(.,~tail(.,n = bsp$nTrainPopCycles)) %>%
+    map_df(.,bind_rows) %$%
+    unique(id)
+
+  phenotypedLines_notSelCands<-setdiff(phenotypedLines,candidates)
+  ## maxTPsize is lesser of specified 'maxTrainingPopSize' and actual number of phenotyped lines not considered selection candidates
+  maxTPsize<-min(bsp$maxTrainingPopSize,length(phenotypedLines_notSelCands))
+  ## Make sure checks ARE included
+  if(!is.null(bsp$checks)){
+    # sample from the list of non-selection candidates that also are NOT checks
+    trainingpop<-sample(setdiff(phenotypedLines_notSelCands,bsp$checks@id),
+                        size = maxTPsize, replace = F) %>%
+      # include the checks
+      c(.,bsp$checks@id) %>%
+      # vanity: order the ids
+      .[order(as.integer(.))]
+  } else {
+    trainingpop<-sample(phenotypedLines_notSelCands,
+                        size = maxTPsize, replace = F) %>%
+      .[order(as.integer(.))]
+  }
+
+  # require two inputs for downstream SelCrit
+  ## only compatible SelCrit so far will therefore be "parentSelCritGEBV"
+  ## "candidates" and "trainingpop": non-overlapping sets,
+  ## available pheno records (in "trainRec") for any of the "candidates"
+  ## will be automatically included in predictions
+  crit <- bsp$selCritPopImprov(trainRec, candidates, trainingpop, bsp, SP)
+
+  # select the top nCrosses
+  crossingPlan<-crit %>%
+    slice_max(order_by = crossSelCrit,
+              n = bsp$nCrosses) %>%
+    select(sireID,damID) %>%
+    as.matrix
+
+  # extract a pop-object of those parents
+  ## potentially included the checks as parents _if_ selected
+  
+  parents <- records$F1[crossingPlan %>% as.vector %>% unique]
+  
+  parents <- c(records$F1,bsp$checks)[crossingPlan %>% as.vector %>% unique]
+  # make crosses
+  progeny <- makeCross(pop = parents,
+                       crossPlan = crossingPlan,
+                       nProgeny = bsp$nProgeny, simParam=SP)
+
+  # not 100% sure, but seems to store the "year" in the @fixEff slot of "progeny"
+  progeny@fixEff <- rep(as.integer(max(records$stageOutputs$year) + 1), bsp$nSeeds)
+  parentsUsed <- unique(c(progeny@mother, progeny@father))
+  stgCyc <- sapply(parentsUsed, AlphaSimHlpR:::whereIsID, records=records)
+  stgCyc <- table(stgCyc[1,], stgCyc[2,])
+  strtStgOut <- nrow(records$stageOutputs) - bsp$nStages - 1
+  for (i in 1:nrow(stgCyc)){
+    stage <- as.integer(rownames(stgCyc)[i])
+    records$stageOutputs$nContribToPar[[strtStgOut + stage]] <- tibble(cycle=as.integer(colnames(stgCyc)), nContribToPar=stgCyc[i,])
+  }
+  records$F1 <- c(records$F1, progeny)
+  return(records)
+}
+
+```
+
+
+
+## round 3 - popImprovByMateSel not working properly
+
+```{r UCparent_DirDom_propSel0pt20,eval=T}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+
+source(here::here("code","runSchemesPostBurnIn.R"))
+
+simulations<-readRDS(here::here("output","burnIn_test.rds"))
+
+# First the same "newBSP" used for the initial GMS test above
+newBSP1<-specifyBSP(schemeDF = schemeDF,
+                   nChr = 3,effPopSize = 100,quickHaplo = F,
+                   segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                   gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                   meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                   stageToGenotype = "PYT",
+                   nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                   phenoF1toStage1 = T,errVarPreStage1 = 500,
+                   useCurrentPhenoTrain = F, 
+                   nCyclesToKeepRecords = 30,
+                   selCritPipeAdv = selCritIID, 
+                   selCritPopImprov =  selCritIID,
+                   nTrainPopCycles=6,
+                   nYrsAsCandidates=2,
+                   maxTrainingPopSize=500,
+                   modelType="A",
+                   propSel=0.2, # lower the effective weight on predict SD
+                   crossSelCrit="UCparent")
+
+# start<-proc.time()[3]
+# postBurnInGMS_test<-runSchemesPostBurnIn(
+simulations = simulations %>% slice(1:4)
+newBSP=newBSP1;
+nPostBurnInCycles=2;
+selCritPop="genomicMateSelCrit";
+selCritPipe="selCritIID";
+productFunc="productPipeline";
+popImprovFunc="popImprovByMateSel";
+ncores=4;
+nBLASthreads=5
+```
+
+
+```{r}
+  require(furrr); plan(multisession, workers = ncores)
+  options(future.globals.maxSize=+Inf); options(future.rng.onMisuse="ignore")
+
+  simulations<-simulations %>% 
+    slice(1) %>% 
+    mutate(SimOutput=map2(SimRep,burnInSim,function(SimRep,burnInSim,...){
+      # debug
+      # burnInSim<-simulations$burnInSim[[1]]
+      if(!is.null(nBLASthreads)) { RhpcBLASctl::blas_set_num_threads(nBLASthreads) }
+      cat("******", SimRep, "\n")
+
+      # This CONTINUES where previous sims left off
+      ## no initialize step
+      ## Keep burn-in stage sim params "SP"
+      SP<-burnInSim$SP
+      ## specify a potentially new bsp object
+      ## (keep checks stored in burn-in stage's bsp)
+      if(!is.null(newBSP)){
+        bsp<-newBSP; bsp$checks<-burnInSim$bsp$checks
+      } else { bsp<-burnInSim$bsp }
+      ## 'historical' records from burn-in
+      records<-burnInSim$records
+      ## override burn-in specified product and population improvement funcs
+      bsp[["productPipeline"]] <- get(productFunc)
+      bsp[["populationImprovement"]] <- get(popImprovFunc)
+      bsp[["selCritPipeAdv"]] <- get(selCritPipe)
+      bsp[["selCritPopImprov"]] <- get(selCritPop)
+
+      # Post burn-in cycles
+      cat("\n"); cat("Post burn-in cycles"); cat("\n")
+      for (cycle in 1:nPostBurnInCycles){
+        cat(cycle, " ")
+        records <- bsp$productPipeline(records, bsp, SP)
+        records <- bsp$populationImprovement(records, bsp, SP)
+      }
+
+      # Finalize the stageOutputs
+      records <- AlphaSimHlpR:::lastCycStgOut(records, bsp, SP)
+
+      return(list(records=records,
+                  bsp=bsp,
+                  SP=SP))
+    },
+    nPostBurnInCycles=nPostBurnInCycles,
+    selCritPop=selCritPop,
+    selCritPipe=selCritPipe,
+    productFunc=productFunc,
+    popImprovFunc=popImprovFunc,
+    nBLASthreads=nBLASthreads))
+  plan(sequential)
+
+```
+
+
+```{r}
+# debug
+burnInSim<-simulations$burnInSim[[1]]
+SimRep<-simulations$SimRep[[1]]
+```
+
+```{r}
+if(!is.null(nBLASthreads)) { RhpcBLASctl::blas_set_num_threads(nBLASthreads) }
+      cat("******", SimRep, "\n")
+
+      # This CONTINUES where previous sims left off
+      ## no initialize step
+      ## Keep burn-in stage sim params "SP"
+      SP<-burnInSim$SP
+      ## specify a potentially new bsp object
+      ## (keep checks stored in burn-in stage's bsp)
+      if(!is.null(newBSP)){
+        bsp<-newBSP; bsp$checks<-burnInSim$bsp$checks
+      } else { bsp<-burnInSim$bsp }
+      ## 'historical' records from burn-in
+      records<-burnInSim$records
+      ## override burn-in specified product and population improvement funcs
+      bsp[["productPipeline"]] <- get(productFunc)
+      bsp[["populationImprovement"]] <- get(popImprovFunc)
+      bsp[["selCritPipeAdv"]] <- get(selCritPipe)
+      bsp[["selCritPopImprov"]] <- get(selCritPop)
+```
+```{r test sequence} 
+records <- bsp$productPipeline(records, bsp, SP)
+#records <- bsp$populationImprovement(records, bsp, SP)
+```
+```{r debug populationImprovement}
+#bsp$populationImprovement
+#popImprovByMateSel <- function(records, bsp, SP){
+  require(genomicMateSelectR)
+
+  # Which phenotypes can be included for model training?
+  ### Current year phenotypes?
+  trainRec <- records
+  if (!bsp$useCurrentPhenoTrain){
+    for (stage in 1+1:bsp$nStages){
+      trainRec[[stage]] <- trainRec[[stage]][-length(trainRec[[stage]])]
+    }
+  }
+
+# Which individuals can be selection candidates?
+  ## only individuals that have been genoytped in the last "nYrsAsCandidates"
+  if(bsp$stageToGenotype=="F1"){
+    NrecentProgenySelCands<-(bsp$nProgeny*bsp$nCrosses)*bsp$nYrsAsCandidates
+    candidates<-records$F1@id %>% tail(.,n = NrecentProgenySelCands)
+  } else {
+    candidates<-records[[bsp$stageToGenotype]] %>%
+      tail(.,n=bsp$nYrsAsCandidates) %>%
+      map_df(.,bind_rows) %$%
+      unique(id) %>%
+      # exclude checks
+      setdiff(.,bsp$checks@id)
+  }
+
+# How many additional individuals to use as training?
+  ## these are individuals with phenotypes
+  ## but not in the list of selection candidates
+  ## Drawn from the most recent cycles according to "nTrainPopCycles"
+  ## Potentially subsampled according to "maxTrainingPopSize"
+  phenotypedLines<-trainRec[bsp$stageNames] %>%
+    map(.,~tail(.,n = bsp$nTrainPopCycles)) %>% 
+    map_df(.,bind_rows) %$%
+    unique(id)
+
+  phenotypedLines_notSelCands<-setdiff(phenotypedLines,candidates)
+  ## maxTPsize is lesser of specified 'maxTrainingPopSize' and actual number of phenotyped lines not considered selection candidates
+  maxTPsize<-min(bsp$maxTrainingPopSize,length(phenotypedLines_notSelCands))
+  ## Make sure checks ARE included
+```
+
+```{r debug populationImprovement}
+if(!is.null(bsp$checks)){
+    # sample from the list of non-selection candidates that also are NOT checks
+    trainingpop<-sample(setdiff(phenotypedLines_notSelCands,bsp$checks@id),
+                        size = maxTPsize, replace = F) %>%
+      # include the checks
+      c(.,bsp$checks@id) %>%
+      # vanity: order the ids
+      .[order(as.integer(.))]
+  } else {
+    trainingpop<-sample(phenotypedLines_notSelCands,
+                        size = maxTPsize, replace = F) %>%
+      .[order(as.integer(.))]
+  }
+
+  # require two inputs for downstream SelCrit
+  ## only compatible SelCrit so far will therefore be "parentSelCritGEBV"
+  ## "candidates" and "trainingpop": non-overlapping sets,
+  ## available pheno records (in "trainRec") for any of the "candidates"
+  ## will be automatically included in predictions
+  # crit <- bsp$selCritPopImprov(trainRec, candidates, trainingpop, bsp, SP)
+```
+```{r debug genomicMateSelCrit}
+records<-trainRec
+
+#genomicMateSelCrit<-function(records, candidates, trainingpop, bsp, SP){
+
+  # first construct the GRM(s)
+  indivs2keep<-union(candidates,trainingpop)
+  grms<-list(A=make_grm(records, indivs2keep, bsp, SP, grmType="add"))
+  if(bsp$modelType=="DirDom"){
+    grms[["D"]]<-make_grm(records, indivs2keep, bsp, SP, grmType="domGenotypic")
+  }
+  # phenotypes
+  phenoDF <- framePhenoRec(records, bsp)
+  # Remove individuals with phenotypes but who do not have geno records
+  phenoDF <- phenoDF[phenoDF$id %in% rownames(grms$A),]
+  # format the blups to please my own program (genomicMateSelectR)
+  blups<-tibble(Trait="trait",
+                TrainingData=list(phenoDF %>%
+                                    rename(drgBLUP=pheno) %>%
+                                    mutate(WT=1/errVar,
+                                           GID=id)))
+```
+
+
+```{r debug genomicMateSelCrit}
+# pull the dosage matrix, including checks
+  dosages<-pullSnpGeno(c(records$F1,bsp$checks)[indivs2keep], simParam=SP)
+  # run genomic predictions (to get marker effects and genomic BLUPs)
+  gpreds<-runGenomicPredictions(modelType=bsp$modelType,selInd=FALSE, SIwts=NULL,
+                                getMarkEffs=TRUE,
+                                returnPEV=FALSE,
+                                blups=blups,grms=grms,dosages=dosages,
+                                ncores=1,nBLASthreads=nBLASthreads)
+```
+
+```{r debug runGenomicPredictions}
+modelType=bsp$modelType;selInd=FALSE; SIwts=NULL;
+getMarkEffs=TRUE;
+returnPEV=FALSE;
+blups=blups;grms=grms;dosages=dosages;
+ncores=1;nBLASthreads=nBLASthreads
+```
+```{r debug fitModel}
+trainingdata<-blups$TrainingData[[1]]
+gid="GID"
+  # fitModel<-function(trainingdata,modelType,getMarkEffs,returnPEV,
+  #                    gid="GID",grms,dosages,
+  #                    nBLASthreads,...){
+    if(!is.null(nBLASthreads)) { RhpcBLASctl::blas_set_num_threads(nBLASthreads) }
+    # workers in plan(multisession) need this call internal to the function, it seems.
+
+    A<-grms[["A"]]
+    if(modelType %in% c("AD","DirDom")){ D<-grms[["D"]] }
+
+    trainingdata %<>%
+      dplyr::rename(gid=!!sym(gid)) %>%
+      filter(gid %in% rownames(A))
+trainingdata[[paste0(gid,"a")]]<-factor(trainingdata[["gid"]],
+                                            levels=rownames(A))
+    if(modelType %in% c("AD")){
+      trainingdata[[paste0(gid,"d")]]<-trainingdata[[paste0(gid,"a")]] }
+    if(modelType %in% c("DirDom")){
+      trainingdata[[paste0(gid,"d_star")]]<-trainingdata[[paste0(gid,"a")]] }
+
+    # Set-up random model statements
+    randFormula<-paste0("~vs(",gid,"a,Gu=A)")
+    if(modelType %in% c("AD")){
+      randFormula<-paste0(randFormula,"+vs(",gid,"d,Gu=D)") }
+    if(modelType=="DirDom"){
+      randFormula<-paste0(randFormula,"+vs(",gid,"d_star,Gu=D)")
+      f<-getPropHom(dosages)
+      trainingdata %<>% mutate(f=f[trainingdata$gid]) }
+
+    # Fixed model statements
+    fixedFormula<-ifelse(modelType=="DirDom",
+                        "drgBLUP ~1+f","drgBLUP ~1")
+```
+```{r}
+trainingdata$GIDa %>% as.character %>% length
+trainingdata$WT %>% summary
+trainingdata$drgBLUP %>% summary
+trainingdata %>% count(id)
+table(unique(trainingdata$id) %in% rownames(A))
+```
+```{r debug fitModel}
+# Fit genomic prediction model
+    require(sommer)
+    fit <- mmer(fixed = as.formula(fixedFormula),
+                        random = as.formula(randFormula),
+                        weights = WT,
+                        data=trainingdata)
+    
+```
+```{r debug fitModel}
+# Shrink the memory footprint
+    rm(grms,A); if(modelType %in% c("DirDom","AD")){ rm(D) };
+
+    if(getMarkEffs==TRUE | modelType=="DirDom"){
+
+      # Backsolve SNP effects
+      # Compute allele sub effects
+      ## Every model has an additive random term
+      ga<-as.matrix(fit$U[[paste0("u:",gid,"a")]]$drgBLUP,ncol=1)
+      M<-centerDosage(dosages)
+
+      if(modelType %in% c("A","AD")){
+        # models A and AD give add effects corresponding to allele sub effects
+        allelesubsnpeff<-backsolveSNPeff(Z=M,g=ga) }
+
+      if(modelType %in% c("AD")){
+        # model AD the dom effects are dominance deviation effects
+        gd<-as.matrix(fit$U[[paste0("u:",gid,"d")]]$drgBLUP,ncol=1)
+        domdevsnpeff<-backsolveSNPeff(Z=dose2domDev(dosages),g=gd) }
+
+      if(modelType %in% c("DirDom")){
+        # model DirDom is a different add-dom partition,
+        ### add effects are not allele sub effects and gblups are not GEBV
+        addsnpeff<-backsolveSNPeff(Z=M,g=ga)
+        ### dom effects are called d*, gd_star or domstar
+        ### because of the genome-wide homoz. term included in model
+        gd_star<-as.matrix(fit$U[[paste0("u:",gid,"d_star")]]$drgBLUP,ncol=1)
+        domdevMat_genotypic<-dose2domDevGenotypic(dosages)
+        domstar_snpeff<-backsolveSNPeff(Z=domdevMat_genotypic,g=gd_star)
+        ### b = the estimate (BLUE) for the genome-wide homoz. effect
+        b<-fit$Beta[fit$Beta$Effect=="f","Estimate"]
+        ### calc. domsnpeff including the genome-wide homoz. effect
+        ### divide the b effect up by number of SNPs and _subtract_ from domstar
+        domsnpeff<-domstar_snpeff-(b/length(domstar_snpeff))
+
+        ### allele substitution effects using a+d(q-p) where d=d*-b/p
+        p<-getAF(dosages)
+        q<-1-p
+        allelesubsnpeff<-addsnpeff+(domsnpeff*(q-p))
+      } }
+
+    # Gather the GBLUPs
+    if(modelType %in% c("A","AD")){
+      gblups<-tibble(GID=as.character(names(fit$U[[paste0("u:",gid,"a")]]$drgBLUP)),
+                     GEBV=as.numeric(fit$U[[paste0("u:",gid,"a")]]$drgBLUP))
+      if(returnPEV){
+        pev_bv<-diag((fit$PevU[[paste0("u:",gid,"a")]]$drgBLUP))
+        gblups %<>% left_join(tibble(GID=names(pev_bv),PEVbv=pev_bv))
+      }
+    }
+
+    if(modelType=="AD"){
+      gblups %<>% # compute GEDD (genomic-estimated dominance deviation)
+        mutate(GEDD=as.numeric(fit$U[[paste0("u:",gid,"d")]]$drgBLUP),
+               # compute GETGV
+               GETGV=rowSums(.[,grepl("GE",colnames(.))]))
+      if(returnPEV){
+        pev_dd<-diag((fit$PevU[[paste0("u:",gid,"d")]]$drgBLUP))
+        gblups %<>% left_join(tibble(GID=names(pev_dd),PEVdd=pev_dd))
+      }
+    }
+    if(modelType=="DirDom"){
+      # re-calc the GBLUP, GEdomval using dom. effects where d=d*-b/p
+      ge_domval<-domdevMat_genotypic%*%domsnpeff
+      # calc. the GEBV using allele sub. effects where alpha=a+d(p-q), and d=d*-b/p
+      gebv<-M%*%allelesubsnpeff
+      # Tidy tibble of GBLUPs
+      gblups<-tibble(GID=as.character(names(fit$U[[paste0("u:",gid,"a")]]$drgBLUP)),
+                     GEadd=as.numeric(fit$U[[paste0("u:",gid,"a")]]$drgBLUP),
+                     GEdom_star=as.numeric(fit$U[[paste0("u:",gid,"d_star")]]$drgBLUP)) %>%
+        left_join(tibble(GID=rownames(ge_domval),GEdomval=as.numeric(ge_domval))) %>%
+        left_join(tibble(GID=rownames(gebv),GEBV=as.numeric(gebv))) %>%
+        # GETGV from GEadd + GEdomval
+        mutate(GETGV=GEadd+GEdomval)
+      if(returnPEV){
+        pev_a<-diag((fit$PevU[[paste0("u:",gid,"a")]]$drgBLUP))
+        pev_dstar<-diag((fit$PevU[[paste0("u:",gid,"d_star")]]$drgBLUP))
+        gblups %<>%
+          left_join(tibble(GID=names(pev_a),PEVd_star=pev_a)) %>%
+          left_join(tibble(GID=names(pev_dstar),PEVd_star=pev_dstar))
+      }
+    }
+
+    # Extract variance components
+    varcomps<-summary(fit)$varcomp
+
+    # Exract fixed effects
+    # for modelType="DirDom", contains estimate of genome-wide homoz. effect
+    fixeffs<-summary(fit)$betas
+
+    # Shrink the memory footprint again
+    rm(fit); gc()
+
+    # Collect results
+    results<-tibble(gblups=list(gblups),
+                    varcomps=list(varcomps),
+                    fixeffs=list(fixeffs))
+
+    if(getMarkEffs==TRUE){
+      # Add snpeffects to output
+      results %<>% mutate(allelesubsnpeff=list(allelesubsnpeff))
+      if(modelType=="AD"){ results %<>% mutate(domdevsnpeff=list(domdevsnpeff)) }
+      if(modelType=="DirDom"){
+        results %<>% mutate(addsnpeff=list(addsnpeff),
+                            domstar_snpeff=list(domstar_snpeff),
+                            domsnpeff=list(domsnpeff)) } }
+    # this is to remove conflicts with dplyr function select() downstream
+    detach("package:sommer",unload = T); detach("package:MASS",unload = T)
+    # return results
+    return(results)
+  }
+
+```
+```{r debug runGenomicPredictions}
+# runGenomicPredictions<-function(modelType,
+#                                 selInd,SIwts = NULL,
+#                                 getMarkEffs=FALSE,
+#                                 returnPEV=FALSE,
+#                                 blups,grms,dosages=NULL,gid="GID",
+#                                 ncores=1,
+#                                 nBLASthreads=NULL){
+
+  fitModel<-function(trainingdata,modelType,getMarkEffs,returnPEV,
+                     gid="GID",grms,dosages,
+                     nBLASthreads,...){
+    if(!is.null(nBLASthreads)) { RhpcBLASctl::blas_set_num_threads(nBLASthreads) }
+    # workers in plan(multisession) need this call internal to the function, it seems.
+
+    A<-grms[["A"]]
+    if(modelType %in% c("AD","DirDom")){ D<-grms[["D"]] }
+
+    trainingdata %<>%
+      dplyr::rename(gid=!!sym(gid)) %>%
+      filter(gid %in% rownames(A))
+
+    trainingdata[[paste0(gid,"a")]]<-factor(trainingdata[["gid"]],
+                                            levels=rownames(A))
+    if(modelType %in% c("AD")){
+      trainingdata[[paste0(gid,"d")]]<-trainingdata[[paste0(gid,"a")]] }
+    if(modelType %in% c("DirDom")){
+      trainingdata[[paste0(gid,"d_star")]]<-trainingdata[[paste0(gid,"a")]] }
+
+    # Set-up random model statements
+    randFormula<-paste0("~vs(",gid,"a,Gu=A)")
+    if(modelType %in% c("AD")){
+      randFormula<-paste0(randFormula,"+vs(",gid,"d,Gu=D)") }
+    if(modelType=="DirDom"){
+      randFormula<-paste0(randFormula,"+vs(",gid,"d_star,Gu=D)")
+      f<-getPropHom(dosages)
+      trainingdata %<>% mutate(f=f[trainingdata$gid]) }
+
+    # Fixed model statements
+    fixedFormula<-ifelse(modelType=="DirDom",
+                        "drgBLUP ~1+f","drgBLUP ~1")
+    # Fit genomic prediction model
+    require(sommer)
+    fit <- sommer::mmer(fixed = as.formula(fixedFormula),
+                        random = as.formula(randFormula),
+                        weights = WT,
+                        data=trainingdata,
+                        date.warning = F,
+                        getPEV = returnPEV)
+
+    # Shrink the memory footprint
+    rm(grms,A); if(modelType %in% c("DirDom","AD")){ rm(D) };
+
+    if(getMarkEffs==TRUE | modelType=="DirDom"){
+
+      # Backsolve SNP effects
+      # Compute allele sub effects
+      ## Every model has an additive random term
+      ga<-as.matrix(fit$U[[paste0("u:",gid,"a")]]$drgBLUP,ncol=1)
+      M<-centerDosage(dosages)
+
+      if(modelType %in% c("A","AD")){
+        # models A and AD give add effects corresponding to allele sub effects
+        allelesubsnpeff<-backsolveSNPeff(Z=M,g=ga) }
+
+      if(modelType %in% c("AD")){
+        # model AD the dom effects are dominance deviation effects
+        gd<-as.matrix(fit$U[[paste0("u:",gid,"d")]]$drgBLUP,ncol=1)
+        domdevsnpeff<-backsolveSNPeff(Z=dose2domDev(dosages),g=gd) }
+
+      if(modelType %in% c("DirDom")){
+        # model DirDom is a different add-dom partition,
+        ### add effects are not allele sub effects and gblups are not GEBV
+        addsnpeff<-backsolveSNPeff(Z=M,g=ga)
+        ### dom effects are called d*, gd_star or domstar
+        ### because of the genome-wide homoz. term included in model
+        gd_star<-as.matrix(fit$U[[paste0("u:",gid,"d_star")]]$drgBLUP,ncol=1)
+        domdevMat_genotypic<-dose2domDevGenotypic(dosages)
+        domstar_snpeff<-backsolveSNPeff(Z=domdevMat_genotypic,g=gd_star)
+        ### b = the estimate (BLUE) for the genome-wide homoz. effect
+        b<-fit$Beta[fit$Beta$Effect=="f","Estimate"]
+        ### calc. domsnpeff including the genome-wide homoz. effect
+        ### divide the b effect up by number of SNPs and _subtract_ from domstar
+        domsnpeff<-domstar_snpeff-(b/length(domstar_snpeff))
+
+        ### allele substitution effects using a+d(q-p) where d=d*-b/p
+        p<-getAF(dosages)
+        q<-1-p
+        allelesubsnpeff<-addsnpeff+(domsnpeff*(q-p))
+      } }
+
+    # Gather the GBLUPs
+    if(modelType %in% c("A","AD")){
+      gblups<-tibble(GID=as.character(names(fit$U[[paste0("u:",gid,"a")]]$drgBLUP)),
+                     GEBV=as.numeric(fit$U[[paste0("u:",gid,"a")]]$drgBLUP))
+      if(returnPEV){
+        pev_bv<-diag((fit$PevU[[paste0("u:",gid,"a")]]$drgBLUP))
+        gblups %<>% left_join(tibble(GID=names(pev_bv),PEVbv=pev_bv))
+      }
+    }
+
+    if(modelType=="AD"){
+      gblups %<>% # compute GEDD (genomic-estimated dominance deviation)
+        mutate(GEDD=as.numeric(fit$U[[paste0("u:",gid,"d")]]$drgBLUP),
+               # compute GETGV
+               GETGV=rowSums(.[,grepl("GE",colnames(.))]))
+      if(returnPEV){
+        pev_dd<-diag((fit$PevU[[paste0("u:",gid,"d")]]$drgBLUP))
+        gblups %<>% left_join(tibble(GID=names(pev_dd),PEVdd=pev_dd))
+      }
+    }
+    if(modelType=="DirDom"){
+      # re-calc the GBLUP, GEdomval using dom. effects where d=d*-b/p
+      ge_domval<-domdevMat_genotypic%*%domsnpeff
+      # calc. the GEBV using allele sub. effects where alpha=a+d(p-q), and d=d*-b/p
+      gebv<-M%*%allelesubsnpeff
+      # Tidy tibble of GBLUPs
+      gblups<-tibble(GID=as.character(names(fit$U[[paste0("u:",gid,"a")]]$drgBLUP)),
+                     GEadd=as.numeric(fit$U[[paste0("u:",gid,"a")]]$drgBLUP),
+                     GEdom_star=as.numeric(fit$U[[paste0("u:",gid,"d_star")]]$drgBLUP)) %>%
+        left_join(tibble(GID=rownames(ge_domval),GEdomval=as.numeric(ge_domval))) %>%
+        left_join(tibble(GID=rownames(gebv),GEBV=as.numeric(gebv))) %>%
+        # GETGV from GEadd + GEdomval
+        mutate(GETGV=GEadd+GEdomval)
+      if(returnPEV){
+        pev_a<-diag((fit$PevU[[paste0("u:",gid,"a")]]$drgBLUP))
+        pev_dstar<-diag((fit$PevU[[paste0("u:",gid,"d_star")]]$drgBLUP))
+        gblups %<>%
+          left_join(tibble(GID=names(pev_a),PEVd_star=pev_a)) %>%
+          left_join(tibble(GID=names(pev_dstar),PEVd_star=pev_dstar))
+      }
+    }
+
+    # Extract variance components
+    varcomps<-summary(fit)$varcomp
+
+    # Exract fixed effects
+    # for modelType="DirDom", contains estimate of genome-wide homoz. effect
+    fixeffs<-summary(fit)$betas
+
+    # Shrink the memory footprint again
+    rm(fit); gc()
+
+    # Collect results
+    results<-tibble(gblups=list(gblups),
+                    varcomps=list(varcomps),
+                    fixeffs=list(fixeffs))
+
+    if(getMarkEffs==TRUE){
+      # Add snpeffects to output
+      results %<>% mutate(allelesubsnpeff=list(allelesubsnpeff))
+      if(modelType=="AD"){ results %<>% mutate(domdevsnpeff=list(domdevsnpeff)) }
+      if(modelType=="DirDom"){
+        results %<>% mutate(addsnpeff=list(addsnpeff),
+                            domstar_snpeff=list(domstar_snpeff),
+                            domsnpeff=list(domsnpeff)) } }
+    # this is to remove conflicts with dplyr function select() downstream
+    detach("package:sommer",unload = T); detach("package:MASS",unload = T)
+    # return results
+    return(results)
+  }
+
+  require(furrr); plan(multisession, workers = ncores)
+  options(future.globals.maxSize=+Inf); options(future.rng.onMisuse="ignore")
+  predictions<-blups %>%
+    mutate(genomicPredOut=future_map(TrainingData,
+                                     ~fitModel(trainingdata=.,
+                                               modelType=modelType,
+                                               getMarkEffs=getMarkEffs,
+                                               returnPEV=returnPEV,
+                                               gid=gid,
+                                               grms=grms,
+                                               dosages=dosages,
+                                               nBLASthreads=nBLASthreads)))
+  plan(sequential)
+
+  predictions %<>%
+    select(-TrainingData) %>%
+    unnest(genomicPredOut)
+  # tidy GBLUP output for e.g. breeders / selections
+  gblups<-predictions %>%
+    select(Trait,gblups) %>%
+    unnest(gblups) %>%
+    select(!!sym(gid),Trait,any_of(c("GEBV","GETGV"))) %>%
+    pivot_longer(any_of(c("GEBV","GETGV")),
+                 values_to = "GBLUP",
+                 names_to = "predOf") %>%
+    pivot_wider(names_from = "Trait",
+                values_from = "GBLUP")
+  if(selInd){
+    # calc. SELIND and add to tidy output
+    gblups %<>%
+      mutate(SELIND=as.numeric((gblups %>%
+                                  select(names(SIwts)) %>%
+                                  as.matrix(.))%*%SIwts)) %>%
+      relocate(SELIND, .after = predOf)
+  }
+  predictions<-tibble(gblups=list(gblups),
+                      genomicPredOut=list(predictions))
+  return(predictions)
+}
+
+```
+
+
+```{r debug genomicMateSelCrit}
+# get the genetic map
+  genmap<-getSnpMap(simParam = SP)
+  m<-genmap$pos*100; # convert it to centimorgans
+  names(m)<-genmap$id
+  # construct the recombination frequency matrix
+  recombFreqMat<-1-(2*genmap2recombfreq(m,nChr = bsp$nChr))
+  # pull the haplotype matrix
+  haploMat<-pullSnpHaplo(c(records$F1,bsp$checks)[indivs2keep], simParam=SP)
+  # change haplotype tags in rownames of the haploMat to please genomicMateSelectR
+  rownames(haploMat) %<>%
+    gsub("_1","_HapA",.) %>%
+    gsub("_2","_HapB",.)
+  # set-up for each possible crossSelCrit
+  if(bsp$crossSelCrit=="MeanBV"){
+    predof<-"GEBV"; predTheMeans<-TRUE; predTheVars<-FALSE; }
+  if(bsp$crossSelCrit=="MeanTGV"){
+    predof<-"GETGV"; predTheMeans<-TRUE; predTheVars<-FALSE; }
+  if(bsp$crossSelCrit=="UCparent"){
+    predof<-"GEBV"; predTheMeans<-TRUE; predTheVars<-TRUE; }
+  if(bsp$crossSelCrit=="UCvariety"){
+    predof<-"GETGV"; predTheMeans<-TRUE; predTheVars<-TRUE; }
+  # parents for which to predict crosses
+  parents<-gpreds$gblups[[1]]  %>%
+    filter(predOf==predof) %>%
+    arrange(desc(trait)) %>%
+    slice(1:bsp$nParents) %$%
+    GID
+  # crosses to predict (all pairwise of parents)
+  CrossesToPredict<-crosses2predict(parents)
+  # predict crosses
+  crossPreds<-predictCrosses(modelType=bsp$modelType,
+                             stdSelInt = intensity(bsp$propSel),
+                             selInd=FALSE, SIwts=NULL,
+                             CrossesToPredict=CrossesToPredict,
+                             snpeffs=gpreds$genomicPredOut[[1]],
+                             dosages=dosages,
+                             haploMat=haploMat,recombFreqMat=recombFreqMat,
+                             ncores=1,nBLASthreads=nBLASthreads,
+                             predTheMeans = predTheMeans,
+                             predTheVars = predTheVars)
+```
+```{r debug predictCrosses}
+modelType=bsp$modelType
+stdSelInt = intensity(bsp$propSel)
+selInd=FALSE; SIwts=NULL
+snpeffs=gpreds$genomicPredOut[[1]]
+```
+
+
+```{r debug predictCrosses}
+# predictCrosses<-function(modelType,
+#                          stdSelInt = 2.67,
+#                          selInd,SIwts = NULL,
+#                          CrossesToPredict,
+#                          snpeffs,dosages,
+#                          haploMat,recombFreqMat,
+#                          ncores=1,nBLASthreads=NULL,
+#                          predTheMeans=TRUE,
+#                          predTheVars=TRUE){
+  ## Format SNP effect matrices ~~~~~~~~~~~~~~~~~~~~~~~~
+
+  AlleleSubEffectList<-snpeffs$allelesubsnpeff %>%
+    `names<-`(.,snpeffs$Trait) %>%
+    map(.,~t(.))
+
+  if(modelType=="AD"){
+    # DomDevEffects for model "AD" to predict VarTGV = VarBV + VarDD
+    DomDevEffectList=snpeffs$domdevsnpeff %>%
+      `names<-`(.,snpeffs$Trait) %>%
+      map(.,~t(.)) }
+
+  if(modelType=="DirDom"){
+    # AddEffectList + DomEffectList --> VarTGV; AlleleSubEffectList --> VarBV;
+    AddEffectList<-snpeffs$addsnpeff %>%
+      `names<-`(.,snpeffs$Trait) %>%
+      map(.,~t(.))
+    DomEffectList<-snpeffs$domsnpeff %>%
+      `names<-`(.,snpeffs$Trait) %>%
+      map(.,~t(.)) }
+  # store raw mean and var preds
+  if(predTheVars){
+  ## Predict cross variances ~~~~~~~~~~~~~~~~~~~~~~~~
+```
+
+```{r debug predCrossVars}
+AddEffectList=AlleleSubEffectList
+predType="VPM"
+DomEffectList=NULL
+# predCrossVars<-function(CrossesToPredict,modelType,
+#                        AddEffectList,DomEffectList=NULL,
+#                        predType="VPM",
+#                        haploMat,recombFreqMat,
+#                        ncores=1,nBLASthreads=NULL,...){
+  starttime<-proc.time()[3]
+  # Center posterior distribution of effects
+  ## on posterior mean across MCMC samples
+  AddEffectList<-purrr::map(AddEffectList,~scale(.,center = T, scale = F));
+  if(modelType=="AD"){
+    DomEffectList<-purrr::map(DomEffectList,~scale(.,center = T, scale = F)) }
+
+  ## Extract the posterior mean effects vectors
+  ## If predType="VPM" this just recovers the original effects
+  postMeanAddEffects<-purrr::map(AddEffectList,~attr(.,which = "scaled:center"))
+  if(modelType=="AD"){
+    postMeanDomEffects<-purrr::map(DomEffectList,~attr(.,which = "scaled:center"))
+  } else {
+    postMeanDomEffects<-NULL
+    }
+  parents<-union(CrossesToPredict$sireID,
+                 CrossesToPredict$damID)
+  haploMat<-haploMat[sort(c(paste0(parents,"_HapA"),paste0(parents,"_HapB"))),]
+
+  if(predType=="VPM"){
+    AddEffectList<-NULL;
+    if(predType=="VPM" & modelType=="AD"){ DomEffectList<-NULL; } }
+
+  # Set-up a loop over the crosses
+  require(furrr); plan(multisession, workers = ncores)
+  options(future.globals.maxSize=+Inf); options(future.rng.onMisuse="ignore")
+  crossespredicted<-CrossesToPredict %>% 
+    dplyr::mutate(predVars=future_pmap(.,
+                                genomicMateSelectR:::predOneCross,
+                                modelType=modelType,
+                                haploMat=haploMat,
+                                recombFreqMat=recombFreqMat,
+                                predType=predType,
+                                postMeanAddEffects=postMeanAddEffects,
+                                postMeanDomEffects=postMeanDomEffects,
+                                AddEffectList=AddEffectList,
+                                DomEffectList=DomEffectList,
+                                nBLASthreads=nBLASthreads))
+```
+```{r debug predOneCross}
+sireID<-CrossesToPredict$sireID
+damID<-CrossesToPredict$damID
+# predOneCross<-function(sireID,damID,modelType,
+#                        haploMat,recombFreqMat,
+#                        predType,
+#                        postMeanAddEffects,
+#                        postMeanDomEffects=NULL,
+#                        AddEffectList=NULL,DomEffectList=NULL,
+#                        nBLASthreads,...){
+  starttime<-proc.time()[3]
+
+  if(!is.null(nBLASthreads)) { RhpcBLASctl::blas_set_num_threads(nBLASthreads) }
+
+  # Before predicting variances
+  # check for and remove SNPs that
+  # won't segregate, i.e. are fixed in parents
+  ### hopes to save time / mem
+  x<-colSums(rbind(haploMat[grep(paste0("^",sireID,"_"),rownames(haploMat)),],
+                   haploMat[grep(paste0("^",damID,"_"),rownames(haploMat)),]))
+  segsnps2keep<-names(x[x>0 & x<4])
+
+  if(length(segsnps2keep)>0){
+    recombFreqMat<-recombFreqMat[segsnps2keep,segsnps2keep,drop=F]
+    haploMat<-haploMat[,segsnps2keep,drop=F]
+    postMeanAddEffects<-purrr::map(postMeanAddEffects,~.[segsnps2keep])
+    if(modelType=="AD"){
+      postMeanDomEffects<-purrr::map(postMeanDomEffects,~.[segsnps2keep]) }
+
+    # calc cross LD matrix
+    progenyLD<-calcCrossLD(sireID,damID,recombFreqMat,haploMat)
+    rm(recombFreqMat,haploMat); gc()
+
+    # Set-up loop over variance and covarance parameters
+    ## Trait variances to-be-predicted
+    traits<-names(postMeanAddEffects)
+    varcovars<-tibble::tibble(Trait1=traits,
+                              Trait2=traits)
+    ## If multiple traits
+    if(length(traits)>1){
+      ## Add covariances to-be-predicted
+      varcovars<-dplyr::bind_rows(varcovars, # trait variances
+                                  combn(traits,2,simplify = T) %>% # covariances
+                                    t(.) %>% #
+                                    `colnames<-`(.,c("Trait1","Trait2")) %>%
+                                    tibble::as_tibble(.)) }
+    varcovars<-varcovars %>%
+      dplyr::mutate(predVars=purrr::pmap(.,
+                                         predOneCrossVar,
+                                         modelType=modelType,
+                                         progenyLD=progenyLD,
+                                         # haploMat=haploMat,
+                                         # recombFreqMat=recombFreqMat,
+                                         predType=predType,
+                                         postMeanAddEffects=postMeanAddEffects,
+                                         postMeanDomEffects=postMeanDomEffects,
+                                         AddEffectList=AddEffectList,
+                                         DomEffectList=DomEffectList)) %>%
+      unnest(predVars)
+    computetime<-proc.time()[3]-starttime
+    out_thiscross<-tibble::tibble(Nsegsnps=length(segsnps2keep),
+                          ComputeTime=computetime,
+                          predVars=list(varcovars))
+  } else {
+    computetime<-proc.time()[3]-starttime
+    out_thiscross<-tibble::tibble(Nsegsnps=length(segsnps2keep),
+                          ComputeTime=computetime,
+                          predVars=list()) }
+  return(out_thiscross)
+}
+```
+
+
+```{r debug predCrossVars}
+plan(sequential)
+
+  crossespredicted %<>%
+    unnest(predVars)
+
+  totcomputetime<-proc.time()[3]-starttime
+  print(paste0("Done predicting fam vars. ",
+               "Took ",round((totcomputetime)/60,2),
+               " mins for ",nrow(crossespredicted)," crosses"))
+  return(crossespredicted)
+}
+```
+
+```{r debug predictCrosses}
+print("Predicting cross variance parameters")
+  if(modelType=="A"){
+    predictedvars<-predCrossVars(CrossesToPredict=CrossesToPredict,
+                                 AddEffectList=AlleleSubEffectList,
+                                 modelType="A",
+                                 haploMat=haploMat,
+                                 recombFreqMat=recombFreqMat,
+                                 ncores=ncores,nBLASthreads=nBLASthreads) %>%
+      unnest(predVars) %>%
+      mutate(predOf="VarBV") }
+  if(modelType=="AD"){
+    predictedvars<-predCrossVars(CrossesToPredict=CrossesToPredict,
+                                 AddEffectList=AlleleSubEffectList,
+                                 DomEffectList=DomDevEffectList,
+                                 modelType="AD",
+                                 haploMat=haploMat,
+                                 recombFreqMat=recombFreqMat,
+                                 ncores=ncores,nBLASthreads=nBLASthreads)
+    predictedvars %<>%
+      unnest(predVars) %>%
+      mutate(predOf=ifelse(predOf=="VarA","VarBV","VarDD"))
+  }
+  if(modelType=="DirDom"){
+    predictedvarTGV<-predCrossVars(CrossesToPredict=CrossesToPredict,
+                                   AddEffectList=AddEffectList,
+                                   DomEffectList=DomEffectList,
+                                   modelType="AD", # no "DirDom" model in predCrossVars() nor is it needed
+                                   haploMat=haploMat,
+                                   recombFreqMat=recombFreqMat,
+                                   ncores=ncores,nBLASthreads=nBLASthreads)
+    predictedvarBV<-predCrossVars(CrossesToPredict=CrossesToPredict,
+                                  AddEffectList=AlleleSubEffectList,
+                                  DomEffectList=NULL,
+                                  modelType="A", # no "DirDom" model in predCrossVars() nor is it needed
+                                  haploMat=haploMat,
+                                  recombFreqMat=recombFreqMat,
+                                  ncores=ncores,nBLASthreads=nBLASthreads)
+    predictedvars<-predictedvarBV %>%
+      unnest(predVars) %>%
+      mutate(predOf="VarBV") %>%
+      bind_rows(predictedvarTGV %>%
+                  unnest(predVars)) }
+  }
+
+  if(predTheMeans){
+    ## Predict cross means ~~~~~~~~~~~~~~~~~~~~~~~~
+  print("Predicting cross means")
+  ### predict MeanBVs
+  predictedmeans<-predCrossMeans(AddEffectList=AlleleSubEffectList,
+                                 CrossesToPredict=CrossesToPredict,
+                                 doseMat=dosages,
+                                 ncores=ncores,
+                                 nBLASthreads=nBLASthreads,
+                                 predType="BV")
+  if(modelType=="AD"){
+    ### DO NOT predict MeanTGV ~but~ duplicate MeanBV as MeanTGV prediction
+    ### there IS predVarTGV for this model, output predUC-TGV (i.e. UC_variety)
+    predictedmeans %<>%
+      bind_rows(predictedmeans %>% mutate(predOf="TGV")) }
+
+  if(modelType=="DirDom"){
+    ### predict MeanTGVs
+    ####  Prediction of MeanTGV is only available for the DirDom model
+    #### or a model with "genotypic" additive-dominance SNP effects
+    #### As implemented, modelType="AD" is the "classical" partition (BVs+ DomDevs)
+    predictedmeans %<>%
+      bind_rows(predCrossMeans(AddEffectList=AddEffectList,
+                               DomEffectList=DomEffectList,
+                               CrossesToPredict=CrossesToPredict,
+                               doseMat=dosages,
+                               ncores=ncores,
+                               nBLASthreads=nBLASthreads,
+                               predType="TGV"))
+  }
+
+  }
+
+  ## SIMPLIFIED, TIDY, CROSS-WISE OUTPUT ~~~~~~~~~~~~~~~~~~~~~~~~
+  rawPreds<-list()
+  if(predTheMeans){ rawPreds[["predMeans"]]<-list(predictedmeans) }
+  if(predTheVars){ rawPreds[["predVars"]]<-list(predictedvars) }
+
+  if(predTheMeans){
+  ## tidy pred. means ~~~~~~
+  predictedmeans %<>%
+    mutate(predOf=gsub("Mean","",predOf),
+           Trait2=Trait) %>% # to match with variance pred. output
+    rename(Trait1=Trait) %>% # to match with variance pred. output
+    select(sireID,damID,predOf,Trait1,Trait2,predMean)
+}
+  if(predTheVars){
+    ## tidy pred. vars ~~~~~~
+  predictedvars %<>%
+    select(sireID,damID,Nsegsnps,predOf,Trait1,Trait2,predVar) %>%
+    mutate(predOf=gsub("Var","",predOf))
+  if(modelType=="AD"){
+    predictedvars %<>%
+      filter(predOf=="BV") %>%
+      bind_rows(predictedvars %>%
+                  pivot_wider(names_from = "predOf",
+                              values_from = "predVar",
+                              names_prefix = "predVar") %>%
+                  mutate(predVar=predVarBV+predVarDD,
+                         predOf="TGV") %>%
+                  select(-predVarBV,-predVarDD))
+  }
+  if(modelType=="DirDom"){
+    predictedvars %<>%
+      filter(predOf=="BV") %>%
+      bind_rows(predictedvars %>%
+                  filter(predOf!="BV") %>%
+                  pivot_wider(names_from = "predOf",
+                              values_from = "predVar",
+                              names_prefix = "predVar") %>%
+                  mutate(predVar=predVarA+predVarD,
+                         predOf="TGV") %>%
+                  select(-predVarA,-predVarD))
+  }
+}
+  ## SELECTION INDEX MEANS AND VARIANCES ~~~~~~~~~~~~~~~~~~~~~~~~
+  #### Compute and add to tidy output, if requested
+  if(selInd){
+    print("Computing SELECTION INDEX means and variances.")
+    if(predTheMeans){
+    traits<-unique(predictedmeans$Trait1)
+    ## Compute Mean SELIND
+    predictedmeans %<>%
+      select(-Trait2) %>%
+      spread(Trait1,predMean) %>%
+      select(sireID,damID,predOf,all_of(traits)) %>%
+      mutate(SELIND=as.numeric((predictedmeans %>%
+                                  select(-Trait2) %>%
+                                  spread(Trait1,predMean) %>%
+                                  select(all_of(names(SIwts))) %>%
+                                  as.matrix(.))%*%SIwts)) %>%
+      relocate(SELIND, .after = predOf) %>%
+      pivot_longer(cols = c(SELIND,all_of(traits)),
+                   names_to = "Trait1",
+                   values_to = "predMean") %>%
+      mutate(Trait2=Trait1) %>%
+      select(sireID,damID,predOf,Trait1,Trait2,predMean)
+    }
+
+    if(predTheVars){
+      ## Compute Var SELIND
+    require(furrr); plan(multisession, workers = ncores)
+    options(future.globals.maxSize=+Inf); options(future.rng.onMisuse="ignore")
+
+    predictedvars %<>%
+      nest(predVars=c(Trait1,Trait2,predVar)) %>%
+      ## loop over each rep-fold-predOf-sireIDxdamID
+      mutate(predVars=future_map(predVars,function(predVars,...){
+
+        gmat<-predVars %>%
+          pivot_wider(names_from = "Trait2",
+                      values_from = "predVar") %>%
+          column_to_rownames(var = "Trait1") %>%
+          as.matrix
+        gmat[lower.tri(gmat)]<-t(gmat)[lower.tri(gmat)]
+        gmat %<>% .[names(SIwts),names(SIwts)]
+        predSelIndVar<-SIwts%*%gmat%*%SIwts
+        ## add sel index predictions to component trait
+        ## var-covar predictions
+
+        predVars<-tibble(Trait1="SELIND",Trait2="SELIND",
+                         predVar=as.numeric(predSelIndVar)) %>%
+          bind_rows(predVars)
+        return(predVars) })) %>%
+      unnest(predVars)
+    plan(sequential)
+  }
+  }
+  if(predTheMeans & predTheVars){
+  ## USEFULNESS CRITERIA ~~~~~~~~~~~~~~~~~~~~~~~~
+  tidyPreds<-predictedvars %>%
+    filter(Trait1==Trait2) %>%
+    inner_join(predictedmeans) %>%
+    rename(Trait=Trait1) %>%
+    select(sireID,damID,Nsegsnps,predOf,Trait,predMean,predVar) %>%
+    mutate(predSD=sqrt(predVar),
+           predUsefulness=predMean+(stdSelInt*predSD)) }
+  if(!predTheMeans & predTheVars){
+    tidyPreds<-predictedvars %>%
+      filter(Trait1==Trait2) %>%
+      rename(Trait=Trait1) %>%
+      select(sireID,damID,Nsegsnps,predOf,Trait,predVar) %>%
+      mutate(predSD=sqrt(predVar))
+  }
+  if(predTheMeans & !predTheVars){
+    tidyPreds<-predictedmeans %>%
+      rename(Trait=Trait1) %>%
+      select(sireID,damID,predOf,Trait,predMean)
+  }
+  predictions<-tibble(tidyPreds=list(tidyPreds),
+                      rawPreds=list(rawPreds))
+  return(predictions)
+}
+```
+
+
+```{r debug genomicMateSelCrit}
+crossPreds<-predictions
+# post prediction: extract the cross selection criterion
+  if(bsp$crossSelCrit=="MeanBV"){
+    crit<-crossPreds$tidyPreds[[1]] %>%
+      filter(predOf=="BV") %>%
+      select(sireID,damID,predMean) %>%
+      rename(crossSelCrit=predMean) %>%
+      arrange(desc(crossSelCrit))
+  }
+  if(bsp$crossSelCrit=="MeanTGV"){
+    crit<-crossPreds$tidyPreds[[1]] %>%
+      filter(predOf=="TGV") %>%
+      select(sireID,damID,predMean) %>%
+      rename(crossSelCrit=predMean) %>%
+      arrange(desc(crossSelCrit))
+  }
+  if(bsp$crossSelCrit=="UCparent"){
+    crit<-crossPreds$tidyPreds[[1]] %>%
+      filter(predOf=="BV") %>%
+      select(sireID,damID,predUsefulness) %>%
+      rename(crossSelCrit=predUsefulness) %>%
+      arrange(desc(crossSelCrit))
+  }
+  if(bsp$crossSelCrit=="UCvariety"){
+    crit<-crossPreds$tidyPreds[[1]] %>%
+      filter(predOf=="TGV") %>%
+      select(sireID,damID,predUsefulness) %>%
+      rename(crossSelCrit=predUsefulness) %>%
+      arrange(desc(crossSelCrit))
+  }
+
+  return(crit)
+}
+
+```
+
+
+```{r debug populationImprovement}
+# select the top nCrosses
+  crossingPlan<-crit %>%
+    slice_max(order_by = crossSelCrit,
+              n = bsp$nCrosses) %>%
+    select(sireID,damID) %>%
+    as.matrix
+
+  # extract a pop-object of those parents
+  ## potentially included the checks as parents _if_ selected
+  parents <- c(records$F1,bsp$checks)[crossingPlan %>% as.vector %>% unique]
+  # make crosses
+  progeny <- makeCross(pop = parents,
+                       crossPlan = crossingPlan,
+                       nProgeny = bsp$nProgeny, simParam=SP)
+
+  # not 100% sure, but seems to store the "year" in the @fixEff slot of "progeny"
+  progeny@fixEff <- rep(as.integer(max(records$stageOutputs$year) + 1), bsp$nSeeds)
+  parentsUsed <- unique(c(progeny@mother, progeny@father))
+  stgCyc <- sapply(parentsUsed, AlphaSimHlpR:::whereIsID, records=records)
+  stgCyc <- table(stgCyc[1,], stgCyc[2,])
+  strtStgOut <- nrow(records$stageOutputs) - bsp$nStages - 1
+  for (i in 1:nrow(stgCyc)){
+    stage <- as.integer(rownames(stgCyc)[i])
+    records$stageOutputs$nContribToPar[[strtStgOut + stage]]<-tibble(cycle=as.integer(colnames(stgCyc)),nContribToPar=stgCyc[i,])
+    }
+  records$F1 <- c(records$F1, progeny)
+  return(records)
+}
+
+```
+```{r}
+records <- bsp$productPipeline(records, bsp, SP)
+```
+
+
+```{r}
+# Post burn-in cycles
+      cat("\n"); cat("Post burn-in cycles"); cat("\n")
+      for (cycle in 1:nPostBurnInCycles){
+        cat(cycle, " ")
+        records <- bsp$productPipeline(records, bsp, SP)
+        records <- bsp$populationImprovement(records, bsp, SP)
+      }
+
+      # Finalize the stageOutputs
+      records <- AlphaSimHlpR:::lastCycStgOut(records, bsp, SP)
+
+      return(list(records=records,
+                  bsp=bsp,
+                  SP=SP))
+    },
+    nPostBurnInCycles=nPostBurnInCycles,
+    selCritPop=selCritPop,
+    selCritPipe=selCritPipe,
+    productFunc=productFunc,
+    popImprovFunc=popImprovFunc,
+    nBLASthreads=nBLASthreads))
+  plan(sequential)
+  return(simulations)
+}
+```
+
+
+
+
+
+## round 4 - popImprovByMateSel working?
+
+```{r UCparent_DirDom_propSel0pt20,eval=T}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+
+source(here::here("code","runSchemesPostBurnIn.R"))
+
+simulations<-readRDS(here::here("output","burnIn_test.rds"))
+
+# First the same "newBSP" used for the initial GMS test above
+newBSP2<-specifyBSP(schemeDF = schemeDF,
+                   nChr = 3,effPopSize = 100,quickHaplo = F,
+                   segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                   gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                   meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                   stageToGenotype = "PYT",
+                   nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                   phenoF1toStage1 = T,errVarPreStage1 = 500,
+                   useCurrentPhenoTrain = F, 
+                   nCyclesToKeepRecords = 30,
+                   selCritPipeAdv = selCritIID, 
+                   selCritPopImprov =  selCritIID,
+                   nTrainPopCycles=6,
+                   nYrsAsCandidates=2,
+                   maxTrainingPopSize=500,
+                   modelType="A",
+                   propSel=0.2, # lower the effective weight on predict SD
+                   crossSelCrit="UCparent",
+                   nCrossPredCores=1)
+```
+
+```{r}
+start<-proc.time()[3]
+postBurnInGMS_test<-runSchemesPostBurnIn(simulations = simulations,
+                                        newBSP=newBSP2,
+                                        nPostBurnInCycles=2,
+                                        selCritPop="genomicMateSelCrit",
+                                        selCritPipe="selCritIID",
+                                        productFunc="productPipeline",
+                                        popImprovFunc="popImprovByMateSel",
+                                        nSimCores=4,
+                                        nBLASthreads=5)
+saveRDS(postBurnInGMS_test,file = here::here("output","postBurnInGMS_test_UCparent_A_propSel0pt20.rds"))
+end<-proc.time()[3]; timebsp<-end-start;
+print(paste0((timebsp)/60," mins elapsed"))
+```
+
+```{r}
+# start<-proc.time()[3]
+# postBurnInGMS_test<-runSchemesPostBurnIn(
+simulations = simulations %>% slice(1:4)
+newBSP=newBSP2
+nPostBurnInCycles=2;
+selCritPop="genomicMateSelCrit";
+selCritPipe="selCritIID";
+productFunc="productPipeline";
+popImprovFunc="popImprovByMateSel";
+nSimCores=4;
+nBLASthreads=5
+```
+
+```{r}
+# require(furrr); plan(multisession, workers = nSimCores)
+# options(future.globals.maxSize=+Inf); options(future.rng.onMisuse="ignore")
+# 
+#   simulations<-simulations %>%
+#     mutate(SimOutput=future_map2(SimRep,burnInSim,function(SimRep,burnInSim,...){
+#       # debug
+#       # burnInSim<-simulations$burnInSim[[1]]
+#       if(!is.null(nBLASthreads)) { RhpcBLASctl::blas_set_num_threads(nBLASthreads) }
+#       cat("******", SimRep, "\n")
+# 
+#       # This CONTINUES where previous sims left off
+#       ## no initialize step
+#       ## Keep burn-in stage sim params "SP"
+#       SP<-burnInSim$SP
+#       ## specify a potentially new bsp object
+#       ## (keep checks stored in burn-in stage's bsp)
+#       if(!is.null(newBSP)){
+#         bsp<-newBSP; bsp$checks<-burnInSim$bsp$checks
+#       } else { bsp<-burnInSim$bsp }
+#       ## 'historical' records from burn-in
+#       records<-burnInSim$records
+#       ## override burn-in specified product and population improvement funcs
+#       bsp[["productPipeline"]] <- get(productFunc)
+#       bsp[["populationImprovement"]] <- get(popImprovFunc)
+#       bsp[["selCritPipeAdv"]] <- get(selCritPipe)
+#       bsp[["selCritPopImprov"]] <- get(selCritPop)
+# 
+#       # Post burn-in cycles
+#       cat("\n"); cat("Post burn-in cycles"); cat("\n")
+#       for (cycle in 1:nPostBurnInCycles){
+#         cat(cycle, " ")
+#         records <- bsp$productPipeline(records, bsp, SP)
+#         records <- bsp$populationImprovement(records, bsp, SP)
+#       }
+# 
+#       # Finalize the stageOutputs
+#       records <- AlphaSimHlpR:::lastCycStgOut(records, bsp, SP)
+# 
+#       return(list(records=records,
+#                   bsp=bsp,
+#                   SP=SP))
+#     },
+#     nPostBurnInCycles=nPostBurnInCycles,
+#     selCritPop=selCritPop,
+#     selCritPipe=selCritPipe,
+#     productFunc=productFunc,
+#     popImprovFunc=popImprovFunc,
+#     nBLASthreads=nBLASthreads))
+#   plan(sequential)
+
+```
+
+
+```{r}
+# debug
+burnInSim<-simulations$burnInSim[[1]]
+SimRep<-simulations$SimRep[[1]]
+```
+
+```{r}
+if(!is.null(nBLASthreads)) { RhpcBLASctl::blas_set_num_threads(nBLASthreads) }
+      cat("******", SimRep, "\n")
+
+      # This CONTINUES where previous sims left off
+      ## no initialize step
+      ## Keep burn-in stage sim params "SP"
+      SP<-burnInSim$SP
+      ## specify a potentially new bsp object
+      ## (keep checks stored in burn-in stage's bsp)
+      if(!is.null(newBSP)){
+        bsp<-newBSP; bsp$checks<-burnInSim$bsp$checks
+      } else { bsp<-burnInSim$bsp }
+      ## 'historical' records from burn-in
+      records<-burnInSim$records
+      ## override burn-in specified product and population improvement funcs
+      bsp[["productPipeline"]] <- get(productFunc)
+      bsp[["populationImprovement"]] <- get(popImprovFunc)
+      bsp[["selCritPipeAdv"]] <- get(selCritPipe)
+      bsp[["selCritPopImprov"]] <- get(selCritPop)
+
+      # Post burn-in cycles
+      # cat("\n"); cat("Post burn-in cycles"); cat("\n")
+      # for (cycle in 1:nPostBurnInCycles){
+      #   cat(cycle, " ")
+        records <- bsp$productPipeline(records, bsp, SP)
+        records1 <- bsp$populationImprovement(records, bsp, SP)
+        #records<-records1
+```
+
+```{r debug productPipeline}
+#productPipeline <- function(records, bsp, SP){
+  # Calculate the selection criterion. selCritPipeAdv has to be given in bsp
+  candidates <- records1$F1@id
+#  selCrit <- bsp$selCritPipeAdv(records1, candidates, bsp, SP)
+```
+```{r debug selCritIID}
+#selCritIID <- function(records, candidates, bsp, SP){
+  phenoDF <- framePhenoRec(records1, bsp)
+  # Candidates don't have phenotypes so return random vector
+
+  # if (!any(candidates %in% phenoDF$id)){
+  #   crit <- runif(length(candidates))
+  # } else{
+  #   crit <- iidPhenoEval(phenoDF)
+```
+```{r debug iidPhenoEval}
+iidPhenoEval <- function(phenoDF){
+  require(lme4)
+  phenoDF$errVar <- 1/phenoDF$errVar # Make into weights
+  phenoDF <- phenoDF %>% dplyr::mutate(entryChk=if_else(isChk=="check", id, "-1"))
+  phenoDF <- phenoDF %>% dplyr::mutate(pheno=as.numeric(pheno))
+
+  fm <- lmer(pheno ~ entryChk + (1|id:isChk), weights=errVar, data=phenoDF)
+  blup <- as.matrix(ranef(fm)[[1]])[,1] # Make into matrix to get names
+  names(blup) <- (names(blup) %>% strsplit(":", fixed=T) %>% unlist %>%
+                  matrix(nrow=2))[1,]
+  # Ensure output has variation: needed for optimal contributions
+  if (sd(blup) == 0){
+    namesBlup <- names(blup)
+    blup <- tapply(phenoDF$pheno, phenoDF$id, mean)
+    names(blup) <- namesBlup
+  }
+  detach("package:lme4",unload = T); detach("package:Matrix",unload = T);
+  return(blup)
+}
+```
+
+
+```{r debug selCritIID}
+crit <- crit[candidates]
+  }
+  names(crit) <- candidates
+  return(crit)
+}
+```
+
+
+```{r debug productPipeline}
+# Make summary for the incoming F1s
+  year <- max(records$stageOutputs$year)+1 # Add a year relative to last year
+  nF1 <- bsp$nCrosses * bsp$nProgeny
+  nGenoRec <- nInd(records$F1)
+  # Analyze the most-recent F1s
+  newF1Idx <- nGenoRec - nF1 + 1:nF1
+  id <- records$F1[newF1Idx]@id
+  records$stageOutputs <- records$stageOutputs %>% bind_rows(stageOutputs(id=id, f1=records$F1, selCrit=selCrit, stage=0, year=year, bsp=bsp))
+  # Will be added to the phenotype records
+  toAdd <- list()
+  for (stage in 1:bsp$nStages){
+    # Make a summary for this stage
+    id <- last(records[[stage+1]])$id[1:bsp$nEntries[stage]]
+    records$stageOutputs <- records$stageOutputs %>% bind_rows(stageOutputs(id=id, f1=records$F1, selCrit=selCrit, stage=stage, year=year, bsp=bsp))
+
+    if (stage == 1){ # Stage 1 different: no phenotypes but full Pop-class
+      # Use phenotypes to select the F1 going into Stage 1?
+      if (bsp$phenoF1toStage1){ # Use phenotypes to choose what goes to Stage 1
+        phenoF1 <- setPheno(records$F1[newF1Idx], varE=bsp$errVarPreStage1, onlyPheno=T, simParam=SP)
+        indToAdv <- records$F1@id[nGenoRec - nF1 + (phenoF1 %>% order(decreasing=T))[1:bsp$nEntries[stage]] %>% sort]
+      } else{
+        # Do the F1 have genotypic values that could be used?
+        if (selCrit[newF1Idx] %>% is.na %>% all){ # Choose at random
+          indToAdv <- records$F1@id[nGenoRec - nF1 + sort(sample(nF1, bsp$nEntries[stage]))]
+        } else{ # Use selCrit
+          indToAdv <- records$F1@id[nGenoRec - nF1 + (selCrit[newF1Idx] %>% order(decreasing=T))[1:bsp$nEntries[stage]] %>% sort]
+        }
+      }
+    } else{ # Beyond stage 1
+      # Don't allow checks to be advanced: use 1:bsp$nEntries[stage-1]
+      id <- last(records[[stage]])$id[1:bsp$nEntries[stage-1]]
+      selCritPop <- selCrit[id]
+      indToAdv <- (selCritPop %>% order(decreasing=T))[1:bsp$nEntries[stage]]
+      indToAdv <- names(selCritPop)[sort(indToAdv)]
+    }
+    entries <- records$F1[indToAdv]
+    varE <- bsp$gxyVar + (bsp$gxlVar + bsp$gxyxlVar + bsp$errVars[stage] / bsp$nReps[stage]) / bsp$nLocs[stage]
+    # reps=1 because varE is computed above
+    entries <- setPheno(entries, varE=varE, reps=1, simParam=SP)
+    phenoRec <- phenoRecFromPop(entries, bsp, stage)
+    # If provided, add checks to the population
+    if(!is.null(bsp$checks) & bsp$nChks[stage] > 0){
+      varE <- bsp$gxyVar + (bsp$gxlVar + bsp$gxyxlVar + bsp$errVars[stage] / bsp$chkReps[stage]) / bsp$nLocs[stage]
+      chkPheno <- setPheno(bsp$checks[1:bsp$nChks[stage]], varE=varE, reps=1, simParam=SP)
+      chkRec <- phenoRecFromPop(chkPheno, bsp, stage, checks=T)
+      phenoRec <- bind_rows(phenoRec, chkRec)
+    }
+    toAdd <- c(toAdd, list(phenoRec))
+  }#END 1:nStages
+  for (stage in 1 + 1:bsp$nStages){
+    records[[stage]] <- c(records[[stage]], toAdd[stage-1])
+  }
+
+  # Remove old records if needed
+  if (length(records[[2]]) > bsp$nCyclesToKeepRecords) records <- removeOldestCyc(records, bsp)
+
+  return(records)
+}
+```
+
+```{r}
+records <- bsp$productPipeline(records, bsp, SP)
+# 
+#       #}
+# 
+#       # Finalize the stageOutputs
+#       records <- AlphaSimHlpR:::lastCycStgOut(records, bsp, SP)
+# 
+#       return(list(records=records,
+#                   bsp=bsp,
+#                   SP=SP))
+#     }
+```
+
+
+

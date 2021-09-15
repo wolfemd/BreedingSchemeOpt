@@ -1,0 +1,497 @@
+---
+title: "Simulate genomic mate selection"
+author: "Marnin Wolfe"
+date: "2021-09-02"
+output: 
+  workflowr::wflow_html:
+    code_folding: hide
+    toc: true
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
+                      tidy='styler', 
+                      tidy.opts=list(strict=FALSE,width.cutoff=100), 
+                      highlight=TRUE)
+```
+
+# Set-up
+
+```{bash environ, eval=F}
+# 0) Pull a singularity image with OpenBLAS enabled R + tidyverse from rocker/
+# singularity pull ~/rocker2.sif docker://rocker/tidyverse:latest;
+
+# 1) start a screen shell 
+screen; 
+# 2) reserve interactive slurm
+salloc -n 20 --mem 60G;
+# 3) start the singularity Linux shell inside that
+singularity shell ~/rocker2.sif; 
+# Project directory, so R will use as working dir.
+cd /home/mw489/BreedingSchemeOpt/;
+# 3) Start R
+export OMP_NUM_THREADS=1;
+R
+```
+
+
+# Clean namespace?
+```{r,eval=T}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+
+source(here::here("code","runSchemesPostBurnIn.R"))
+
+simulations<-readRDS(here::here("output","burnIn_test.rds"))
+
+# First the same "newBSP" used for the initial GMS test above
+newBSP<-specifyBSP(schemeDF = schemeDF,
+                    nChr = 3,effPopSize = 100,quickHaplo = F,
+                    segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                    gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                    meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                    stageToGenotype = "PYT",
+                    nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                    phenoF1toStage1 = T,errVarPreStage1 = 500,
+                    useCurrentPhenoTrain = F, 
+                    nCyclesToKeepRecords = 30,
+                    selCritPipeAdv = selCritIID, 
+                    selCritPopImprov =  selCritIID,
+                    nTrainPopCycles=6,
+                    nYrsAsCandidates=2,
+                    maxTrainingPopSize=500)
+   
+
+# DEBUG SETTINGS FOR runSchemesPostBurnIn
+simulations = simulations %>% slice(1)
+nPostBurnInCycles=1;
+selCritPop="parentSelCritGEBV";
+selCritPipe="selCritIID";
+productFunc="productPipeline";
+popImprovFunc="popImprovByParentSel";
+nSimCores=4;
+nBLASthreads=5
+
+## inside loop over each sim replication
+burnInSim<-simulations$burnInSim[[1]]
+```
+```{r runSchemesPostBurnIn - loop over SimRep}
+SP<-burnInSim$SP
+if(!is.null(newBSP)){
+  bsp<-newBSP; bsp$checks<-burnInSim$bsp$checks
+} else { bsp<-burnInSim$bsp }
+records<-burnInSim$records
+bsp[["productPipeline"]] <- get(productFunc)
+bsp[["populationImprovement"]] <- get(popImprovFunc)
+bsp[["selCritPipeAdv"]] <- get(selCritPipe)
+bsp[["selCritPopImprov"]] <- get(selCritPop)
+records <- bsp$populationImprovement(records, bsp, SP)
+records <- bsp$productPipeline(records, bsp, SP)
+records <- bsp$populationImprovement(records, bsp, SP)
+records <- bsp$productPipeline(records, bsp, SP)
+
+```
+
+
+```{r runSchemesPostBurnIn - loop over SimRep}
+# FATAL ERROR OCCURS WHEN RUNNING popImprov step
+# records <- bsp$populationImprovement(records, bsp, SP)
+# Which phenotypes can be included for model training?
+  ### Current year phenotypes?
+  trainRec <- records
+  if (!bsp$useCurrentPhenoTrain){
+    for (stage in 1+1:bsp$nStages){
+      trainRec[[stage]] <- trainRec[[stage]][-length(trainRec[[stage]])]
+    }
+  }
+
+  # Which individuals can be selection candidates?
+  ## only individuals that have been genoytped in the last "nYrsAsCandidates"
+  if(bsp$stageToGenotype=="F1"){
+    NrecentProgenySelCands<-(bsp$nProgeny*bsp$nCrosses)*bsp$nYrsAsCandidates
+    candidates<-records$F1@id %>% tail(.,n = NrecentProgenySelCands)
+  } else {
+    candidates<-records[[bsp$stageToGenotype]] %>%
+      tail(.,n=bsp$nYrsAsCandidates) %>%
+      map_df(.,rbind) %$%
+      unique(id) %>%
+      # exclude checks
+      setdiff(.,bsp$checks@id)
+  }
+
+  # How many additional individuals to use as training?
+  ## these are individuals with phenotypes
+  ## but not in the list of selection candidates
+  ## Drawn from the most recent cycles according to "nTrainPopCycles"
+  ## Potentially subsampled according to "maxTrainingPopSize"
+  phenotypedLines<-trainRec[bsp$stageNames] %>%
+    map(.,~tail(.,n = bsp$nTrainPopCycles)) %>%
+    map_df(.,rbind) %$%
+    unique(id)
+
+  phenotypedLines_notSelCands<-setdiff(phenotypedLines,candidates)
+  ## maxTPsize is lesser of specified 'maxTrainingPopSize' and actual number of phenotyped lines not considered selection candidates
+  maxTPsize<-min(bsp$maxTrainingPopSize,length(phenotypedLines_notSelCands))
+  ## Make sure checks ARE included
+  if(!is.null(bsp$checks)){
+    # sample from the list of non-selection candidates that also are NOT checks
+    trainingpop<-sample(setdiff(phenotypedLines_notSelCands,bsp$checks@id),
+                        size = maxTPsize, replace = F) %>%
+      # include the checks
+      c(.,bsp$checks@id) %>%
+      # vanity: order the ids
+      .[order(as.integer(.))]
+  } else {
+    trainingpop<-sample(phenotypedLines_notSelCands,
+                        size = maxTPsize, replace = F) %>%
+      .[order(as.integer(.))]
+  }
+
+  # require two inputs for downstream SelCrit
+  ## only compatible SelCrit so far will therefore be "parentSelCritGEBV"
+  ## "candidates" and "trainingpop": non-overlapping sets,
+  ## available pheno records (in "trainRec") for any of the "candidates"
+  ## will be automatically included in predictions
+```
+
+
+```{r runSchemesPostBurnIn - loop over SimRep}
+# crit <- bsp$selCritPopImprov(trainRec, candidates, trainingpop, bsp, SP)
+
+# first construct the GRM
+  indivs2keep<-union(candidates,trainingpop)
+  grm <- make_grm(records, indivs2keep, bsp, SP, grmType="add")
+  phenoDF <- framePhenoRec(records, bsp)
+  # Remove individuals with phenotypes but who do not have geno records
+  phenoDF <- phenoDF[phenoDF$id %in% rownames(grm),]
+  #crit <- gebvPhenoEval(phenoDF, grm)
+    phenoDF$id <- factor(phenoDF$id, levels=rownames(grm)) # Enable prediction
+    phenoDF$wgt <- 1/phenoDF$errVar # Make into weights
+  save(phenoDF,grm,file = here::here("output","test_inputs_for_mmer.Rdata"))
+```
+
+Restart R session 
+```{r runSchemesPostBurnIn - loop over SimRep}
+load(here::here("output","test_inputs_for_mmer.Rdata"))
+require(sommer)
+fm <- mmer(fixed = pheno~1,
+           random = ~vs(id, Gu=grm),
+           weights=wgt,
+           data=phenoDF,
+           verbose=F,
+           date.warning=F)
+summary(fm)
+```
+
+That did not crash. How to fix the namespace issue!?
+
+- Set-up the popImprov step that was crashing at the `sommer::mmer()` step, 
+- Showed it worked when a fresh R session was used with the `sommer::mmer()` inputs
+- Next, found that if the popImprov step was run before the productPipe step, no error occurs
+- So it's the namespace situation set-up by the `selCritPipeAdv`
+  + fixed that problem! direct refs `lme4::lmer()` and `lme4::ranef()` in `iidPhenoEval.
+
+# Fix `selCritIID` namespace situation 
+New R Session
+```{r,eval=T}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+
+source(here::here("code","runSchemesPostBurnIn.R"))
+
+simulations<-readRDS(here::here("output","burnIn_test.rds"))
+
+# First the same "newBSP" used for the initial GMS test above
+newBSP<-specifyBSP(schemeDF = schemeDF,
+                    nChr = 3,effPopSize = 100,quickHaplo = F,
+                    segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                    gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                    meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                    stageToGenotype = "PYT",
+                    nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                    phenoF1toStage1 = T,errVarPreStage1 = 500,
+                    useCurrentPhenoTrain = F, 
+                    nCyclesToKeepRecords = 30,
+                    selCritPipeAdv = selCritIID, 
+                    selCritPopImprov =  selCritIID,
+                    nTrainPopCycles=6,
+                    nYrsAsCandidates=2,
+                    maxTrainingPopSize=500)
+   
+
+# DEBUG SETTINGS FOR runSchemesPostBurnIn
+simulations = simulations %>% slice(1)
+nPostBurnInCycles=1;
+selCritPop="parentSelCritGEBV";
+selCritPipe="selCritIID";
+productFunc="productPipeline";
+popImprovFunc="popImprovByParentSel";
+nSimCores=4;
+nBLASthreads=5
+
+## inside loop over each sim replication
+burnInSim<-simulations$burnInSim[[1]]
+```
+```{r}
+# selCritIID <- function(records, candidates, bsp, SP){
+#   phenoDF <- framePhenoRec(records, bsp)
+#   # Candidates don't have phenotypes so return random vector
+#   if (!any(candidates %in% phenoDF$id)){
+#     crit <- runif(length(candidates))
+#   } else{
+#     crit <- iidPhenoEval(phenoDF)
+#     crit <- crit[candidates]
+#   }
+#   names(crit) <- candidates
+#   return(crit)
+# }
+# iidPhenoEval <- function(phenoDF){
+#   #require(lme4)
+#   phenoDF$errVar <- 1/phenoDF$errVar # Make into weights
+#   phenoDF <- phenoDF %>% dplyr::mutate(entryChk=if_else(isChk=="check", id, "-1"))
+#   fm <- lme4::lmer(pheno ~ entryChk + (1|id:isChk), weights=errVar, data=phenoDF)
+#   blup <- as.matrix(lme4::ranef(fm)[[1]])[,1] # Make into matrix to get names
+#   names(blup) <- (names(blup) %>% strsplit(":", fixed=T) %>% unlist %>%
+#                   matrix(nrow=2))[1,]
+#   # Ensure output has variation: needed for optimal contributions
+#   if (sd(blup) == 0){
+#     namesBlup <- names(blup)
+#     blup <- tapply(phenoDF$pheno, phenoDF$id, mean)
+#     names(blup) <- namesBlup
+#   }
+#   #detach("package:lme4",unload = T); detach("package:Matrix",unload = T);
+#   return(blup)
+# }
+```
+```{r runSchemesPostBurnIn - loop over SimRep}
+SP<-burnInSim$SP
+if(!is.null(newBSP)){
+  bsp<-newBSP; bsp$checks<-burnInSim$bsp$checks
+} else { bsp<-burnInSim$bsp }
+records<-burnInSim$records
+bsp[["productPipeline"]] <- get(productFunc)
+bsp[["populationImprovement"]] <- get(popImprovFunc)
+bsp[["selCritPipeAdv"]] <- get(selCritPipe)
+bsp[["selCritPopImprov"]] <- get(selCritPop)
+records <- bsp$productPipeline(records, bsp, SP)
+records <- bsp$populationImprovement(records, bsp, SP)
+records <- bsp$productPipeline(records, bsp, SP)
+#records <- bsp$populationImprovement(records, bsp, SP)
+
+```
+
+# Debug high level loop over burnInSims
+
+```{r}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+
+source(here::here("code","runSchemesPostBurnIn.R"))
+
+simulations<-readRDS(here::here("output","burnIn_test.rds"))
+
+# First the same "newBSP" used for the initial GMS test above
+newBSP<-specifyBSP(schemeDF = schemeDF,
+                    nChr = 3,effPopSize = 100,quickHaplo = F,
+                    segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                    gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                    meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                    stageToGenotype = "PYT",
+                    nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                    phenoF1toStage1 = T,errVarPreStage1 = 500,
+                    useCurrentPhenoTrain = F, 
+                    nCyclesToKeepRecords = 30,
+                    # selCritPipeAdv = selCritIID, 
+                    # selCritPopImprov =  selCritIID,
+                    nTrainPopCycles=6,
+                    nYrsAsCandidates=2,
+                    maxTrainingPopSize=500)
+   
+
+# DEBUG SETTINGS FOR runSchemesPostBurnIn
+simulations = simulations %>% slice(1:4)
+nPostBurnInCycles=1;
+selCritPop="parentSelCritGEBV";
+selCritPipe="selCritIID";
+productFunc="productPipeline";
+popImprovFunc="popImprovByParentSel";
+nSimCores=4;
+nBLASthreads=1
+```
+
+```{r}
+  require(furrr); plan(multisession, workers = nSimCores)
+  options(future.globals.maxSize=+Inf); options(future.rng.onMisuse="ignore")
+
+  simulations<-simulations %>%
+    mutate(SimOutput=future_map2(SimRep,burnInSim,function(SimRep,burnInSim,...){
+      # debug
+      # burnInSim<-simulations$burnInSim[[1]]
+      if(!is.null(nBLASthreads)) { RhpcBLASctl::blas_set_num_threads(nBLASthreads) }
+      cat("******", SimRep, "\n")
+
+      # This CONTINUES where previous sims left off
+      ## no initialize step
+      ## Keep burn-in stage sim params "SP"
+      SP<-burnInSim$SP
+      ## specify a potentially new bsp object
+      ## (keep checks stored in burn-in stage's bsp)
+      if(!is.null(newBSP)){
+        bsp<-newBSP; bsp$checks<-burnInSim$bsp$checks
+      } else { bsp<-burnInSim$bsp }
+      ## 'historical' records from burn-in
+      records<-burnInSim$records
+      ## override burn-in specified product and population improvement funcs
+      bsp[["productPipeline"]] <- get(productFunc)
+      bsp[["populationImprovement"]] <- get(popImprovFunc)
+      bsp[["selCritPipeAdv"]] <- get(selCritPipe)
+      bsp[["selCritPopImprov"]] <- get(selCritPop)
+
+      # Post burn-in cycles
+      cat("\n"); cat("Post burn-in cycles"); cat("\n")
+      for (cycle in 1:nPostBurnInCycles){
+        cat(cycle, " ")
+        records <- bsp$productPipeline(records, bsp, SP)
+        records <- bsp$populationImprovement(records, bsp, SP)
+      }
+
+      # Finalize the stageOutputs
+      records <- AlphaSimHlpR:::lastCycStgOut(records, bsp, SP)
+
+      return(list(records=records,
+                  bsp=bsp,
+                  SP=SP))
+    },
+    nPostBurnInCycles=nPostBurnInCycles,
+    selCritPop=selCritPop,
+    selCritPipe=selCritPipe,
+    productFunc=productFunc,
+    popImprovFunc=popImprovFunc,
+    nBLASthreads=nBLASthreads,
+    newBSP=newBSP))
+plan(sequential)
+```
+
+```{r}
+simulations
+```
+
+# Try parentSelCritBLUP selCrit
+
+```{r}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+
+source(here::here("code","runSchemesPostBurnIn.R"))
+
+simulations<-readRDS(here::here("output","burnIn_test.rds"))
+
+# First the same "newBSP" used for the initial GMS test above
+newBSP<-specifyBSP(schemeDF = schemeDF,
+                    nChr = 3,effPopSize = 100,quickHaplo = F,
+                    segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                    gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                    meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                    stageToGenotype = "PYT",
+                    nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                    phenoF1toStage1 = T,errVarPreStage1 = 500,
+                    useCurrentPhenoTrain = F, 
+                    nCyclesToKeepRecords = 30,
+                    nTrainPopCycles=6,
+                    nYrsAsCandidates=2,
+                    maxTrainingPopSize=500)
+   
+
+# DEBUG SETTINGS FOR runSchemesPostBurnIn
+simulations = simulations %>% slice(1:4)
+```
+```{r parentSelCritBLUP}
+start<-proc.time()[3]
+postBurnInGMS_test<-runSchemesPostBurnIn(simulations = simulations,
+                                        newBSP=newBSP,
+                                        nPostBurnInCycles=2,
+                                        selCritPop="parentSelCritBLUP",
+                                        selCritPipe="selCritIID",
+                                        productFunc="productPipeline",
+                                        popImprovFunc="popImprovByParentSel",
+                                        nSimCores=4,
+                                        nBLASthreads=1)
+end<-proc.time()[3]; timebsp<-end-start;
+print(paste0((timebsp)/60," mins elapsed"))
+
+```
+
+# popImprovByMateSel - model A - MeanBV  
+```{r}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+
+source(here::here("code","runSchemesPostBurnIn.R"))
+
+simulations<-readRDS(here::here("output","burnIn_test.rds"))
+
+# First the same "newBSP" used for the initial GMS test above
+newBSP<-specifyBSP(schemeDF = schemeDF,
+                   nChr = 3,effPopSize = 100,quickHaplo = F,
+                   segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                   gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                   meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                   stageToGenotype = "PYT",
+                   nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                   phenoF1toStage1 = T,errVarPreStage1 = 500,
+                   useCurrentPhenoTrain = F, 
+                   nCyclesToKeepRecords = 30,
+                   nTrainPopCycles=6,
+                   nYrsAsCandidates=2,
+                   maxTrainingPopSize=500,
+                   crossSelCrit="MeanBV",
+                   modelType="A")
+   
+
+# DEBUG SETTINGS FOR runSchemesPostBurnIn
+simulations = simulations %>% slice(1:4)
+```
+
+```{r parentSelCritBLUP}
+start<-proc.time()[3]
+postBurnInGMS_test<-runSchemesPostBurnIn(simulations = simulations,
+                                        newBSP=newBSP,
+                                        nPostBurnInCycles=2,
+                                        selCritPop="genomicMateSelCrit",
+                                        selCritPipe="selCritIID",
+                                        productFunc="productPipeline",
+                                        popImprovFunc="popImprovByMateSel",
+                                        nSimCores=4,
+                                        nBLASthreads=1)
+end<-proc.time()[3]; timebsp<-end-start;
+print(paste0((timebsp)/60," mins elapsed"))
+postBurnInGMS_test$SimOutput[[1]]$records$stageOutputs
+```
+

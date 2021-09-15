@@ -1,0 +1,920 @@
+---
+title: "Simulate genomic mate selection"
+author: "Marnin Wolfe"
+date: "2021-09-02"
+output: 
+  workflowr::wflow_html:
+    code_folding: hide
+    toc: true
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
+                      tidy='styler', 
+                      tidy.opts=list(strict=FALSE,width.cutoff=100), 
+                      highlight=TRUE)
+```
+
+# Set-up
+
+```{bash environ, eval=F}
+# 0) Pull a singularity image with OpenBLAS enabled R + tidyverse from rocker/
+# singularity pull ~/rocker2.sif docker://rocker/tidyverse:latest;
+
+# 1) start a screen shell 
+screen; 
+# 2) reserve interactive slurm
+salloc -n 20 --mem 60G;
+# 3) start the singularity Linux shell inside that
+singularity shell ~/rocker2.sif; 
+# Project directory, so R will use as working dir.
+cd /home/mw489/BreedingSchemeOpt/;
+# 3) Start R
+export OMP_NUM_THREADS=1;
+R
+```
+
+```{r,eval=T}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+
+source(here::here("code","runSchemesPostBurnIn.R"))
+
+simulations<-readRDS(here::here("output","burnIn_test.rds"))
+
+# First the same "newBSP" used for the initial GMS test above
+newBSP2<-specifyBSP(schemeDF = schemeDF,
+                    nChr = 3,effPopSize = 100,quickHaplo = F,
+                    segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                    gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                    meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                    stageToGenotype = "PYT",
+                    nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                    phenoF1toStage1 = T,errVarPreStage1 = 500,
+                    useCurrentPhenoTrain = F, 
+                    nCyclesToKeepRecords = 30,
+                    selCritPipeAdv = selCritIID, 
+                    selCritPopImprov =  selCritIID,
+                    nTrainPopCycles=6,
+                    nYrsAsCandidates=2,
+                    maxTrainingPopSize=500)
+                    # modelType="A",
+                    # propSel=0.2, # lower the effective weight on predict SD
+                    # crossSelCrit="UCparent",
+                    # nCrossPredCores=1)
+
+# DEBUG SETTINGS FOR runSchemesPostBurnIn
+simulations = simulations %>% slice(1)
+newBSP=newBSP2
+nPostBurnInCycles=1;
+selCritPop="parentSelCritGEBV";
+selCritPipe="selCritIID";
+productFunc="productPipeline";
+popImprovFunc="popImprovByParentSel";
+nSimCores=4;
+nBLASthreads=5
+
+## inside loop over each sim replication
+burnInSim<-simulations$burnInSim[[1]]
+```
+
+# Cycle 1
+```{r runSchemesPostBurnIn - loop over SimRep}
+SP<-burnInSim$SP
+
+## specify a potentially new bsp object
+## (keep checks stored in burn-in stage's bsp)
+if(!is.null(newBSP)){
+  bsp<-newBSP; bsp$checks<-burnInSim$bsp$checks
+} else { bsp<-burnInSim$bsp }
+## 'historical' records from burn-in
+records<-burnInSim$records
+```
+
+## Product Pipeline
+
+```{r productPipeline}
+candidates <- records$F1@id
+# length(candidates)
+# 2800 listed as candidates
+
+# GENERATE SELCRIT
+# selCrit <- bsp$selCritPipeAdv(records, candidates, bsp, SP)
+```
+
+```{r productPipeline - selCritIID}
+# selCritIID <- function(records, candidates, bsp, SP){
+  phenoDF <- framePhenoRec(records, bsp)
+#   > dim(phenoDF)
+# [1] 4092    9
+# nrow(distinct(phenoDF,id))
+# [1] 2602
+phenoDF %>% head
+```
+```{r productPipeline - selCritIID - iidPhenoEval}
+#crit <- iidPhenoEval(phenoDF)
+ # iidPhenoEval <- function(phenoDF){
+require(lme4)
+phenoDF$errVar <- 1/phenoDF$errVar # Make into weights
+phenoDF <- phenoDF %>% dplyr::mutate(entryChk=if_else(isChk=="check", id, "-1"))
+phenoDF %>% count(entryChk,isChk)
+#   entryChk isChk     n
+#   <chr>    <chr> <int>
+# 1 -1       exptl  4020
+# 2 65       check    36
+# 3 74       check    36
+```
+
+
+```{r productPipeline - selCritIID - iidPhenoEval}
+fm <- lmer(pheno ~ entryChk + (1|id:isChk), weights=errVar, data=phenoDF)
+summary(fm)
+# Linear mixed model fit by REML ['lmerMod']
+# Formula: pheno ~ entryChk + (1 | id:isChk)
+#    Data: phenoDF
+# Weights: errVar
+# 
+# REML criterion at convergence: 32454.5
+# 
+# Scaled residuals: 
+#      Min       1Q   Median       3Q      Max 
+# -3.11038 -0.56882 -0.00521  0.57235  3.12682 
+# 
+# Random effects:
+#  Groups   Name        Variance Std.Dev.
+#  id:isChk (Intercept) 60.561   7.782   
+#  Residual              1.078   1.038   
+# Number of obs: 4092, groups:  id:isChk, 2602
+# 
+# Fixed effects:
+#             Estimate Std. Error t value
+# (Intercept)   7.7654     0.2347  33.086
+# entryChk65  -15.0857     7.8816  -1.914
+# entryChk74  -11.4260     7.8816  -1.450
+# 
+# Correlation of Fixed Effects:
+#            (Intr) entC65
+# entryChk65 -0.030       
+# entryChk74 -0.030  0.001
+      
+    blup <- as.matrix(ranef(fm)[[1]])[,1] # Make into matrix to get names
+    names(blup) <- (names(blup) %>% strsplit(":", fixed=T) %>% unlist %>%
+                      matrix(nrow=2))[1,]
+# > length(blup)
+# [1] 2602
+#     summary(blup)
+#      Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+# -15.7564  -3.3690  -0.8763   0.0000   2.7234  22.1346 
+    # Ensure output has variation: needed for optimal contributions
+    if (sd(blup) == 0){
+      namesBlup <- names(blup)
+      blup <- tapply(phenoDF$pheno, phenoDF$id, mean)
+      names(blup) <- namesBlup
+    }
+    detach("package:lme4",unload = T); detach("package:Matrix",unload = T);
+
+  crit<-blup
+# table(candidates %in% names(crit))
+# FALSE  TRUE 
+#   200  2600 
+
+  crit <- crit[candidates]
+  names(crit) <- candidates
+  
+  selCrit<-crit
+```
+
+```{r productPipeline}
+# Make summary for the incoming F1s
+  year <- max(records$stageOutputs$year)+1 # Add a year relative to last year
+  nF1 <- bsp$nCrosses * bsp$nProgeny
+  nGenoRec <- nInd(records$F1)
+  # Analyze the most-recent F1s
+  newF1Idx <- nGenoRec - nF1 + 1:nF1
+  id <- records$F1[newF1Idx]@id
+  records$stageOutputs <- records$stageOutputs %>% 
+    bind_rows(AlphaSimHlpR:::stageOutputs(id=id, f1=records$F1, selCrit=selCrit, stage=0, year=year, bsp=bsp))
+
+   # Will be added to the phenotype records
+  toAdd <- list()
+  # stage<-1
+  for (stage in 1:bsp$nStages){
+    # Make a summary for this stage
+    id <- last(records[[stage+1]])$id[1:bsp$nEntries[stage]]
+
+    records$stageOutputs<-records$stageOutputs %>% 
+      bind_rows(AlphaSimHlpR:::stageOutputs(id=id, f1=records$F1, selCrit=selCrit, stage=stage, year=year, bsp=bsp))
+if (stage == 1){ # Stage 1 different: no phenotypes but full Pop-class
+  
+      # Use phenotypes to select the F1 going into Stage 1?
+      if (bsp$phenoF1toStage1){ # Use phenotypes to choose what goes to Stage 1
+        phenoF1 <- setPheno(records$F1[newF1Idx], varE=bsp$errVarPreStage1, onlyPheno=T, simParam=SP)
+        indToAdv <- records$F1@id[nGenoRec - nF1 + (phenoF1 %>% order(decreasing=T))[1:bsp$nEntries[stage]] %>% sort]
+      } else {
+        # Do the F1 have genotypic values that could be used?
+        if (selCrit[newF1Idx] %>% is.na %>% all){ # Choose at random
+          indToAdv <- records$F1@id[nGenoRec - nF1 + sort(sample(nF1, bsp$nEntries[stage]))]
+        } else{ # Use selCrit
+          indToAdv <- records$F1@id[nGenoRec - nF1 + (selCrit[newF1Idx] %>% order(decreasing=T))[1:bsp$nEntries[stage]] %>% sort]
+        }
+      }
+    }
+else { # Beyond stage 1
+      # Don't allow checks to be advanced: use 1:bsp$nEntries[stage-1]
+      id <- last(records[[stage]])$id[1:bsp$nEntries[stage-1]]
+      selCritPop <- selCrit[id]
+      indToAdv <- (selCritPop %>% order(decreasing=T))[1:bsp$nEntries[stage]]
+      indToAdv <- names(selCritPop)[sort(indToAdv)]
+    }
+    entries <- records$F1[indToAdv]
+    varE <- bsp$gxyVar + (bsp$gxlVar + bsp$gxyxlVar + bsp$errVars[stage] / bsp$nReps[stage]) / bsp$nLocs[stage]
+    # reps=1 because varE is computed above
+    entries <- setPheno(entries, varE=varE, reps=1, simParam=SP)
+    phenoRec <- phenoRecFromPop(entries, bsp, stage)
+    # If provided, add checks to the population
+    
+if(!is.null(bsp$checks) & bsp$nChks[stage] > 0){
+      varE <- bsp$gxyVar + (bsp$gxlVar + bsp$gxyxlVar + bsp$errVars[stage] / bsp$chkReps[stage]) / bsp$nLocs[stage]
+      chkPheno <- setPheno(bsp$checks[1:bsp$nChks[stage]], varE=varE, reps=1, simParam=SP)
+      chkRec <- phenoRecFromPop(chkPheno, bsp, stage, checks=T)
+      phenoRec <- bind_rows(phenoRec, chkRec)
+    }
+    toAdd <- c(toAdd, list(phenoRec))
+  }#END 1:nStages
+  for (stage in 1 + 1:bsp$nStages){
+    records[[stage]] <- c(records[[stage]], toAdd[stage-1])
+  }
+  # Remove old records if needed
+  if (length(records[[2]]) > bsp$nCyclesToKeepRecords) records <- removeOldestCyc(records, bsp)
+
+```
+
+## Population Improvement - GEBV
+
+```{r popImprovByParentSel}
+# records <- bsp$populationImprovement(records, bsp, SP)
+  # Which phenotypes can be included for model training?
+  ### Current year phenotypes?
+  trainRec <- records
+#trainRec$PYT %>% length # 14
+  if (!bsp$useCurrentPhenoTrain){
+    for (stage in 1+1:bsp$nStages){
+      trainRec[[stage]] <- trainRec[[stage]][-length(trainRec[[stage]])]
+    }
+  }
+#trainRec$PYT %>% length # 13
+
+# Which individuals can be selection candidates?
+  ## only individuals that have been genoytped in the last "nYrsAsCandidates"
+  ## Not checks
+  if(bsp$stageToGenotype=="F1"){
+    NrecentProgenySelCands<-(bsp$nProgeny*bsp$nCrosses)*bsp$nYrsAsCandidates
+    candidates<-records$F1@id %>% tail(.,n = NrecentProgenySelCands)
+  } else {
+    candidates<-records[[bsp$stageToGenotype]] %>%
+      tail(.,n=bsp$nYrsAsCandidates) %>%
+      map_df(.,rbind) %$%
+      unique(id) %>%
+      # exclude checks
+      setdiff(.,bsp$checks@id)
+  }
+  # How many additional individuals to use as training?
+  ## these are individuals with phenotypes
+  ## but not in the list of selection candidates
+  ## Drawn from the most recent cycles according to "nTrainPopCycles"
+  ## Potentially subsampled according to "maxTrainingPopSize"
+  phenotypedLines<-trainRec[bsp$stageNames] %>% 
+    map(.,~tail(.,n = bsp$nTrainPopCycles)) %>% 
+    map_df(.,rbind) %$%
+    unique(id)
+
+  phenotypedLines_notSelCands<-setdiff(phenotypedLines,candidates)
+  ## maxTPsize is lesser of specified 'maxTrainingPopSize' and actual 
+  ## number of phenotyped lines not considered selection candidates
+  maxTPsize<-min(bsp$maxTrainingPopSize,length(phenotypedLines_notSelCands))
+  ## Make sure checks ARE included
+  if(!is.null(bsp$checks)){
+    # sample from the list of non-selection candidates that also are NOT checks
+    trainingpop<-sample(setdiff(phenotypedLines_notSelCands,bsp$checks@id),
+                        size = maxTPsize, replace = F) %>%
+      # include the checks
+      c(.,bsp$checks@id) %>%
+      # vanity: order the ids
+      .[order(as.integer(.))]
+  } else {
+    trainingpop<-sample(phenotypedLines_notSelCands,
+                        size = maxTPsize, replace = F) %>%
+      .[order(as.integer(.))]
+  }
+```
+
+```{r parentSelCritGEBV}
+# require two inputs for downstream SelCrit
+  ## only compatible SelCrit so far will therefore be "parentSelCritGEBV"
+  ## "candidates" and "trainingpop": non-overlapping sets,
+  ## available pheno records (in "trainRec") for any of the "candidates"
+  ## will be automatically included in predictions
+#  crit <- bsp$selCritPopImprov(trainRec, candidates, trainingpop, bsp, SP)
+
+# parentSelCritGEBV <- function(records, candidates, trainingpop, bsp, SP){
+  # first construct the GRM
+  indivs2keep<-union(candidates,trainingpop)
+  grm <- make_grm(trainRec, indivs2keep, bsp, SP, grmType="add")
+  phenoDF <- framePhenoRec(trainRec, bsp)
+  # Remove individuals with phenotypes but who do not have geno records
+  phenoDF <- phenoDF[phenoDF$id %in% rownames(grm),]
+  #crit <- gebvPhenoEval(phenoDF, grm)
+```
+```{r gebvPhenoEval}
+require(sommer)
+phenoDF$id <- factor(phenoDF$id, levels=rownames(grm)) # Enable prediction
+phenoDF$wgt <- 1/phenoDF$errVar # Make into weights
+
+fm1 <- mmer(fixed = pheno~1,
+            random = ~vs(id, Gu=grm),
+            weights=wgt,
+            data=phenoDF,
+            verbose=F,
+            date.warning=F)
+gebv <- fm1$U[[1]][[1]]
+detach("package:sommer",unload = T); detach("package:MASS",unload = T)
+```
+
+```{r parentSelCritGEBV}
+crit<-gebv;
+table(names(crit) %in% indivs2keep)
+# exclude the checks from consideration as candidates
+crit <- crit[names(crit) %in% setdiff(indivs2keep,bsp$checks@id)]
+#return(crit)
+```
+
+
+```{r parentSelCritGEBV}
+# Not sure if useOptContrib will work "as is"
+  if (bsp$useOptContrib){
+    progeny <- optContrib(records, bsp, SP, crit)
+  } else {
+    # select the top nParents based
+    selectedParentIDs<-names(crit[order(crit, decreasing=T)][1:bsp$nParents])
+    # extract a pop-object of those parents
+    parents <- records$F1[selectedParentIDs]
+    # make crosses
+    progeny <- randCross(parents, nCrosses=bsp$nCrosses, nProgeny=bsp$nProgeny, ignoreSexes=T, simParam=SP)
+  }
+records$F1@fixEff %>% table(.)
+#   1    2    3    4    5    6    7    8    9   10 
+# 1000  200  200  200  200  200  200  200  200  200 
+
+  # not 100% sure, but seems to store the "year" in the @fixEff slot of "progeny"
+  progeny@fixEff <- rep(as.integer(max(records$stageOutputs$year) + 1), bsp$nSeeds)
+  parentsUsed <- unique(c(progeny@mother, progeny@father))
+```
+
+```{r records1}
+records1<-records
+```
+```{r parentSelCritGEBV}
+stgCyc <- sapply(parentsUsed, AlphaSimHlpR:::whereIsID, records=records1)
+#   stgCyc
+#         2689 2669 2715 2657 2558 2694 2679
+# stage    2    2    2    2    3    2    2
+# cycle   14   14   14   14   13   14   14
+  stgCyc <- table(stgCyc[1,], stgCyc[2,])
+  #     13 14
+  # 2  0  6
+  # 3  1  0
+  strtStgOut <- nrow(records1$stageOutputs) - bsp$nStages - 1
+  for (i in 1:nrow(stgCyc)){
+    stage <- as.integer(rownames(stgCyc)[i])
+    records1$stageOutputs$nContribToPar[[strtStgOut + stage]] <- tibble(cycle=as.integer(colnames(stgCyc)),
+                                                                       nContribToPar=stgCyc[i,])
+  }
+  records1$F1 <- c(records1$F1, progeny)
+  #return(records)
+```
+
+# Cycle 2
+
+## Product Pipeline
+
+```{r productPipeline}
+candidates <- records1$F1@id
+# length(candidates)
+# 3000 listed as candidates
+
+# GENERATE SELCRIT
+# selCrit <- bsp$selCritPipeAdv(records, candidates, bsp, SP)
+```
+```{r productPipeline - selCritIID}
+phenoDF <- framePhenoRec(records1, bsp)
+#   > dim(phenoDF)
+# [1] 4418    9
+# nrow(distinct(phenoDF,id))
+# [1] 2802
+phenoDF %>% head
+```
+```{r productPipeline - selCritIID - iidPhenoEval}
+require(lme4)
+phenoDF$errVar <- 1/phenoDF$errVar # Make into weights
+phenoDF <- phenoDF %>% dplyr::mutate(entryChk=if_else(isChk=="check", id, "-1"))
+phenoDF %>% count(entryChk,isChk)
+#   entryChk isChk     n
+#   <chr>    <chr> <int>
+# -1	exptl	4340		
+# 65	check	39		
+# 74	check	39
+```
+```{r}
+fm
+```
+
+```{r productPipeline - selCritIID - iidPhenoEval}
+fm2 <- lmer(pheno ~ entryChk + (1|id:isChk), weights=errVar, data=phenoDF)
+    blup <- as.matrix(ranef(fm2)[[1]])[,1] # Make into matrix to get names
+    names(blup) <- (names(blup) %>% strsplit(":", fixed=T) %>% unlist %>%
+                      matrix(nrow=2))[1,]
+# > length(blup)
+# [1] 2802
+#     summary(blup)
+#   Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+# -18.7733  -3.9869  -0.9797   0.0000   3.3424  22.8702  
+    # Ensure output has variation: needed for optimal contributions
+    if (sd(blup) == 0){
+      namesBlup <- names(blup)
+      blup <- tapply(phenoDF$pheno, phenoDF$id, mean)
+      names(blup) <- namesBlup
+    }
+    detach("package:lme4",unload = T); detach("package:Matrix",unload = T);
+
+  crit<-blup
+# table(candidates %in% names(crit))
+# FALSE  TRUE 
+#   200  2800 
+
+  crit <- crit[candidates]
+  names(crit) <- candidates
+  
+  selCrit<-crit
+```
+
+```{r}
+# Make summary for the incoming F1s
+  year <- max(records1$stageOutputs$year)+1 # Add a year relative to last year
+  nF1 <- bsp$nCrosses * bsp$nProgeny
+  nGenoRec <- nInd(records1$F1)
+  # Analyze the most-recent F1s
+  newF1Idx <- nGenoRec - nF1 + 1:nF1
+  id <- records1$F1[newF1Idx]@id
+  records1$stageOutputs <- records1$stageOutputs %>% 
+    bind_rows(AlphaSimHlpR:::stageOutputs(id=id, f1=records1$F1, selCrit=selCrit, stage=0, year=year, bsp=bsp))
+```
+
+
+```{r}
+# Will be added to the phenotype records
+  toAdd <- list()
+  for (stage in 1:bsp$nStages){
+    # Make a summary for this stage
+    id <- last(records1[[stage+1]])$id[1:bsp$nEntries[stage]]
+    records1$stageOutputs <- records1$stageOutputs %>% 
+      bind_rows(AlphaSimHlpR:::stageOutputs(id=id, f1=records$F1, selCrit=selCrit, stage=stage, year=year, bsp=bsp))
+
+    if (stage == 1){ # Stage 1 different: no phenotypes but full Pop-class
+      # Use phenotypes to select the F1 going into Stage 1?
+      if (bsp$phenoF1toStage1){ # Use phenotypes to choose what goes to Stage 1
+        phenoF1 <- setPheno(records1$F1[newF1Idx], varE=bsp$errVarPreStage1, onlyPheno=T, simParam=SP)
+        indToAdv <- records1$F1@id[nGenoRec - nF1 + (phenoF1 %>% order(decreasing=T))[1:bsp$nEntries[stage]] %>% sort]
+      } else{
+        # Do the F1 have genotypic values that could be used?
+        if (selCrit[newF1Idx] %>% is.na %>% all){ # Choose at random
+          indToAdv <- records1$F1@id[nGenoRec - nF1 + sort(sample(nF1, bsp$nEntries[stage]))]
+        } else{ # Use selCrit
+          indToAdv <- records1$F1@id[nGenoRec - nF1 + (selCrit[newF1Idx] %>% 
+                                                         order(decreasing=T))[1:bsp$nEntries[stage]] %>% sort]
+        }
+      }
+    } else{ # Beyond stage 1
+      # Don't allow checks to be advanced: use 1:bsp$nEntries[stage-1]
+      id <- last(records1[[stage]])$id[1:bsp$nEntries[stage-1]]
+      selCritPop <- selCrit[id]
+      indToAdv <- (selCritPop %>% order(decreasing=T))[1:bsp$nEntries[stage]]
+      indToAdv <- names(selCritPop)[sort(indToAdv)]
+    }
+    entries <- records1$F1[indToAdv]
+    varE <- bsp$gxyVar + (bsp$gxlVar + bsp$gxyxlVar + bsp$errVars[stage] / bsp$nReps[stage]) / bsp$nLocs[stage]
+    # reps=1 because varE is computed above
+    entries <- setPheno(entries, varE=varE, reps=1, simParam=SP)
+    phenoRec <- phenoRecFromPop(entries, bsp, stage)
+    # If provided, add checks to the population
+    if(!is.null(bsp$checks) & bsp$nChks[stage] > 0){
+      varE <- bsp$gxyVar + (bsp$gxlVar + bsp$gxyxlVar + bsp$errVars[stage] / bsp$chkReps[stage]) / bsp$nLocs[stage]
+      chkPheno <- setPheno(bsp$checks[1:bsp$nChks[stage]], varE=varE, reps=1, simParam=SP)
+      chkRec <- phenoRecFromPop(chkPheno, bsp, stage, checks=T)
+      phenoRec <- bind_rows(phenoRec, chkRec)
+    }
+    toAdd <- c(toAdd, list(phenoRec))
+  }#END 1:nStages
+  for (stage in 1 + 1:bsp$nStages){
+    records1[[stage]] <- c(records1[[stage]], toAdd[stage-1])
+  }
+
+  # Remove old records if needed
+  if (length(records1[[2]]) > bsp$nCyclesToKeepRecords) records1 <- removeOldestCyc(records1, bsp)
+
+```
+
+# why the eff isn't it working?
+
+```{r,eval=T}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+
+source(here::here("code","runSchemesPostBurnIn.R"))
+
+simulations<-readRDS(here::here("output","burnIn_test.rds"))
+
+# First the same "newBSP" used for the initial GMS test above
+newBSP2<-specifyBSP(schemeDF = schemeDF,
+                    nChr = 3,effPopSize = 100,quickHaplo = F,
+                    segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                    gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                    meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                    stageToGenotype = "PYT",
+                    nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                    phenoF1toStage1 = T,errVarPreStage1 = 500,
+                    useCurrentPhenoTrain = F, 
+                    nCyclesToKeepRecords = 30,
+                    selCritPipeAdv = selCritIID, 
+                    selCritPopImprov =  selCritIID,
+                    nTrainPopCycles=6,
+                    nYrsAsCandidates=2,
+                    maxTrainingPopSize=500)
+                    # modelType="A",
+                    # propSel=0.2, # lower the effective weight on predict SD
+                    # crossSelCrit="UCparent",
+                    # nCrossPredCores=1)
+
+# DEBUG SETTINGS FOR runSchemesPostBurnIn
+simulations = simulations %>% slice(1)
+newBSP=newBSP2
+nPostBurnInCycles=1;
+selCritPop="parentSelCritGEBV";
+selCritPipe="selCritIID";
+productFunc="productPipeline";
+popImprovFunc="popImprovByParentSel";
+nSimCores=4;
+nBLASthreads=5
+
+## inside loop over each sim replication
+burnInSim<-simulations$burnInSim[[1]]
+```
+
+```{r runSchemesPostBurnIn - loop over SimRep}
+SP<-burnInSim$SP
+if(!is.null(newBSP)){
+  bsp<-newBSP; bsp$checks<-burnInSim$bsp$checks
+} else { bsp<-burnInSim$bsp }
+records<-burnInSim$records
+bsp[["productPipeline"]] <- get(productFunc)
+bsp[["populationImprovement"]] <- get(popImprovFunc)
+bsp[["selCritPipeAdv"]] <- get(selCritPipe)
+bsp[["selCritPopImprov"]] <- get(selCritPop)
+
+records <- bsp$productPipeline(records, bsp, SP)
+records <- bsp$populationImprovement(records, bsp, SP)
+
+records <- bsp$productPipeline(records, bsp, SP)
+records <- bsp$populationImprovement(records, bsp, SP)
+
+
+```
+
+So this is working....
+
+# For fuck sake - why won't it work
+
+```{r}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+
+source(here::here("code","runSchemesPostBurnIn.R"))
+
+simulations<-readRDS(here::here("output","burnIn_test.rds"))
+
+# First the same "newBSP" used for the initial GMS test above
+newBSP2<-specifyBSP(schemeDF = schemeDF,
+                    nChr = 3,effPopSize = 100,quickHaplo = F,
+                    segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                    gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                    meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                    stageToGenotype = "PYT",
+                    nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                    phenoF1toStage1 = T,errVarPreStage1 = 500,
+                    useCurrentPhenoTrain = F, 
+                    nCyclesToKeepRecords = 30,
+                    selCritPipeAdv = selCritIID, 
+                    selCritPopImprov =  selCritIID,
+                    nTrainPopCycles=6,
+                    nYrsAsCandidates=2,
+                    maxTrainingPopSize=500)
+
+simulations = simulations %>% slice(1)
+selCritPop="parentSelCritGEBV";
+selCritPipe="selCritIID";
+productFunc="productPipeline";
+popImprovFunc="popImprovByParentSel"
+nBLASthreads=1
+newBSP=newBSP2
+nPostBurnInCycles=2
+```
+```{r}
+SP<-burnInSim$SP
+if(!is.null(newBSP)){
+  bsp<-newBSP; bsp$checks<-burnInSim$bsp$checks
+} else { bsp<-burnInSim$bsp }
+records<-burnInSim$records
+bsp[["productPipeline"]] <- get(productFunc)
+bsp[["populationImprovement"]] <- get(popImprovFunc)
+bsp[["selCritPipeAdv"]] <- get(selCritPipe)
+bsp[["selCritPopImprov"]] <- get(selCritPop)
+
+records <- bsp$productPipeline(records, bsp, SP)
+```
+
+```{r}
+simulations<-simulations %>%
+ mutate(SimOutput=map2(SimRep,burnInSim,function(SimRep,burnInSim,...){
+      if(!is.null(nBLASthreads)) { RhpcBLASctl::blas_set_num_threads(nBLASthreads) }
+      cat("******", SimRep, "\n")
+
+      # This CONTINUES where previous sims left off
+      ## no initialize step
+      ## Keep burn-in stage sim params "SP"
+      SP<-burnInSim$SP
+      ## specify a potentially new bsp object
+      ## (keep checks stored in burn-in stage's bsp)
+      if(!is.null(newBSP)){
+        bsp<-newBSP; bsp$checks<-burnInSim$bsp$checks
+      } else { bsp<-burnInSim$bsp }
+      ## 'historical' records from burn-in
+      records<-burnInSim$records
+      ## override burn-in specified product and population improvement funcs
+      bsp[["productPipeline"]] <- get(productFunc)
+      bsp[["populationImprovement"]] <- get(popImprovFunc)
+      bsp[["selCritPipeAdv"]] <- get(selCritPipe)
+      bsp[["selCritPopImprov"]] <- get(selCritPop)
+  # Post burn-in cycles
+      cat("\n"); cat("Post burn-in cycles"); cat("\n")
+      for (cycle in 1:nPostBurnInCycles){
+        cat(cycle, " ")
+        records <- bsp$productPipeline(records, bsp, SP)
+        records <- bsp$populationImprovement(records, bsp, SP)
+      }
+
+      # Finalize the stageOutputs
+      records <- AlphaSimHlpR:::lastCycStgOut(records, bsp, SP)
+
+      return(list(records=records,
+                  bsp=bsp,
+                  SP=SP))
+    },
+    nPostBurnInCycles=nPostBurnInCycles,
+    selCritPop=selCritPop,
+    selCritPipe=selCritPipe,
+    productFunc=productFunc,
+    popImprovFunc=popImprovFunc,
+    nBLASthreads=nBLASthreads,
+    newBSP=newBSP))
+```
+
+
+```{r}
+#simulations<-simulations %>%
+#  mutate(SimOutput=map2(SimRep,burnInSim,function(SimRep,burnInSim,...){
+# debug
+burnInSim<-simulations$burnInSim[[1]]
+if(!is.null(nBLASthreads)) { RhpcBLASctl::blas_set_num_threads(nBLASthreads) }
+# cat("******", SimRep, "\n")
+
+# This CONTINUES where previous sims left off
+## no initialize step
+## Keep burn-in stage sim params "SP"
+SP<-burnInSim$SP
+## specify a potentially new bsp object
+## (keep checks stored in burn-in stage's bsp)
+if(!is.null(newBSP)){
+  bsp<-newBSP; bsp$checks<-burnInSim$bsp$checks
+} else { bsp<-burnInSim$bsp }
+## 'historical' records from burn-in
+records<-burnInSim$records
+## override burn-in specified product and population improvement funcs
+bsp[["productPipeline"]] <- get(productFunc)
+bsp[["populationImprovement"]] <- get(popImprovFunc)
+bsp[["selCritPipeAdv"]] <- get(selCritPipe)
+bsp[["selCritPopImprov"]] <- get(selCritPop)
+
+# Finalize the stageOutputs
+      records <- AlphaSimHlpR:::lastCycStgOut(records, bsp, SP)
+
+      return(list(records=records,
+                  bsp=bsp,
+                  SP=SP))
+    },
+    nPostBurnInCycles=nPostBurnInCycles,
+    selCritPop=selCritPop,
+    selCritPipe=selCritPipe,
+    productFunc=productFunc,
+    popImprovFunc=popImprovFunc,
+    nBLASthreads=nBLASthreads,
+    newBSP=newBSP))
+```
+
+## Cycle 1
+
+```{r}
+# Post burn-in cycles
+records1 <- bsp$productPipeline(records, bsp, SP)
+#records2 <- bsp$populationImprovement(records, bsp, SP)
+```
+```{r}
+bsp$populationImprovement
+#popImprovByParentSel <- function(records, bsp, SP){
+  # Which phenotypes can be included for model training?
+  ### Current year phenotypes?
+  trainRec <- records
+  if (!bsp$useCurrentPhenoTrain){
+    for (stage in 1+1:bsp$nStages){
+      trainRec[[stage]] <- trainRec[[stage]][-length(trainRec[[stage]])]
+    }
+  }
+
+  # Which individuals can be selection candidates?
+  ## only individuals that have been genoytped in the last "nYrsAsCandidates"
+  if(bsp$stageToGenotype=="F1"){
+    NrecentProgenySelCands<-(bsp$nProgeny*bsp$nCrosses)*bsp$nYrsAsCandidates
+    candidates<-records$F1@id %>% tail(.,n = NrecentProgenySelCands)
+  } else {
+    candidates<-records[[bsp$stageToGenotype]] %>%
+      tail(.,n=bsp$nYrsAsCandidates) %>%
+      map_df(.,rbind) %$%
+      unique(id) %>%
+      # exclude checks
+      setdiff(.,bsp$checks@id)
+  }
+
+  # How many additional individuals to use as training?
+  ## these are individuals with phenotypes
+  ## but not in the list of selection candidates
+  ## Drawn from the most recent cycles according to "nTrainPopCycles"
+  ## Potentially subsampled according to "maxTrainingPopSize"
+  phenotypedLines<-trainRec[bsp$stageNames] %>%
+    map(.,~tail(.,n = bsp$nTrainPopCycles)) %>%
+    map_df(.,rbind) %$%
+    unique(id)
+
+  phenotypedLines_notSelCands<-setdiff(phenotypedLines,candidates)
+  ## maxTPsize is lesser of specified 'maxTrainingPopSize' and actual number of phenotyped lines not considered selection candidates
+  maxTPsize<-min(bsp$maxTrainingPopSize,length(phenotypedLines_notSelCands))
+  ## Make sure checks ARE included
+  if(!is.null(bsp$checks)){
+    # sample from the list of non-selection candidates that also are NOT checks
+    trainingpop<-sample(setdiff(phenotypedLines_notSelCands,bsp$checks@id),
+                        size = maxTPsize, replace = F) %>%
+      # include the checks
+      c(.,bsp$checks@id) %>%
+      # vanity: order the ids
+      .[order(as.integer(.))]
+  } else {
+    trainingpop<-sample(phenotypedLines_notSelCands,
+                        size = maxTPsize, replace = F) %>%
+      .[order(as.integer(.))]
+  }
+
+  # require two inputs for downstream SelCrit
+  ## only compatible SelCrit so far will therefore be "parentSelCritGEBV"
+  ## "candidates" and "trainingpop": non-overlapping sets,
+  ## available pheno records (in "trainRec") for any of the "candidates"
+  ## will be automatically included in predictions
+
+  #  crit <- bsp$selCritPopImprov(trainRec, candidates, trainingpop, bsp, SP)
+```
+```{r}
+# first construct the GRM
+  indivs2keep<-union(candidates,trainingpop)
+  grm <- make_grm(records, indivs2keep, bsp, SP, grmType="add")
+  phenoDF <- framePhenoRec(records, bsp)
+  # Remove individuals with phenotypes but who do not have geno records
+  phenoDF <- phenoDF[phenoDF$id %in% rownames(grm),]
+#  crit <- gebvPhenoEval(phenoDF, grm)
+```
+```{r}
+require(sommer)
+phenoDF$id <- factor(phenoDF$id, levels=rownames(grm)) # Enable prediction
+phenoDF$wgt <- 1/phenoDF$errVar # Make into weights
+fm <- mmer(fixed = pheno ~ 1,
+           random = ~ vs(id, Gu=grm),
+           weights=wgt,
+           data=phenoDF)
+```
+
+
+```{r}
+gebv <- fm$U[[1]][[1]]
+  # Ensure output has variation: needed for optimal contributions
+  if (sd(gebv) == 0){
+    namesGEBV <- names(gebv)
+    gebv <- tapply(phenoDF$pheno, phenoDF$id, mean)
+    names(gebv) <- namesGEBV
+  }
+  detach("package:sommer",unload = T); detach("package:MASS",unload = T)
+  return(gebv)
+
+```
+
+
+```{r}
+# exclude the checks from consideration as candidates
+#  crit <- crit[names(crit) %in% setdiff(indivs2keep,bsp$checks@id)]
+```
+
+
+```{r}
+# Not sure if useOptContrib will work "as is"
+  if (bsp$useOptContrib){
+    progeny <- optContrib(records, bsp, SP, crit)
+  } else {
+    # select the top nParents based
+    selectedParentIDs<-names(crit[order(crit, decreasing=T)][1:bsp$nParents])
+    # extract a pop-object of those parents
+    parents <- records$F1[selectedParentIDs]
+    # make crosses
+    progeny <- randCross(parents, nCrosses=bsp$nCrosses, nProgeny=bsp$nProgeny, ignoreSexes=T, simParam=SP)
+  }
+  # not 100% sure, but seems to store the "year" in the @fixEff slot of "progeny"
+  progeny@fixEff <- rep(as.integer(max(records$stageOutputs$year) + 1), bsp$nSeeds)
+  parentsUsed <- unique(c(progeny@mother, progeny@father))
+  stgCyc <- sapply(parentsUsed, AlphaSimHlpR:::whereIsID, records=records)
+  stgCyc <- table(stgCyc[1,], stgCyc[2,])
+  strtStgOut <- nrow(records$stageOutputs) - bsp$nStages - 1
+  for (i in 1:nrow(stgCyc)){
+    stage <- as.integer(rownames(stgCyc)[i])
+    records$stageOutputs$nContribToPar[[strtStgOut + stage]] <- tibble(cycle=as.integer(colnames(stgCyc)), nContribToPar=stgCyc[i,])
+  }
+  records$F1 <- c(records$F1, progeny)
+  return(records)
+}
+```
+
+
+```{r}
+# Finalize the stageOutputs
+      records <- AlphaSimHlpR:::lastCycStgOut(records, bsp, SP)
+
+      return(list(records=records,
+                  bsp=bsp,
+                  SP=SP))
+    },
+    nPostBurnInCycles=nPostBurnInCycles,
+    selCritPop=selCritPop,
+    selCritPipe=selCritPipe,
+    productFunc=productFunc,
+    popImprovFunc=popImprovFunc,
+    nBLASthreads=nBLASthreads,
+    newBSP=newBSP))
+rlang::last_error()
+```
+
+```{r run it when its working...}
+# start<-proc.time()[3]
+# postBurnInGMS_test<-runSchemesPostBurnIn(simulations = simulations,
+#                                         newBSP=newBSP2,
+#                                         nPostBurnInCycles=2,
+#                                         selCritPop="parentSelCritGEBV",
+#                                         selCritPipe="selCritIID",
+#                                         productFunc="productPipeline",
+#                                         popImprovFunc="popImprovByParentSel",
+#                                         nSimCores=4,
+#                                         nBLASthreads=4)
+# end<-proc.time()[3]; timebsp<-end-start;
+# print(paste0((timebsp)/60," mins elapsed"))
+
+#saveRDS(postBurnInGMS_test,file = here::here("output","postBurnInGMS_test_GS_A_propSel0pt20.rds"))
+
+```
