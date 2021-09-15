@@ -78,7 +78,8 @@ runSchemesPostBurnIn<-function(simulations,
     selCritPipe=selCritPipe,
     productFunc=productFunc,
     popImprovFunc=popImprovFunc,
-    nBLASthreads=nBLASthreads))
+    nBLASthreads=nBLASthreads,
+    newBSP=newBSP))
   plan(sequential)
   return(simulations)
 }
