@@ -24,9 +24,9 @@
 runSchemesPostBurnIn<-function(simulations,
                                newBSP=NULL, # so you can change the scheme entirely after burn-in
                                nPostBurnInCycles,
-                               selCritPop="selCritIID",
-                               selCritPipe="selCritIID",
-                               productFunc="productPipeline",
+                               selCritPop="parentSelCritBLUP",
+                               selCritPipe="productSelCritBLUP",
+                               productFunc="productPipelinePostBurnIn",
                                popImprovFunc="popImprovByParentSel",
                                nSimCores=1,
                                nBLASthreads=NULL){
@@ -35,7 +35,7 @@ runSchemesPostBurnIn<-function(simulations,
   options(future.globals.maxSize=+Inf); options(future.rng.onMisuse="ignore")
 
   simulations<-simulations %>%
-    mutate(SimOutput=future_map2(SimRep,burnInSim,function(SimRep,burnInSim,...){
+    dplyr::mutate(SimOutput=future_map2(SimRep,burnInSim,function(SimRep,burnInSim,...){
       # debug
       # burnInSim<-simulations$burnInSim[[1]]
       if(!is.null(nBLASthreads)) { RhpcBLASctl::blas_set_num_threads(nBLASthreads) }
@@ -49,6 +49,10 @@ runSchemesPostBurnIn<-function(simulations,
       ## (keep checks stored in burn-in stage's bsp)
       if(!is.null(newBSP)){
         bsp<-newBSP; bsp$checks<-burnInSim$bsp$checks
+        bsp[["burnInBSP"]]<-burnInSim$bsp
+        # years are indexed starting at year==0,
+        ## so for 10 burn-in cycles, max value should be 9, store for later
+        bsp[["maxYearBurnInStage"]]<-max(burnInSim$records$stageOutputs$year)
       } else { bsp<-burnInSim$bsp }
       ## 'historical' records from burn-in
       records<-burnInSim$records
