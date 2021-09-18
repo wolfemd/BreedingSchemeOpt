@@ -12,10 +12,10 @@
 <meta name="author" content="Marnin Wolfe" />
 
 
-<title>Burn-in simulations for cassava GS</title>
+<title>Example of AlphaSimHlpR simulation with a burn-in period</title>
 
-<script src="site_libs/header-attrs-2.10/header-attrs.js"></script>
-<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/yeti.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
@@ -449,6 +449,9 @@ div.tocify {
     <li>
       <a href="baselineSim.html">Baseline simulations</a>
     </li>
+    <li>
+      <a href="genomicMateSelSims.html">Genomic mate selection simulations</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -487,9 +490,9 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Burn-in simulations for cassava GS</h1>
+<h1 class="title toc-ignore">Example of AlphaSimHlpR simulation with a burn-in period</h1>
 <h4 class="author">Marnin Wolfe</h4>
-<h4 class="date">2021-Aug-26</h4>
+<h4 class="date">2021-Sep-17</h4>
 
 </div>
 
@@ -514,7 +517,7 @@ div.tocify {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2021-08-29
+<strong>Last updated:</strong> 2021-09-18
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
@@ -605,16 +608,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomwolfemdBreedingSchemeOpttree7bccac87d5a0a1e6f327b67ab4ed526643d86015targetblank7bccac8a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/wolfemd/BreedingSchemeOpt/tree/7bccac87d5a0a1e6f327b67ab4ed526643d86015" target="_blank">7bccac8</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomwolfemdBreedingSchemeOpttree107fc248c748639d6eb2bcb65a3b44caec1dd928targetblank107fc24a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/wolfemd/BreedingSchemeOpt/tree/107fc248c748639d6eb2bcb65a3b44caec1dd928" target="_blank">107fc24</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomwolfemdBreedingSchemeOpttree7bccac87d5a0a1e6f327b67ab4ed526643d86015targetblank7bccac8a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomwolfemdBreedingSchemeOpttree107fc248c748639d6eb2bcb65a3b44caec1dd928targetblank107fc24a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/wolfemd/BreedingSchemeOpt/tree/7bccac87d5a0a1e6f327b67ab4ed526643d86015" target="_blank">7bccac8</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/wolfemd/BreedingSchemeOpt/tree/107fc248c748639d6eb2bcb65a3b44caec1dd928" target="_blank">107fc24</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -630,8 +633,11 @@ Ignored files:
     Ignored:    output/.DS_Store
 
 Untracked files:
+    Untracked:  analysis/archive/
+    Untracked:  code/runSchemesPostBurnIn_dev.R
+    Untracked:  code/scrap.R
     Untracked:  data/baselineScheme.gsheet
-    Untracked:  data/siErrorVarEst_byTrialType_directApproach_2021Aug25.rds
+    Untracked:  output/Icon
     Untracked:  output/benchmark_sim.rds
     Untracked:  output/benchmark_sims5.rds
     Untracked:  output/burnInSims_bsp1_iita_2021Aug27.rds
@@ -639,11 +645,31 @@ Untracked files:
     Untracked:  output/burnInSims_bsp3_iita_2021Aug27.rds
     Untracked:  output/burnInSims_iita_2021Aug27.rds
     Untracked:  output/burnIn_test.rds
+    Untracked:  output/postBurnInGMS_test_DirDom_UCparent.rds
+    Untracked:  output/postBurnInGMS_test_newBSP1.rds
+    Untracked:  output/postBurnInGMS_test_newBSP2.rds
+    Untracked:  output/postBurnInGMS_test_newBSP3.rds
+    Untracked:  output/postBurnInGMS_test_newBSP3_GS.rds
+    Untracked:  output/postBurnInGMS_test_newBSP3_PS.rds
+    Untracked:  output/postBurnInGS_test.rds
     Untracked:  output/postBurnIn_test.rds
+    Untracked:  output/testSims_GMS_ModelA_MeanBV_2021Sep15.rds
+    Untracked:  output/test_burnInSims_2021Sep17.rds
+    Untracked:  output/test_burnInSims_GS_2021Sep17.rds
+    Untracked:  output/test_burnInSims_GS_noAYT_2021Sep17.rds
+    Untracked:  output/test_burnInSims_PS_2021Sep17.rds
+    Untracked:  output/test_burnInSims_PS_noAYT_2021Sep17.rds
     Untracked:  output/test_burnIn_sim.rds
+    Untracked:  output/test_inputs_for_mmer.Rdata
 
 Unstaged changes:
     Modified:   analysis/baselineSim.Rmd
+    Modified:   analysis/genomicMateSelSims.Rmd
+    Modified:   output/README.md
+    Modified:   output/benchmark_sim2.rds
+    Modified:   output/benchmark_sim3.rds
+    Modified:   output/benchmark_sim4.rds
+    Modified:   output/test_sim.rds
 
 </code></pre>
 <p>
@@ -682,6 +708,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/wolfemd/BreedingSchemeOpt/blob/107fc248c748639d6eb2bcb65a3b44caec1dd928/analysis/burnInSims.Rmd" target="_blank">107fc24</a>
+</td>
+<td>
+wolfemd
+</td>
+<td>
+2021-09-18
+</td>
+<td>
+Example simulations using new product pipeline and popimprovement functions, flexible to changes in VDP structure post burn-in.
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/wolfemd/BreedingSchemeOpt/eb13eb3213fac71dde756e293ba16c0768919180/docs/burnInSims.html" target="_blank">eb13eb3</a>
+</td>
+<td>
+wolfemd
+</td>
+<td>
+2021-08-29
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -740,236 +800,225 @@ Publish burnInSims with the toy example completed and the full analysis almost r
 </div>
 </div>
 </div>
-<div id="previous-step" class="section level1">
-<h1>Previous step</h1>
-<p>I developed an empirical approach to estimate TrialType-specific error variances in terms of the IITA selection index (SELIND). See that analysis <a href="https://wolfemd.github.io/IITA_2021GS/inputsForSimulationV2.html">here</a>.</p>
-</div>
-<div id="generate-burn-in-simulations" class="section level1">
-<h1>Generate burn-in simulations</h1>
-<ul>
-<li>Build a <a href="https://wolfemd.github.io/AlphaSimHlpR/reference/"><code>runBurnInScheme()</code></a> for <code>AlphaSimHlpR</code>.</li>
-<li>Output of <code>runBurnInScheme()</code> is input for downstream optimization and comparison of scenarios.</li>
-</ul>
-<p>Previously, used control files to set-up <code>bsp</code>. Implemented <a href="https://wolfemd.github.io/AlphaSimHlpR/reference/specifyBSP.html"><code>specifyBSP()</code></a>, which creates a <code>bsp</code> using a <code>data.frame</code> of stage-specific breeding scheme <em>plus</em> all other <code>AlphaSimHlpR</code> arguments as inputs.</p>
-<ul>
-<li>See full function reference <a href="https://wolfemd.github.io/AlphaSimHlpR/index.html">here</a> in my forked-repo of <code>AlphaSimHlpR</code></li>
-</ul>
-<div id="a-small-example" class="section level2">
-<h2>A small example</h2>
+<p>Below, I show an example of how to run a simulation that includes a burn-in and post burn-in phase.</p>
+<ol style="list-style-type: decimal">
+<li>Use <code>runBurnInScheme()</code> function (not yet in <code>AlphaSimHlpR</code>; sourced from <code>code/runBurnInScheme.R</code>) to initiate a simulation with phenotypic selection.</li>
+<li>Use <code>runSchemesPostBurnIn()</code> with a new <code>bsp</code> (sourced from <code>code/runSchemesPostBurnIn.R</code>) to continue simulating restarting the previously started (burnt-in) simulations created in Step 1 but potentially with new <code>bsp</code> settings.</li>
+</ol>
+<p><strong>Install the version of <code>AlphaSimHlpR</code> that I have been working on.</strong></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># To install the latest version</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;wolfemd/AlphaSimHlpR&quot;</span>, <span class="at">ref =</span> <span class="st">&#39;master&#39;</span>)</span></code></pre></div>
+<p>See full <a href="https://wolfemd.github.io/AlphaSimHlpR/index.html">function reference manual here</a> in my forked-repo of <code>AlphaSimHlpR</code></p>
+<div id="a-small-example" class="section level1">
+<h1>A small example</h1>
 <p>Test the code with a small example. Source functions <em>not yet</em> included in <code>AlphaSimHlpR</code> from <code>code/</code> directory.</p>
-<p>Use my newly created <code>specifyBSP()</code> function to create the <code>bsp</code> input for sims.</p>
-<ul>
-<li>3 chrom, Ne = 100, 300 SNP (100/chrom)</li>
-<li>Select 10 parents, make 4 random crosses with 50 progeny each</li>
-</ul>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(AlphaSimHlpR))</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(tidyverse))</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(genomicMateSelectR))</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>select <span class="ot">&lt;-</span> dplyr<span class="sc">::</span>select</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>schemeDF<span class="ot">&lt;-</span><span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;baselineScheme - Test.csv&quot;</span>), </span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">header =</span> T, <span class="at">stringsAsFactors =</span> F)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>bsp<span class="ot">&lt;-</span><span class="fu">specifyBSP</span>(<span class="at">schemeDF =</span> schemeDF,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">nChr =</span> <span class="dv">3</span>,<span class="at">effPopSize =</span> <span class="dv">100</span>,<span class="at">quickHaplo =</span> F,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">segSites =</span> <span class="dv">400</span>, <span class="at">nQTL =</span> <span class="dv">40</span>, <span class="at">nSNP =</span> <span class="dv">100</span>, <span class="at">genVar =</span> <span class="dv">40</span>,</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>                <span class="at">gxeVar =</span> <span class="cn">NULL</span>, <span class="at">gxyVar =</span> <span class="dv">15</span>, <span class="at">gxlVar =</span> <span class="dv">10</span>,<span class="at">gxyxlVar =</span> <span class="dv">5</span>,</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>                <span class="at">meanDD =</span> <span class="fl">0.5</span>,<span class="at">varDD =</span> <span class="fl">0.01</span>,<span class="at">relAA =</span> <span class="fl">0.5</span>,</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>                <span class="at">stageToGenotype =</span> <span class="st">&quot;PYT&quot;</span>,</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>                <span class="at">nParents =</span> <span class="dv">10</span>, <span class="at">nCrosses =</span> <span class="dv">4</span>, <span class="at">nProgeny =</span> <span class="dv">50</span>,<span class="at">nClonesToNCRP =</span> <span class="dv">3</span>,</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>                <span class="at">phenoF1toStage1 =</span> T,<span class="at">errVarPreStage1 =</span> <span class="dv">500</span>,</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>                <span class="at">useCurrentPhenoTrain =</span> F, </span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>                <span class="at">nCyclesToKeepRecords =</span> <span class="dv">30</span>,</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPipeAdv =</span> selCritIID, </span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPopImprov =</span>  selCritIID)</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;code&quot;</span>,<span class="st">&quot;runBurnInSchemes.R&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(AlphaSimHlpR))</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(tidyverse))</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(genomicMateSelectR))</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>select <span class="ot">&lt;-</span> dplyr<span class="sc">::</span>select</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>schemeDF<span class="ot">&lt;-</span><span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;baselineScheme - Test.csv&quot;</span>), </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">header =</span> T, <span class="at">stringsAsFactors =</span> F)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>bsp<span class="ot">&lt;-</span><span class="fu">specifyBSP</span>(<span class="at">schemeDF =</span> schemeDF,</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                <span class="at">nChr =</span> <span class="dv">3</span>,<span class="at">effPopSize =</span> <span class="dv">100</span>,<span class="at">quickHaplo =</span> F,</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                <span class="at">segSites =</span> <span class="dv">400</span>, <span class="at">nQTL =</span> <span class="dv">40</span>, <span class="at">nSNP =</span> <span class="dv">100</span>, <span class="at">genVar =</span> <span class="dv">40</span>,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>                <span class="at">gxeVar =</span> <span class="cn">NULL</span>, <span class="at">gxyVar =</span> <span class="dv">15</span>, <span class="at">gxlVar =</span> <span class="dv">10</span>,<span class="at">gxyxlVar =</span> <span class="dv">5</span>,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>                <span class="at">meanDD =</span> <span class="fl">0.5</span>,<span class="at">varDD =</span> <span class="fl">0.01</span>,<span class="at">relAA =</span> <span class="fl">0.5</span>,</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>                <span class="at">stageToGenotype =</span> <span class="st">&quot;PYT&quot;</span>,</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>                <span class="at">nParents =</span> <span class="dv">10</span>, <span class="at">nCrosses =</span> <span class="dv">4</span>, <span class="at">nProgeny =</span> <span class="dv">50</span>,<span class="at">nClonesToNCRP =</span> <span class="dv">3</span>,</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>                <span class="at">phenoF1toStage1 =</span> T,<span class="at">errVarPreStage1 =</span> <span class="dv">500</span>,</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>                <span class="at">useCurrentPhenoTrain =</span> F, </span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>                <span class="at">nCyclesToKeepRecords =</span> <span class="dv">30</span>,</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>                <span class="at">nTrainPopCycles=</span><span class="dv">6</span>,</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>                <span class="at">nYrsAsCandidates=</span><span class="dv">1</span>,</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>                <span class="at">maxTrainingPopSize=</span><span class="dv">500</span>)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;code&quot;</span>,<span class="st">&quot;runBurnInSchemes.R&quot;</span>))</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;code&quot;</span>,<span class="st">&quot;runSchemesPostBurnIn.R&quot;</span>))</span></code></pre></div>
 <p>I created a CSV to specify a data.frame <code>schemeDF</code> defining stage-specific breeding scheme inputs.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>schemeDF <span class="sc">%&gt;%</span> rmarkdown<span class="sc">::</span><span class="fu">paged_table</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>schemeDF <span class="sc">%&gt;%</span> rmarkdown<span class="sc">::</span><span class="fu">paged_table</span>()</span></code></pre></div>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
 {"columns":[{"label":["stageNames"],"name":[1],"type":["chr"],"align":["left"]},{"label":["nEntries"],"name":[2],"type":["int"],"align":["right"]},{"label":["nLocs"],"name":[3],"type":["int"],"align":["right"]},{"label":["nReps"],"name":[4],"type":["int"],"align":["right"]},{"label":["nChks"],"name":[5],"type":["int"],"align":["right"]},{"label":["entryToChkRatio"],"name":[6],"type":["int"],"align":["right"]},{"label":["errVars"],"name":[7],"type":["int"],"align":["right"]},{"label":["trainingPopCycles"],"name":[8],"type":["int"],"align":["right"]},{"label":["PlantsPerPlot"],"name":[9],"type":["int"],"align":["right"]}],"data":[{"1":"PYT","2":"200","3":"1","4":"1","5":"2","6":"20","7":"100","8":"15","9":"10"},{"1":"AYT","2":"100","3":"1","4":"1","5":"2","6":"20","7":"50","8":"15","9":"25"},{"1":"UYT","2":"20","3":"1","4":"2","5":"2","6":"20","7":"25","8":"15","9":"42"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
-<p><code>runBurnInSchemes()</code>: basically <code>runBreedingScheme()</code> but without the final call <code>records &lt;- lastCycStgOut(records, bsp, SP)</code> so that sims can be continued based on the <code>records</code> and <code>bsp</code>.</p>
-<p>Also, set up function <em>include</em> the potentially parallel execution of multiple replications of each sim scheme.</p>
-<p>Run 16 replicate simulations of 10 cycles phenotypic selection with a small breeding scheme on a laptop.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>burnIn_test<span class="ot">&lt;-</span><span class="fu">runBurnInSchemes</span>(<span class="at">bsp =</span> bsp,</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">nBurnInCycles=</span><span class="dv">10</span>,</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">selCritPop=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>                              <span class="at">selCritPipe=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>                              <span class="at">iniFunc=</span><span class="st">&quot;initializeScheme&quot;</span>,</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>                              <span class="at">productFunc=</span><span class="st">&quot;productPipeline&quot;</span>,</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>                              <span class="at">popImprovFunc=</span><span class="st">&quot;popImprov1Cyc&quot;</span>,</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>                              <span class="at">nReplications=</span><span class="dv">16</span>,<span class="at">ncores=</span><span class="dv">8</span>,</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>                              <span class="at">nBLASthreads=</span><span class="dv">1</span>,<span class="at">nThreadsMacs2=</span><span class="dv">1</span>)</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(burnIn_test,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;burnIn_test.rds&quot;</span>))</span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>burnIn_test<span class="ot">&lt;-</span><span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;burnIn_test.rds&quot;</span>))</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>forSimPlot<span class="ot">&lt;-</span>burnIn_test <span class="sc">%&gt;%</span> </span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_wider</span>(burnInSim) <span class="sc">%&gt;%</span> </span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(SimRep,records) <span class="sc">%&gt;%</span> </span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_wider</span>(records) <span class="sc">%&gt;%</span> </span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(SimRep,stageOutputs) <span class="sc">%&gt;%</span> </span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(stage<span class="sc">==</span><span class="st">&quot;F1&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Year=</span>year<span class="sc">-</span><span class="fu">max</span>(year))</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>meanGplot<span class="ot">&lt;-</span>forSimPlot <span class="sc">%&gt;%</span> </span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Year,year,stage) <span class="sc">%&gt;%</span> </span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">meanGenMean=</span><span class="fu">mean</span>(genValMean),</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>            <span class="at">seGenMean=</span><span class="fu">sd</span>(genValMean)<span class="sc">/</span><span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>Year)) <span class="sc">+</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> meanGenMean <span class="sc">-</span> seGenMean, </span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>                  <span class="at">ymax =</span> meanGenMean <span class="sc">+</span> seGenMean), </span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>              <span class="at">fill =</span> <span class="st">&quot;grey70&quot;</span>, <span class="at">alpha=</span><span class="fl">0.75</span>) <span class="sc">+</span> </span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> meanGenMean))</span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>sdGplot<span class="ot">&lt;-</span>forSimPlot <span class="sc">%&gt;%</span> </span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Year,year,stage) <span class="sc">%&gt;%</span> </span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">meanGenSD=</span><span class="fu">mean</span>(genValSD),</span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>            <span class="at">seGenSD=</span><span class="fu">sd</span>(genValSD)<span class="sc">/</span><span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>Year)) <span class="sc">+</span></span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> meanGenSD <span class="sc">-</span> seGenSD, </span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>                  <span class="at">ymax =</span> meanGenSD <span class="sc">+</span> seGenSD), </span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>              <span class="at">fill =</span> <span class="st">&quot;grey70&quot;</span>, <span class="at">alpha=</span><span class="fl">0.75</span>) <span class="sc">+</span> </span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> meanGenSD))</span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>(meanGplot <span class="sc">|</span> sdGplot) <span class="sc">&amp;</span> <span class="fu">theme_bw</span>()</span></code></pre></div>
-<p><img src="figure/burnInSims.Rmd/ribbon%20plot%20of%20test%20sims-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-ribbon-plot-of-test-sims-1">
-Past versions of “ribbon plot of test sims-1.png”
-</button>
-</p>
-<div id="fig-no-spaces-ribbon-plot-of-test-sims-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/wolfemd/BreedingSchemeOpt/blob/e0d20bd97e8e4f81059f0fecc3eea97f4ff53132/docs/figure/burnInSims.Rmd/ribbon plot of test sims-1.png" target="_blank">e0d20bd</a>
-</td>
-<td>
-wolfemd
-</td>
-<td>
-2021-08-27
-</td>
-</tr>
-</tbody>
-</table>
+<p>Run 10 cycles of burn-in simulation.</p>
+<p>The default is to set-up phenotypic selection only during burn-in.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>burnInSims<span class="ot">&lt;-</span><span class="fu">runBurnInSchemes</span>(<span class="at">bsp =</span> bsp,</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nBurnInCycles=</span><span class="dv">10</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                             <span class="at">selCritPop=</span><span class="st">&quot;parentSelCritBLUP&quot;</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                             <span class="at">selCritPipe=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                             <span class="at">iniFunc=</span><span class="st">&quot;initializeScheme&quot;</span>,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                             <span class="at">productFunc=</span><span class="st">&quot;productPipeline&quot;</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                             <span class="at">popImprovFunc=</span><span class="st">&quot;popImprovByParentSel&quot;</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nReplications=</span><span class="dv">4</span>,<span class="at">nSimCores=</span><span class="dv">4</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nBLASthreads=</span><span class="dv">1</span>,<span class="at">nThreadsMacs2=</span><span class="dv">1</span>)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(burnInSims,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;test_burnInSims_2021Sep17.rds&quot;</span>))</span></code></pre></div>
+<p>Two sets of post burn-in simulations, both with same <code>bsp</code> overall.</p>
+<ol style="list-style-type: decimal">
+<li><p>continue with phenotypic selection, <em>no change</em>.</p></li>
+<li><p>Switch to <code>parentSelCritGEBV</code>.</p></li>
+</ol>
+<p><strong>NOTE:</strong> Below, switch (by default) to <code>productPipelinePostBurnIn</code> for the product advancement pipeline <em>and</em> it’s corresponding selection criteria <code>productSelCritBLUP</code></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>burnInSims<span class="ot">&lt;-</span><span class="fu">readRDS</span>(<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;test_burnInSims_2021Sep17.rds&quot;</span>))</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>postBurnIn_PS<span class="ot">&lt;-</span><span class="fu">runSchemesPostBurnIn</span>(<span class="at">simulations =</span> burnInSims,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">nPostBurnInCycles=</span><span class="dv">10</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">selCritPop=</span><span class="st">&quot;parentSelCritBLUP&quot;</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">selCritPipe=</span><span class="st">&quot;productSelCritBLUP&quot;</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">productFunc=</span><span class="st">&quot;productPipelinePostBurnIn&quot;</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">popImprovFunc=</span><span class="st">&quot;popImprovByParentSel&quot;</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">nSimCores=</span><span class="dv">4</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">nBLASthreads=</span><span class="dv">1</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(postBurnIn_PS,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;test_burnInSims_PS_2021Sep17.rds&quot;</span>))</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">#postBurnIn_PS$SimOutput[[1]]$records$stageOutputs</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>postBurnIn_GS<span class="ot">&lt;-</span><span class="fu">runSchemesPostBurnIn</span>(<span class="at">simulations =</span> burnInSims,</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">nPostBurnInCycles=</span><span class="dv">10</span>,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">selCritPop=</span><span class="st">&quot;parentSelCritGEBV&quot;</span>,</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">selCritPipe=</span><span class="st">&quot;productSelCritBLUP&quot;</span>,</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">productFunc=</span><span class="st">&quot;productPipelinePostBurnIn&quot;</span>,</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">popImprovFunc=</span><span class="st">&quot;popImprovByParentSel&quot;</span>,</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">nSimCores=</span><span class="dv">4</span>,</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>                                    <span class="at">nBLASthreads=</span><span class="dv">1</span>)</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(postBurnIn_GS,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;test_burnInSims_GS_2021Sep17.rds&quot;</span>))</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="co">#postBurnIn_GS$SimOutput[[1]]$records$stageOutputs</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>forSimPlot<span class="ot">&lt;-</span><span class="fu">readRDS</span>(<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;test_burnInSims_GS_2021Sep17.rds&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">PostBurnIn=</span><span class="st">&quot;GS&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(<span class="fu">readRDS</span>(<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;test_burnInSims_PS_2021Sep17.rds&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>              <span class="fu">mutate</span>(<span class="at">PostBurnIn=</span><span class="st">&quot;PS&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_wider</span>(SimOutput) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(SimRep,PostBurnIn,records) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_wider</span>(records) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(SimRep,PostBurnIn,stageOutputs) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(stage<span class="sc">==</span><span class="st">&quot;F1&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">YearPostBurnIn=</span>year<span class="dv">-10</span>)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>meanGplot<span class="ot">&lt;-</span>forSimPlot <span class="sc">%&gt;%</span> </span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">SimRep=</span><span class="fu">paste0</span>(PostBurnIn,SimRep)) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(PostBurnIn,YearPostBurnIn,year,stage) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">meanGenMean=</span><span class="fu">mean</span>(genValMean),</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>            <span class="at">seGenMean=</span><span class="fu">sd</span>(genValMean)<span class="sc">/</span><span class="fu">sqrt</span>(<span class="fu">n</span>())) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>YearPostBurnIn)) <span class="sc">+</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> meanGenMean <span class="sc">-</span> seGenMean, </span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>                  <span class="at">ymax =</span> meanGenMean <span class="sc">+</span> seGenMean,</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>                  <span class="at">fill =</span> PostBurnIn), </span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>              <span class="at">alpha=</span><span class="fl">0.75</span>) <span class="sc">+</span> </span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> meanGenMean, <span class="at">color=</span>PostBurnIn))</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>sdGplot<span class="ot">&lt;-</span>forSimPlot <span class="sc">%&gt;%</span> </span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">SimRep=</span><span class="fu">paste0</span>(PostBurnIn,SimRep)) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(PostBurnIn,YearPostBurnIn,year,stage) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">meanGenSD=</span><span class="fu">mean</span>(genValSD),</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>            <span class="at">seGenSD=</span><span class="fu">sd</span>(genValSD)<span class="sc">/</span><span class="fu">sqrt</span>(<span class="fu">n</span>())) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>YearPostBurnIn)) <span class="sc">+</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> meanGenSD <span class="sc">-</span> seGenSD, </span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>                  <span class="at">ymax =</span> meanGenSD <span class="sc">+</span> seGenSD,</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>                  <span class="at">fill =</span> PostBurnIn), </span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>              <span class="at">alpha=</span><span class="fl">0.75</span>) <span class="sc">+</span> </span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> meanGenSD, <span class="at">color=</span>PostBurnIn))</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>(meanGplot <span class="sc">|</span> sdGplot) <span class="sc">+</span> patchwork<span class="sc">::</span><span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">&#39;collect&#39;</span>) <span class="sc">&amp;</span> </span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">&amp;</span> <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">color=</span><span class="st">&#39;darkred&#39;</span>)</span></code></pre></div>
+<p><img src="figure/burnInSims.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
+<div id="change-the-vdp" class="section level1">
+<h1>Change the VDP</h1>
+<p>Try post burn-in sims with an altered VDP (specified in the <code>bsp</code>).</p>
+<p><em>Do not</em> change pop. genetic / genomic parameters.</p>
+<p>Try removing middle “AYT” stage of the example <code>schemeDF</code>.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(AlphaSimHlpR))</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(tidyverse))</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(genomicMateSelectR))</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>select <span class="ot">&lt;-</span> dplyr<span class="sc">::</span>select</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>schemeDF<span class="ot">&lt;-</span><span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;baselineScheme - Test.csv&quot;</span>), </span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">header =</span> T, <span class="at">stringsAsFactors =</span> F)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;code&quot;</span>,<span class="st">&quot;runSchemesPostBurnIn.R&quot;</span>))</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>burnInSims<span class="ot">&lt;-</span><span class="fu">readRDS</span>(<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;test_burnInSims_2021Sep17.rds&quot;</span>))</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>newBSP<span class="ot">&lt;-</span><span class="fu">specifyBSP</span>(<span class="at">schemeDF =</span> schemeDF <span class="sc">%&gt;%</span> <span class="fu">filter</span>(stageNames<span class="sc">!=</span><span class="st">&quot;AYT&quot;</span>),</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>                   <span class="at">nChr =</span> <span class="dv">3</span>,<span class="at">effPopSize =</span> <span class="dv">100</span>,<span class="at">quickHaplo =</span> F,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>                   <span class="at">segSites =</span> <span class="dv">400</span>, <span class="at">nQTL =</span> <span class="dv">40</span>, <span class="at">nSNP =</span> <span class="dv">100</span>, <span class="at">genVar =</span> <span class="dv">40</span>,</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>                   <span class="at">gxeVar =</span> <span class="cn">NULL</span>, <span class="at">gxyVar =</span> <span class="dv">15</span>, <span class="at">gxlVar =</span> <span class="dv">10</span>,<span class="at">gxyxlVar =</span> <span class="dv">5</span>,</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>                   <span class="at">meanDD =</span> <span class="fl">0.5</span>,<span class="at">varDD =</span> <span class="fl">0.01</span>,<span class="at">relAA =</span> <span class="fl">0.5</span>,</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>                   <span class="at">stageToGenotype =</span> <span class="st">&quot;PYT&quot;</span>,</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>                   <span class="at">nParents =</span> <span class="dv">10</span>, <span class="at">nCrosses =</span> <span class="dv">4</span>, <span class="at">nProgeny =</span> <span class="dv">50</span>,<span class="at">nClonesToNCRP =</span> <span class="dv">3</span>,</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>                   <span class="at">phenoF1toStage1 =</span> T,<span class="at">errVarPreStage1 =</span> <span class="dv">500</span>,</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>                   <span class="at">useCurrentPhenoTrain =</span> F,</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>                   <span class="at">nCyclesToKeepRecords =</span> <span class="dv">30</span>,</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>                   <span class="at">nTrainPopCycles=</span><span class="dv">6</span>,</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>                   <span class="at">nYrsAsCandidates=</span><span class="dv">1</span>,</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>                   <span class="at">maxTrainingPopSize=</span><span class="dv">500</span>)</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>postBurnIn_PS_newBSP<span class="ot">&lt;-</span><span class="fu">runSchemesPostBurnIn</span>(<span class="at">simulations =</span> burnInSims,</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">newBSP =</span> newBSP,</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">nPostBurnInCycles=</span><span class="dv">10</span>,</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">selCritPop=</span><span class="st">&quot;parentSelCritBLUP&quot;</span>,</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">selCritPipe=</span><span class="st">&quot;productSelCritBLUP&quot;</span>,</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">productFunc=</span><span class="st">&quot;productPipelinePostBurnIn&quot;</span>,</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">popImprovFunc=</span><span class="st">&quot;popImprovByParentSel&quot;</span>,</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">nSimCores=</span><span class="dv">4</span>,</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">nBLASthreads=</span><span class="dv">1</span>)</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(postBurnIn_PS_newBSP,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;test_burnInSims_PS_noAYT_2021Sep17.rds&quot;</span>))</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>postBurnIn_GS_newBSP<span class="ot">&lt;-</span><span class="fu">runSchemesPostBurnIn</span>(<span class="at">simulations =</span> burnInSims,</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">newBSP =</span> newBSP,</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">nPostBurnInCycles=</span><span class="dv">10</span>,</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">selCritPop=</span><span class="st">&quot;parentSelCritGEBV&quot;</span>,</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">selCritPipe=</span><span class="st">&quot;productSelCritBLUP&quot;</span>,</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">productFunc=</span><span class="st">&quot;productPipelinePostBurnIn&quot;</span>,</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">popImprovFunc=</span><span class="st">&quot;popImprovByParentSel&quot;</span>,</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">nSimCores=</span><span class="dv">4</span>,</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">nBLASthreads=</span><span class="dv">1</span>)</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(postBurnIn_GS_newBSP,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;test_burnInSims_GS_noAYT_2021Sep17.rds&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>forSimPlot<span class="ot">&lt;-</span><span class="fu">readRDS</span>(<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;test_burnInSims_GS_2021Sep17.rds&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">PostBurnIn=</span><span class="st">&quot;GS&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(<span class="fu">readRDS</span>(<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;test_burnInSims_PS_2021Sep17.rds&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>              <span class="fu">mutate</span>(<span class="at">PostBurnIn=</span><span class="st">&quot;PS&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(<span class="fu">readRDS</span>(<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;test_burnInSims_PS_noAYT_2021Sep17.rds&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>              <span class="fu">mutate</span>(<span class="at">PostBurnIn=</span><span class="st">&quot;PS_noAYT&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(<span class="fu">readRDS</span>(<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;test_burnInSims_GS_noAYT_2021Sep17.rds&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>              <span class="fu">mutate</span>(<span class="at">PostBurnIn=</span><span class="st">&quot;GS_noAYT&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_wider</span>(SimOutput) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(SimRep,PostBurnIn,records) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_wider</span>(records) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(SimRep,PostBurnIn,stageOutputs) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(stage<span class="sc">==</span><span class="st">&quot;F1&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">YearPostBurnIn=</span>year<span class="dv">-10</span>)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>meanGplot<span class="ot">&lt;-</span>forSimPlot <span class="sc">%&gt;%</span> </span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">SimRep=</span><span class="fu">paste0</span>(PostBurnIn,SimRep)) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(PostBurnIn,YearPostBurnIn,year,stage) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">meanGenMean=</span><span class="fu">mean</span>(genValMean),</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>            <span class="at">seGenMean=</span><span class="fu">sd</span>(genValMean)<span class="sc">/</span><span class="fu">sqrt</span>(<span class="fu">n</span>())) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>YearPostBurnIn)) <span class="sc">+</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> meanGenMean <span class="sc">-</span> seGenMean, </span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>                  <span class="at">ymax =</span> meanGenMean <span class="sc">+</span> seGenMean,</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>                  <span class="at">fill =</span> PostBurnIn), </span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>              <span class="at">alpha=</span><span class="fl">0.75</span>) <span class="sc">+</span> </span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> meanGenMean, <span class="at">color=</span>PostBurnIn))</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>sdGplot<span class="ot">&lt;-</span>forSimPlot <span class="sc">%&gt;%</span> </span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">SimRep=</span><span class="fu">paste0</span>(PostBurnIn,SimRep)) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(PostBurnIn,YearPostBurnIn,year,stage) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">meanGenSD=</span><span class="fu">mean</span>(genValSD),</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>            <span class="at">seGenSD=</span><span class="fu">sd</span>(genValSD)<span class="sc">/</span><span class="fu">sqrt</span>(<span class="fu">n</span>())) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>YearPostBurnIn)) <span class="sc">+</span></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> meanGenSD <span class="sc">-</span> seGenSD, </span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>                  <span class="at">ymax =</span> meanGenSD <span class="sc">+</span> seGenSD,</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>                  <span class="at">fill =</span> PostBurnIn), </span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>              <span class="at">alpha=</span><span class="fl">0.75</span>) <span class="sc">+</span> </span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> meanGenSD, <span class="at">color=</span>PostBurnIn))</span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>(meanGplot <span class="sc">|</span> sdGplot) <span class="sc">+</span> patchwork<span class="sc">::</span><span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">&#39;collect&#39;</span>) <span class="sc">&amp;</span> </span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">&amp;</span> <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">color=</span><span class="st">&#39;darkred&#39;</span>)</span></code></pre></div>
+<p><img src="figure/burnInSims.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
-<p>Ribbon plot mean and std. error computed across replicated simulations.</p>
-<p>Next, execute the <code>runSchemesPostBurnIn()</code> function to continue running the 16 replicate initiated sims for an additional 10 post-burn in cycles of phenotypic selection.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;code&quot;</span>,<span class="st">&quot;runSchemesPostBurnIn.R&quot;</span>))</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>simulations<span class="ot">&lt;-</span><span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;burnIn_test.rds&quot;</span>))</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>postBurnIn_test<span class="ot">&lt;-</span><span class="fu">runSchemesPostBurnIn</span>(<span class="at">simulations =</span> simulations,</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">newBSP=</span><span class="cn">NULL</span>, <span class="co"># so you can change the scheme after burn-in</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">nPostBurnInCycles=</span><span class="dv">10</span>,</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">selCritPop=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">selCritPipe=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">productFunc=</span><span class="st">&quot;productPipeline&quot;</span>,</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">popImprovFunc=</span><span class="st">&quot;popImprov1Cyc&quot;</span>,</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">ncores=</span><span class="dv">8</span>,</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>                                      <span class="at">nBLASthreads=</span><span class="dv">1</span>,<span class="at">nThreadsMacs2=</span><span class="dv">1</span>)</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(postBurnIn_test,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;postBurnIn_test.rds&quot;</span>))</span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>postBurnIn_test<span class="ot">&lt;-</span><span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;postBurnIn_test.rds&quot;</span>))</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>forSimPlot<span class="ot">&lt;-</span>postBurnIn_test <span class="sc">%&gt;%</span> </span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_wider</span>(SimOutput) <span class="sc">%&gt;%</span> </span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(SimRep,records) <span class="sc">%&gt;%</span> </span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_wider</span>(records) <span class="sc">%&gt;%</span> </span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(SimRep,stageOutputs) <span class="sc">%&gt;%</span> </span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(stage<span class="sc">==</span><span class="st">&quot;F1&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">YearPostBurnIn=</span>year<span class="dv">-10</span>)</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>meanGplot<span class="ot">&lt;-</span>forSimPlot <span class="sc">%&gt;%</span> </span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(YearPostBurnIn,year,stage) <span class="sc">%&gt;%</span> </span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">meanGenMean=</span><span class="fu">mean</span>(genValMean),</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>            <span class="at">seGenMean=</span><span class="fu">sd</span>(genValMean)<span class="sc">/</span><span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>YearPostBurnIn)) <span class="sc">+</span></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> meanGenMean <span class="sc">-</span> seGenMean, </span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>                  <span class="at">ymax =</span> meanGenMean <span class="sc">+</span> seGenMean), </span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>              <span class="at">fill =</span> <span class="st">&quot;grey70&quot;</span>, <span class="at">alpha=</span><span class="fl">0.75</span>) <span class="sc">+</span> </span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> meanGenMean))</span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>sdGplot<span class="ot">&lt;-</span>forSimPlot <span class="sc">%&gt;%</span> </span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(YearPostBurnIn,year,stage) <span class="sc">%&gt;%</span> </span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">meanGenSD=</span><span class="fu">mean</span>(genValSD),</span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>            <span class="at">seGenSD=</span><span class="fu">sd</span>(genValSD)<span class="sc">/</span><span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
-<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>YearPostBurnIn)) <span class="sc">+</span></span>
-<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> meanGenSD <span class="sc">-</span> seGenSD, </span>
-<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>                  <span class="at">ymax =</span> meanGenSD <span class="sc">+</span> seGenSD), </span>
-<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>              <span class="at">fill =</span> <span class="st">&quot;grey70&quot;</span>, <span class="at">alpha=</span><span class="fl">0.75</span>) <span class="sc">+</span> </span>
-<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> meanGenSD))</span>
-<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>(meanGplot <span class="sc">|</span> sdGplot) <span class="sc">&amp;</span> <span class="fu">theme_bw</span>() <span class="sc">&amp;</span> <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">color=</span><span class="st">&#39;darkred&#39;</span>)</span></code></pre></div>
-<p><img src="figure/burnInSims.Rmd/plot%20test%20sims-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-no-spaces-plot-test-sims-1">
-Past versions of “plot test sims-1.png”
-</button>
-</p>
-<div id="fig-no-spaces-plot-test-sims-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/wolfemd/BreedingSchemeOpt/blob/e0d20bd97e8e4f81059f0fecc3eea97f4ff53132/docs/figure/burnInSims.Rmd/plot test sims-1.png" target="_blank">e0d20bd</a>
-</td>
-<td>
-wolfemd
-</td>
-<td>
-2021-08-27
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p>Now run the same 16 burnt-in sims for 10 cycles of GS.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># source(here::here(&quot;code&quot;,&quot;runSchemesPostBurnIn.R&quot;))</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># simulations&lt;-readRDS(here::here(&quot;output&quot;,&quot;burnIn_test.rds&quot;))</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># postBurnInGS_test&lt;-runSchemesPostBurnIn(simulations = simulations,</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co">#                                       newBSP=NULL,</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co">#                                       nPostBurnInCycles=10,</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">#                                       selCritPop=&quot;parentSelCritGEBV&quot;,</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co">#                                       selCritPipe=&quot;selCritIID&quot;,</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co">#                                       productFunc=&quot;productPipeline&quot;,</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co">#                                       popImprovFunc=&quot;popImprov1Cyc&quot;,</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co">#                                       ncores=8,</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co">#                                       nBLASthreads=1,nThreadsMacs2=1)</span></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co"># saveRDS(postBurnInGS_test,file = here::here(&quot;output&quot;,&quot;postBurnInGS_test.rds&quot;))</span></span></code></pre></div>
-<p><em>This actually ran all night on my laptop without finishing…. even the toy example with GS is non-trivial to run.</em></p>
-</div>
-<div id="run-full-scale-burn-in-sims" class="section level2">
-<h2>Run full-scale burn-in sims</h2>
-<p>Set-up multiple iterations of a simulation with <code>selCritIID</code> as burn-in.</p>
+<div id="run-full-scale-burn-in-sims" class="section level1">
+<h1>Run full-scale burn-in sims</h1>
+<p>Previously, I used an empirical approach to estimate TrialType-specific error variances in terms of the IITA selection index (SELIND). See that analysis <a href="https://wolfemd.github.io/IITA_2021GS/inputsForSimulationV2.html">here</a>.</p>
+<p><strong>TO DO:</strong> Need to run full-scale burn-in simulations for each breeding program.</p>
 <p>20 burn-in cycles to match examples by EiB.</p>
 <ul>
 <li><p>Genome / Pop specs</p>
@@ -997,15 +1046,15 @@ wolfemd
 </ul></li>
 </ul></li>
 </ul>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;baselineScheme - IITA.csv&quot;</span>), </span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">header =</span> T, <span class="at">stringsAsFactors =</span> F) <span class="sc">%&gt;%</span> </span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>errVars,<span class="sc">-</span>PlantsPerPlot) <span class="sc">%&gt;%</span> </span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(<span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;siErrorVarEst_byTrialType_directApproach_2021Aug25.rds&quot;</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>              <span class="fu">select</span>(<span class="sc">-</span>VarEsts) <span class="sc">%&gt;%</span> </span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rename</span>(<span class="at">errVars=</span>siErrorVarEst)) <span class="sc">%&gt;%</span> </span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>TrialType) <span class="sc">%&gt;%</span> </span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">trainingPopCycles=</span><span class="dv">20</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  rmarkdown<span class="sc">::</span><span class="fu">paged_table</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;baselineScheme - IITA.csv&quot;</span>), </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">header =</span> T, <span class="at">stringsAsFactors =</span> F) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>errVars,<span class="sc">-</span>PlantsPerPlot) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(<span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;siErrorVarEst_byTrialType_directApproach_2021Aug25.rds&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>              <span class="fu">select</span>(<span class="sc">-</span>VarEsts) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rename</span>(<span class="at">errVars=</span>siErrorVarEst)) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>TrialType) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">trainingPopCycles=</span><span class="dv">20</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  rmarkdown<span class="sc">::</span><span class="fu">paged_table</span>()</span></code></pre></div>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
 {"columns":[{"label":["stageNames"],"name":[1],"type":["chr"],"align":["left"]},{"label":["nEntries"],"name":[2],"type":["int"],"align":["right"]},{"label":["nLocs"],"name":[3],"type":["int"],"align":["right"]},{"label":["nReps"],"name":[4],"type":["int"],"align":["right"]},{"label":["nChks"],"name":[5],"type":["int"],"align":["right"]},{"label":["entryToChkRatio"],"name":[6],"type":["int"],"align":["right"]},{"label":["trainingPopCycles"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["errVars"],"name":[8],"type":["dbl"],"align":["right"]}],"data":[{"1":"CET","2":"2500","3":"1","4":"1","5":"5","6":"50","7":"20","8":"3539.205"},{"1":"PYT","2":"800","3":"2","4":"3","5":"4","6":"25","7":"20","8":"1953.093"},{"1":"AYT","2":"80","3":"3","4":"3","5":"2","6":"20","7":"20","8":"2881.138"},{"1":"UYT1","2":"30","3":"5","4":"3","5":"2","6":"20","7":"20","8":"1739.264"},{"1":"UYT2","2":"30","3":"5","4":"3","5":"2","6":"20","7":"20","8":"1739.264"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
@@ -1035,216 +1084,12 @@ wolfemd
 </ul></li>
 </ul></li>
 </ul>
-<p><strong>I run multiple versions of an burn-in simulation for 20 cycles. See plots below!</strong> My first try, with Ne=1000 seemed to have “too much” genetic variation so I did extra “tuning” simulations.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1) start a screen shell </span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">screen</span><span class="kw">;</span> </span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 2) reserve interactive slurm</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="ex">salloc</span> <span class="at">-n</span> 20 <span class="at">--mem</span> 60G<span class="kw">;</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 3) start the singularity Linux shell inside that</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="ex">singularity</span> shell ~/rocker2.sif<span class="kw">;</span> </span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Project directory, so R will use as working dir.</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /home/mw489/BreedingSchemeOpt/<span class="kw">;</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 3) Start R</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">OMP_NUM_THREADS=</span>1<span class="kw">;</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="ex">R</span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(AlphaSimHlpR))</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(tidyverse))</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(genomicMateSelectR))</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>select <span class="ot">&lt;-</span> dplyr<span class="sc">::</span>select</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;code&quot;</span>,<span class="st">&quot;runBurnInSchemes.R&quot;</span>))</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>RhpcBLASctl<span class="sc">::</span><span class="fu">blas_set_num_threads</span>(<span class="dv">1</span>)</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>schemeDF<span class="ot">&lt;-</span><span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;baselineScheme - IITA.csv&quot;</span>), </span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>                   <span class="at">header =</span> T, <span class="at">stringsAsFactors =</span> F) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>errVars,<span class="sc">-</span>PlantsPerPlot) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(<span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data&quot;</span>,<span class="st">&quot;siErrorVarEst_byTrialType_directApproach_2021Aug25.rds&quot;</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>              <span class="fu">select</span>(<span class="sc">-</span>VarEsts) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>              <span class="fu">rename</span>(<span class="at">errVars=</span>siErrorVarEst)) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>TrialType) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">trainingPopCycles=</span><span class="dv">20</span>)</span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>bsp<span class="ot">&lt;-</span><span class="fu">specifyBSP</span>(<span class="at">schemeDF =</span> schemeDF,</span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>                <span class="at">nChr =</span> <span class="dv">18</span>,<span class="at">effPopSize =</span> <span class="dv">1000</span>,<span class="at">quickHaplo =</span> F,</span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>                <span class="at">segSites =</span> <span class="dv">2000</span>, <span class="at">nQTL =</span> <span class="dv">1000</span>, <span class="at">nSNP =</span> <span class="dv">300</span>, <span class="at">genVar =</span> <span class="dv">750</span>,</span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>                <span class="at">gxeVar =</span> <span class="cn">NULL</span>, <span class="at">gxyVar =</span> <span class="dv">750</span>, <span class="at">gxlVar =</span> <span class="dv">375</span>,<span class="at">gxyxlVar =</span> <span class="dv">150</span>,</span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>                <span class="at">meanDD =</span> <span class="fl">0.23</span>,<span class="at">varDD =</span> <span class="fl">0.05</span>,<span class="co">#relAA = 0.05,</span></span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>                <span class="at">stageToGenotype =</span> <span class="st">&quot;CET&quot;</span>,</span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>                <span class="at">nParents =</span> <span class="dv">100</span>, <span class="at">nCrosses =</span> <span class="dv">250</span>, <span class="at">nProgeny =</span> <span class="dv">10</span>,<span class="at">nClonesToNCRP =</span> <span class="dv">3</span>,</span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>                <span class="at">phenoF1toStage1 =</span> F,<span class="at">errVarPreStage1 =</span> <span class="dv">500</span>,</span>
-<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>                <span class="at">useCurrentPhenoTrain =</span> F,</span>
-<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>                <span class="at">nCyclesToKeepRecords =</span> <span class="dv">30</span>,</span>
-<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>                <span class="co"># selCrits are overwritten by runBreedingScheme_wBurnIn</span></span>
-<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPipeAdv =</span> selCritIID, <span class="co"># thus have no actual effect</span></span>
-<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPopImprov =</span>  selCritIID)</span>
-<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>schemeDF <span class="sc">%&lt;&gt;%</span> </span>
-<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">trainingPopCycles=</span><span class="dv">10</span>)</span>
-<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>bsp1<span class="ot">&lt;-</span><span class="fu">specifyBSP</span>(<span class="at">schemeDF =</span> schemeDF,</span>
-<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>                <span class="at">nChr =</span> <span class="dv">18</span>,<span class="at">effPopSize =</span> <span class="dv">200</span>,<span class="at">quickHaplo =</span> F,</span>
-<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>                <span class="at">segSites =</span> <span class="dv">2000</span>, <span class="at">nQTL =</span> <span class="dv">500</span>, <span class="at">nSNP =</span> <span class="dv">300</span>, <span class="at">genVar =</span> <span class="dv">750</span>,</span>
-<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>                <span class="at">gxeVar =</span> <span class="cn">NULL</span>, <span class="at">gxyVar =</span> <span class="dv">750</span>, <span class="at">gxlVar =</span> <span class="dv">375</span>,<span class="at">gxyxlVar =</span> <span class="dv">150</span>,</span>
-<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>                <span class="at">meanDD =</span> <span class="fl">0.23</span>,<span class="at">varDD =</span> <span class="fl">0.05</span>,<span class="co">#relAA = 0.05,</span></span>
-<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>                <span class="at">stageToGenotype =</span> <span class="st">&quot;CET&quot;</span>,</span>
-<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>                <span class="at">nParents =</span> <span class="dv">100</span>, <span class="at">nCrosses =</span> <span class="dv">250</span>, <span class="at">nProgeny =</span> <span class="dv">10</span>,<span class="at">nClonesToNCRP =</span> <span class="dv">3</span>,</span>
-<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>                <span class="at">phenoF1toStage1 =</span> F,<span class="at">errVarPreStage1 =</span> <span class="dv">500</span>,</span>
-<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>                <span class="at">useCurrentPhenoTrain =</span> F,</span>
-<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>                <span class="at">nCyclesToKeepRecords =</span> <span class="dv">30</span>,</span>
-<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>                <span class="co"># selCrits are overwritten by runBreedingScheme_wBurnIn</span></span>
-<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPipeAdv =</span> selCritIID, <span class="co"># thus have no actual effect</span></span>
-<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPopImprov =</span>  selCritIID)</span>
-<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>bsp2<span class="ot">&lt;-</span><span class="fu">specifyBSP</span>(<span class="at">schemeDF =</span> schemeDF,</span>
-<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>                <span class="at">nChr =</span> <span class="dv">18</span>,<span class="at">effPopSize =</span> <span class="dv">200</span>,<span class="at">quickHaplo =</span> F,</span>
-<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>                <span class="at">segSites =</span> <span class="dv">2000</span>, <span class="at">nQTL =</span> <span class="dv">150</span>, <span class="at">nSNP =</span> <span class="dv">300</span>, <span class="at">genVar =</span> <span class="dv">750</span>,</span>
-<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>                <span class="at">gxeVar =</span> <span class="cn">NULL</span>, <span class="at">gxyVar =</span> <span class="dv">750</span>, <span class="at">gxlVar =</span> <span class="dv">375</span>,<span class="at">gxyxlVar =</span> <span class="dv">150</span>,</span>
-<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>                <span class="at">meanDD =</span> <span class="fl">0.23</span>,<span class="at">varDD =</span> <span class="fl">0.05</span>,<span class="co">#relAA = 0.05,</span></span>
-<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>                <span class="at">stageToGenotype =</span> <span class="st">&quot;CET&quot;</span>,</span>
-<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>                <span class="at">nParents =</span> <span class="dv">100</span>, <span class="at">nCrosses =</span> <span class="dv">250</span>, <span class="at">nProgeny =</span> <span class="dv">10</span>,<span class="at">nClonesToNCRP =</span> <span class="dv">3</span>,</span>
-<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a>                <span class="at">phenoF1toStage1 =</span> F,<span class="at">errVarPreStage1 =</span> <span class="dv">500</span>,</span>
-<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a>                <span class="at">useCurrentPhenoTrain =</span> F,</span>
-<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a>                <span class="at">nCyclesToKeepRecords =</span> <span class="dv">30</span>,</span>
-<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a>                <span class="co"># selCrits are overwritten by runBreedingScheme_wBurnIn</span></span>
-<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPipeAdv =</span> selCritIID, <span class="co"># thus have no actual effect</span></span>
-<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPopImprov =</span>  selCritIID)</span>
-<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a>bsp3<span class="ot">&lt;-</span><span class="fu">specifyBSP</span>(<span class="at">schemeDF =</span> schemeDF,</span>
-<span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a>                <span class="at">nChr =</span> <span class="dv">18</span>,<span class="at">effPopSize =</span> <span class="dv">100</span>,<span class="at">quickHaplo =</span> F,</span>
-<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a>                <span class="at">segSites =</span> <span class="dv">2000</span>, <span class="at">nQTL =</span> <span class="dv">150</span>, <span class="at">nSNP =</span> <span class="dv">300</span>, <span class="at">genVar =</span> <span class="dv">750</span>,</span>
-<span id="cb10-63"><a href="#cb10-63" aria-hidden="true" tabindex="-1"></a>                <span class="at">gxeVar =</span> <span class="cn">NULL</span>, <span class="at">gxyVar =</span> <span class="dv">750</span>, <span class="at">gxlVar =</span> <span class="dv">375</span>,<span class="at">gxyxlVar =</span> <span class="dv">150</span>,</span>
-<span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a>                <span class="at">meanDD =</span> <span class="fl">0.23</span>,<span class="at">varDD =</span> <span class="fl">0.05</span>,<span class="co">#relAA = 0.05,</span></span>
-<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a>                <span class="at">stageToGenotype =</span> <span class="st">&quot;CET&quot;</span>,</span>
-<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a>                <span class="at">nParents =</span> <span class="dv">100</span>, <span class="at">nCrosses =</span> <span class="dv">250</span>, <span class="at">nProgeny =</span> <span class="dv">10</span>,<span class="at">nClonesToNCRP =</span> <span class="dv">3</span>,</span>
-<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a>                <span class="at">phenoF1toStage1 =</span> F,<span class="at">errVarPreStage1 =</span> <span class="dv">500</span>,</span>
-<span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a>                <span class="at">useCurrentPhenoTrain =</span> F,</span>
-<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a>                <span class="at">nCyclesToKeepRecords =</span> <span class="dv">30</span>,</span>
-<span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a>                <span class="co"># selCrits are overwritten by runBreedingScheme_wBurnIn</span></span>
-<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPipeAdv =</span> selCritIID, <span class="co"># thus have no actual effect</span></span>
-<span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a>                <span class="at">selCritPopImprov =</span>  selCritIID)</span>
-<span id="cb10-73"><a href="#cb10-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-74"><a href="#cb10-74" aria-hidden="true" tabindex="-1"></a><span class="co"># bsp4&lt;-specifyBSP(schemeDF = schemeDF,</span></span>
-<span id="cb10-75"><a href="#cb10-75" aria-hidden="true" tabindex="-1"></a><span class="co">#                 nChr = 18,effPopSize = 100,quickHaplo = F,</span></span>
-<span id="cb10-76"><a href="#cb10-76" aria-hidden="true" tabindex="-1"></a><span class="co">#                 segSites = 2000, nQTL = 150, nSNP = 300, genVar = 350,</span></span>
-<span id="cb10-77"><a href="#cb10-77" aria-hidden="true" tabindex="-1"></a><span class="co">#                 gxeVar = NULL, gxyVar = 350, gxlVar = 125,gxyxlVar = 50,</span></span>
-<span id="cb10-78"><a href="#cb10-78" aria-hidden="true" tabindex="-1"></a><span class="co">#                 meanDD = 0.23,varDD = 0.05,#relAA = 0.05,</span></span>
-<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a><span class="co">#                 stageToGenotype = &quot;CET&quot;,</span></span>
-<span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a><span class="co">#                 nParents = 100, nCrosses = 250, nProgeny = 10,nClonesToNCRP = 3,</span></span>
-<span id="cb10-81"><a href="#cb10-81" aria-hidden="true" tabindex="-1"></a><span class="co">#                 phenoF1toStage1 = F,errVarPreStage1 = 500,</span></span>
-<span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a><span class="co">#                 useCurrentPhenoTrain = F,</span></span>
-<span id="cb10-83"><a href="#cb10-83" aria-hidden="true" tabindex="-1"></a><span class="co">#                 nCyclesToKeepRecords = 30,</span></span>
-<span id="cb10-84"><a href="#cb10-84" aria-hidden="true" tabindex="-1"></a><span class="co">#                 # selCrits are overwritten by runBreedingScheme_wBurnIn</span></span>
-<span id="cb10-85"><a href="#cb10-85" aria-hidden="true" tabindex="-1"></a><span class="co">#                 selCritPipeAdv = selCritIID, # thus have no actual effect</span></span>
-<span id="cb10-86"><a href="#cb10-86" aria-hidden="true" tabindex="-1"></a><span class="co">#                 selCritPopImprov =  selCritIID)</span></span></code></pre></div>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>start<span class="ot">&lt;-</span><span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>burnInSims<span class="ot">&lt;-</span><span class="fu">runBurnInSchemes</span>(<span class="at">bsp =</span> bsp,</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nBurnInCycles=</span><span class="dv">20</span>,</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>                             <span class="at">selCritPop=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>                             <span class="at">selCritPipe=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>                             <span class="at">iniFunc=</span><span class="st">&quot;initializeScheme&quot;</span>,</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>                             <span class="at">productFunc=</span><span class="st">&quot;productPipeline&quot;</span>,</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>                             <span class="at">popImprovFunc=</span><span class="st">&quot;popImprov1Cyc&quot;</span>,</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nReplications=</span><span class="dv">20</span>,<span class="at">ncores=</span><span class="dv">20</span>,</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nBLASthreads=</span><span class="dv">1</span>,<span class="at">nThreadsMacs2=</span><span class="dv">1</span>)</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>end<span class="ot">&lt;-</span><span class="fu">proc.time</span>()[<span class="dv">3</span>]; <span class="fu">print</span>(<span class="fu">paste0</span>((end<span class="sc">-</span>start)<span class="sc">/</span><span class="dv">60</span>,<span class="st">&quot; mins elapsed&quot;</span>))</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(burnInSims,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;burnInSims_iita_2021Aug27.rds&quot;</span>))</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="co"># [1] &quot;163.0525 mins elapsed&quot;</span></span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>start<span class="ot">&lt;-</span><span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>burnInSims<span class="ot">&lt;-</span><span class="fu">runBurnInSchemes</span>(<span class="at">bsp =</span> bsp1,</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nBurnInCycles=</span><span class="dv">20</span>,</span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>                             <span class="at">selCritPop=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>                             <span class="at">selCritPipe=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>                             <span class="at">iniFunc=</span><span class="st">&quot;initializeScheme&quot;</span>,</span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>                             <span class="at">productFunc=</span><span class="st">&quot;productPipeline&quot;</span>,</span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>                             <span class="at">popImprovFunc=</span><span class="st">&quot;popImprov1Cyc&quot;</span>,</span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nReplications=</span><span class="dv">20</span>,<span class="at">ncores=</span><span class="dv">20</span>,</span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nBLASthreads=</span><span class="dv">1</span>,<span class="at">nThreadsMacs2=</span><span class="dv">1</span>)</span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(burnInSims,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;burnInSims_bsp1_iita_2021Aug27.rds&quot;</span>))</span>
-<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>burnInSims<span class="ot">&lt;-</span><span class="fu">runBurnInSchemes</span>(<span class="at">bsp =</span> bsp2,</span>
-<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nBurnInCycles=</span><span class="dv">20</span>,</span>
-<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>                             <span class="at">selCritPop=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>                             <span class="at">selCritPipe=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>                             <span class="at">iniFunc=</span><span class="st">&quot;initializeScheme&quot;</span>,</span>
-<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>                             <span class="at">productFunc=</span><span class="st">&quot;productPipeline&quot;</span>,</span>
-<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>                             <span class="at">popImprovFunc=</span><span class="st">&quot;popImprov1Cyc&quot;</span>,</span>
-<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nReplications=</span><span class="dv">20</span>,<span class="at">ncores=</span><span class="dv">20</span>,</span>
-<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nBLASthreads=</span><span class="dv">1</span>,<span class="at">nThreadsMacs2=</span><span class="dv">1</span>)</span>
-<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(burnInSims,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;burnInSims_bsp2_iita_2021Aug27.rds&quot;</span>))</span>
-<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>burnInSims<span class="ot">&lt;-</span><span class="fu">runBurnInSchemes</span>(<span class="at">bsp =</span> bsp3,</span>
-<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nBurnInCycles=</span><span class="dv">20</span>,</span>
-<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>                             <span class="at">selCritPop=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>                             <span class="at">selCritPipe=</span><span class="st">&quot;selCritIID&quot;</span>,</span>
-<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>                             <span class="at">iniFunc=</span><span class="st">&quot;initializeScheme&quot;</span>,</span>
-<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>                             <span class="at">productFunc=</span><span class="st">&quot;productPipeline&quot;</span>,</span>
-<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>                             <span class="at">popImprovFunc=</span><span class="st">&quot;popImprov1Cyc&quot;</span>,</span>
-<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nReplications=</span><span class="dv">20</span>,<span class="at">ncores=</span><span class="dv">20</span>,</span>
-<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>                             <span class="at">nBLASthreads=</span><span class="dv">1</span>,<span class="at">nThreadsMacs2=</span><span class="dv">1</span>)</span>
-<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(burnInSims,<span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,<span class="st">&quot;burnInSims_bsp3_iita_2021Aug27.rds&quot;</span>))</span>
-<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a><span class="co"># burnInSims&lt;-runBurnInSchemes(bsp = bsp4,</span></span>
-<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a><span class="co">#                              nBurnInCycles=20,</span></span>
-<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a><span class="co">#                              selCritPop=&quot;selCritIID&quot;,</span></span>
-<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a><span class="co">#                              selCritPipe=&quot;selCritIID&quot;,</span></span>
-<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a><span class="co">#                              iniFunc=&quot;initializeScheme&quot;,</span></span>
-<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a><span class="co">#                              productFunc=&quot;productPipeline&quot;,</span></span>
-<span id="cb11-52"><a href="#cb11-52" aria-hidden="true" tabindex="-1"></a><span class="co">#                              popImprovFunc=&quot;popImprov1Cyc&quot;,</span></span>
-<span id="cb11-53"><a href="#cb11-53" aria-hidden="true" tabindex="-1"></a><span class="co">#                              nReplications=20,ncores=20,</span></span>
-<span id="cb11-54"><a href="#cb11-54" aria-hidden="true" tabindex="-1"></a><span class="co">#                              nBLASthreads=1,nThreadsMacs2=1)</span></span>
-<span id="cb11-55"><a href="#cb11-55" aria-hidden="true" tabindex="-1"></a><span class="co"># saveRDS(burnInSims,file = here::here(&quot;output&quot;,&quot;burnInSims_bsp4_iita_2021Aug27.rds&quot;))</span></span>
-<span id="cb11-56"><a href="#cb11-56" aria-hidden="true" tabindex="-1"></a>end<span class="ot">&lt;-</span><span class="fu">proc.time</span>()[<span class="dv">3</span>]; <span class="fu">print</span>(<span class="fu">paste0</span>((end<span class="sc">-</span>start)<span class="sc">/</span><span class="dv">60</span>,<span class="st">&quot; mins elapsed&quot;</span>))</span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(AlphaSimHlpR))</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(tidyverse))</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressMessages</span>(<span class="fu">library</span>(genomicMateSelectR))</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>select <span class="ot">&lt;-</span> dplyr<span class="sc">::</span>select</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>forSimPlot<span class="ot">&lt;-</span><span class="fu">tibble</span>(<span class="at">bsp=</span><span class="st">&quot;0&quot;</span>,<span class="at">Ne=</span><span class="dv">1000</span>,<span class="at">nQTL=</span><span class="dv">1000</span>, <span class="at">genVar=</span><span class="dv">750</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(<span class="fu">tibble</span>(<span class="at">bsp=</span><span class="st">&quot;1&quot;</span>,<span class="at">Ne=</span><span class="dv">200</span>,<span class="at">nQTL=</span><span class="dv">500</span>, <span class="at">genVar=</span><span class="dv">750</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(<span class="fu">tibble</span>(<span class="at">bsp=</span><span class="st">&quot;2&quot;</span>,<span class="at">Ne=</span><span class="dv">200</span>,<span class="at">nQTL=</span><span class="dv">150</span>, <span class="at">genVar=</span><span class="dv">750</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(<span class="fu">tibble</span>(<span class="at">bsp=</span><span class="st">&quot;3&quot;</span>,<span class="at">Ne=</span><span class="dv">100</span>,<span class="at">nQTL=</span><span class="dv">150</span>, <span class="at">genVar=</span><span class="dv">750</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">#bind_rows(tibble(bsp=&quot;4&quot;,Ne=100,nQTL=150, genVar=350)) %&gt;%</span></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sims=</span><span class="fu">paste0</span>(<span class="st">&quot;burnInSims_bsp&quot;</span>,bsp,<span class="st">&quot;_iita_2021Aug27.rds&quot;</span>),</span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>         <span class="at">sims=</span><span class="fu">ifelse</span>(bsp<span class="sc">==</span><span class="st">&quot;0&quot;</span>,<span class="st">&quot;burnInSims_iita_2021Aug27.rds&quot;</span>,sims),</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">sims=</span><span class="fu">map</span>(sims,<span class="sc">~</span><span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;output&quot;</span>,.))))</span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>forSimPlot <span class="sc">%&lt;&gt;%</span> </span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sims=</span><span class="fu">map</span>(sims,<span class="cf">function</span>(sims){ </span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  sims <span class="sc">%&gt;%</span> </span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">burnInSim=</span><span class="fu">map</span>(burnInSim,<span class="sc">~</span>.<span class="sc">$</span>records<span class="sc">$</span>stageOutputs)) })) <span class="sc">%&gt;%</span> </span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(sims) <span class="sc">%&gt;%</span> </span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(burnInSim) <span class="sc">%&gt;%</span> </span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(stage<span class="sc">==</span><span class="st">&quot;F1&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Year=</span>year<span class="sc">-</span><span class="fu">max</span>(year))</span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="fu">gc</span>()</span></code></pre></div>
-<pre><code>           used  (Mb) gc trigger    (Mb) limit (Mb)   max used    (Mb)
-Ncells  2234841 119.4    5652228   301.9         NA    3892255   207.9
-Vcells 14807306 113.0 5903741208 45042.0      65536 6677701760 50946.9</code></pre>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>forSimPlot <span class="sc">%&lt;&gt;%</span> </span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Pop=</span><span class="fu">paste0</span>(<span class="st">&quot;Ne&quot;</span>,Ne,<span class="st">&quot;_nQTL&quot;</span>,nQTL))</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>meanGplot<span class="ot">&lt;-</span>forSimPlot <span class="sc">%&gt;%</span> </span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Pop,Ne,nQTL,genVar,Year,year,stage) <span class="sc">%&gt;%</span> </span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">meanGenMean=</span><span class="fu">mean</span>(genValMean),</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">seGenMean=</span><span class="fu">sd</span>(genValMean)<span class="sc">/</span><span class="fu">n</span>()) <span class="sc">%&gt;%</span> <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>Year,<span class="at">group=</span>Pop)) <span class="sc">+</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> meanGenMean <span class="sc">-</span> seGenMean, </span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>                  <span class="at">ymax =</span> meanGenMean <span class="sc">+</span> seGenMean,</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>                  <span class="at">fill=</span>Pop), </span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>              <span class="at">alpha=</span><span class="fl">0.75</span>) <span class="sc">+</span> </span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> meanGenMean, <span class="at">color=</span>Pop))</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>sdGplot<span class="ot">&lt;-</span>forSimPlot <span class="sc">%&gt;%</span> </span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Pop,Ne,nQTL,genVar,Year,year,stage) <span class="sc">%&gt;%</span> </span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">meanGenSD=</span><span class="fu">mean</span>(genValSD),</span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>            <span class="at">seGenSD=</span><span class="fu">sd</span>(genValSD)<span class="sc">/</span><span class="fu">n</span>()) <span class="sc">%&gt;%</span> <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(.,<span class="fu">aes</span>(<span class="at">x=</span>Year,<span class="at">group=</span>Pop)) <span class="sc">+</span></span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> meanGenSD <span class="sc">-</span> seGenSD, </span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>                  <span class="at">ymax =</span> meanGenSD <span class="sc">+</span> seGenSD,</span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>                  <span class="at">fill=</span>Pop), </span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>              <span class="at">alpha=</span><span class="fl">0.75</span>) <span class="sc">+</span> </span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> meanGenSD))</span>
-<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>(meanGplot <span class="sc">|</span> sdGplot) <span class="sc">&amp;</span> <span class="fu">theme_bw</span>()</span></code></pre></div>
-<p><img src="figure/burnInSims.Rmd/unnamed-chunk-8-1.png" width="960" style="display: block; margin: auto;" /> Should we just run those longer till they show any sign of slowing genetic gain?</p>
-</div>
+<p><strong>Run multiple versions of an burn-in simulation for 20 cycles.</strong></p>
 </div>
 <div id="next-steps" class="section level1">
 <h1>Next steps</h1>
 <ol style="list-style-type: decimal">
-<li><p>Complete burn-in simulations</p></li>
+<li><p>Complete full-scale burn-in simulations</p></li>
 <li><p><a href="baselineSim.html">Conduct a baseline post burn-in GS vs. Conv. simulation</a></p></li>
 <li><p>Burn-in and baseline simulations for National programs (NaCRRI, TARI, NRCRI, EMBRAPA). <em>Still need input re: selection index weights and current program structure.</em></p></li>
 <li><p>Begin the actually interesting simulations</p>
@@ -1261,13 +1106,13 @@ Vcells 14807306 113.0 5903741208 45042.0      65536 6677701760 50946.9</code></p
 </button>
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
-<pre><code>R version 4.1.0 (2021-05-18)
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
+<pre><code>R version 4.1.1 (2021-08-10)
 Platform: x86_64-apple-darwin17.0 (64-bit)
 Running under: macOS Big Sur 10.16
 
 Matrix products: default
-BLAS:   /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRblas.dylib
+BLAS:   /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRblas.0.dylib
 LAPACK: /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRlapack.dylib
 
 locale:
@@ -1279,27 +1124,27 @@ attached base packages:
 other attached packages:
  [1] patchwork_1.1.1          genomicMateSelectR_0.2.0 forcats_0.5.1           
  [4] stringr_1.4.0            purrr_0.3.4              readr_2.0.1             
- [7] tidyr_1.1.3              tibble_3.1.3             ggplot2_3.3.5           
+ [7] tidyr_1.1.3              tibble_3.1.4             ggplot2_3.3.5           
 [10] tidyverse_1.3.1          AlphaSimHlpR_0.2.1       dplyr_1.0.7             
-[13] AlphaSimR_1.0.3          R6_2.5.0                 workflowr_1.6.2         
+[13] AlphaSimR_1.0.4          R6_2.5.1                 workflowr_1.6.2         
 
 loaded via a namespace (and not attached):
- [1] Rcpp_1.0.7        here_1.0.1        lubridate_1.7.10  assertthat_0.2.1 
- [5] rprojroot_2.0.2   digest_0.6.27     utf8_1.2.2        cellranger_1.1.0 
- [9] backports_1.2.1   reprex_2.0.1      evaluate_0.14     highr_0.9        
-[13] httr_1.4.2        pillar_1.6.2      rlang_0.4.11      readxl_1.3.1     
-[17] rstudioapi_0.13   whisker_0.4       jquerylib_0.1.4   rmarkdown_2.10   
-[21] labeling_0.4.2    munsell_0.5.0     broom_0.7.9       compiler_4.1.0   
-[25] httpuv_1.6.1      modelr_0.1.8      xfun_0.25         pkgconfig_2.0.3  
-[29] htmltools_0.5.1.1 tidyselect_1.1.1  fansi_0.5.0       crayon_1.4.1     
-[33] tzdb_0.1.2        dbplyr_2.1.1      withr_2.4.2       later_1.2.0      
-[37] grid_4.1.0        jsonlite_1.7.2    gtable_0.3.0      lifecycle_1.0.0  
-[41] DBI_1.1.1         git2r_0.28.0      magrittr_2.0.1    scales_1.1.1     
-[45] cli_3.0.1         stringi_1.7.3     farver_2.1.0      fs_1.5.0         
-[49] promises_1.2.0.1  xml2_1.3.2        bslib_0.2.5.1     ellipsis_0.3.2   
-[53] generics_0.1.0    vctrs_0.3.8       tools_4.1.0       glue_1.4.2       
-[57] hms_1.1.0         yaml_2.2.1        colorspace_2.0-2  rvest_1.0.1      
-[61] knitr_1.33        haven_2.4.3       sass_0.4.0       </code></pre>
+ [1] Rcpp_1.0.7       here_1.0.1       lubridate_1.7.10 assertthat_0.2.1
+ [5] rprojroot_2.0.2  digest_0.6.27    utf8_1.2.2       cellranger_1.1.0
+ [9] backports_1.2.1  reprex_2.0.1     evaluate_0.14    highr_0.9       
+[13] httr_1.4.2       pillar_1.6.2     rlang_0.4.11     readxl_1.3.1    
+[17] rstudioapi_0.13  whisker_0.4      jquerylib_0.1.4  rmarkdown_2.11  
+[21] labeling_0.4.2   munsell_0.5.0    broom_0.7.9      compiler_4.1.1  
+[25] httpuv_1.6.3     modelr_0.1.8     xfun_0.26        pkgconfig_2.0.3 
+[29] htmltools_0.5.2  tidyselect_1.1.1 fansi_0.5.0      crayon_1.4.1    
+[33] tzdb_0.1.2       dbplyr_2.1.1     withr_2.4.2      later_1.3.0     
+[37] grid_4.1.1       jsonlite_1.7.2   gtable_0.3.0     lifecycle_1.0.0 
+[41] DBI_1.1.1        git2r_0.28.0     magrittr_2.0.1   scales_1.1.1    
+[45] cli_3.0.1        stringi_1.7.4    farver_2.1.0     fs_1.5.0        
+[49] promises_1.2.0.1 xml2_1.3.2       bslib_0.3.0      ellipsis_0.3.2  
+[53] generics_0.1.0   vctrs_0.3.8      tools_4.1.1      glue_1.4.2      
+[57] hms_1.1.0        fastmap_1.1.0    yaml_2.2.1       colorspace_2.0-2
+[61] rvest_1.0.1      knitr_1.34       haven_2.4.3      sass_0.4.0      </code></pre>
 </div>
 </div>
 
