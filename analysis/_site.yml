@@ -17,6 +17,8 @@ navbar:
       href: burnInSims.html
     - text: Baseline simulations
       href: baselineSim.html
+    - text: Genomic mate selection simulations
+      href: genomicMateSelSims.html
   - text: Resources
     href: resources.html
   - text: Other

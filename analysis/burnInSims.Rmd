@@ -1,7 +1,7 @@
 ---
-title: "Burn-in simulations for cassava GS"
+title: "Example of AlphaSimHlpR simulation with a burn-in period"
 author: "Marnin Wolfe"
-date: "2021-Aug-26"
+date: "2021-Sep-17"
 output: 
   workflowr::wflow_html:
     toc: true
@@ -16,35 +16,32 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
                       highlight=TRUE)
 ```
 
-# Previous step
+Below, I show an example of how to run a simulation that includes a burn-in and post burn-in phase.
 
-I developed an empirical approach to estimate TrialType-specific error variances in terms of the IITA selection index (SELIND). See that analysis [here](https://wolfemd.github.io/IITA_2021GS/inputsForSimulationV2.html).
+1. Use `runBurnInScheme()` function (not yet in `AlphaSimHlpR`; sourced from `code/runBurnInScheme.R`) to initiate a simulation with phenotypic selection.
+2. Use `runSchemesPostBurnIn()` with a new `bsp` (sourced from `code/runSchemesPostBurnIn.R`) to continue simulating restarting the previously started (burnt-in) simulations created in Step 1 but potentially with new `bsp` settings.
 
-# Generate burn-in simulations
+**Install the version of `AlphaSimHlpR` that I have been working on.**
+```{r, eval=F}
+# To install the latest version
+devtools::install_github("wolfemd/AlphaSimHlpR", ref = 'master')
+```
 
--   Build a [`runBurnInScheme()`](https://wolfemd.github.io/AlphaSimHlpR/reference/) for `AlphaSimHlpR`.
--   Output of `runBurnInScheme()` is input for downstream optimization and comparison of scenarios.
+See full [function reference manual here](https://wolfemd.github.io/AlphaSimHlpR/index.html) in my forked-repo of `AlphaSimHlpR`
 
-Previously, used control files to set-up `bsp`. Implemented [`specifyBSP()`](https://wolfemd.github.io/AlphaSimHlpR/reference/specifyBSP.html), which creates a `bsp` using a `data.frame` of stage-specific breeding scheme *plus* all other `AlphaSimHlpR` arguments as inputs.
-
--   See full function reference [here](https://wolfemd.github.io/AlphaSimHlpR/index.html) in my forked-repo of `AlphaSimHlpR`
-
-## A small example
+# A small example
 
 Test the code with a small example. Source functions *not yet* included in `AlphaSimHlpR` from `code/` directory.
-
-Use my newly created `specifyBSP()` function to create the `bsp` input for sims.
-
--   3 chrom, Ne = 100, 300 SNP (100/chrom)
--   Select 10 parents, make 4 random crosses with 50 progeny each
 
 ```{r,eval=T}
 suppressMessages(library(AlphaSimHlpR))
 suppressMessages(library(tidyverse))
 suppressMessages(library(genomicMateSelectR))
 select <- dplyr::select
+
 schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
                    header = T, stringsAsFactors = F)
+
 bsp<-specifyBSP(schemeDF = schemeDF,
                 nChr = 3,effPopSize = 100,quickHaplo = F,
                 segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
@@ -55,9 +52,12 @@ bsp<-specifyBSP(schemeDF = schemeDF,
                 phenoF1toStage1 = T,errVarPreStage1 = 500,
                 useCurrentPhenoTrain = F, 
                 nCyclesToKeepRecords = 30,
-                selCritPipeAdv = selCritIID, 
-                selCritPopImprov =  selCritIID)
+                nTrainPopCycles=6,
+                nYrsAsCandidates=1,
+                maxTrainingPopSize=500)
+
 source(here::here("code","runBurnInSchemes.R"))
+source(here::here("code","runSchemesPostBurnIn.R"))
 ```
 
 I created a CSV to specify a data.frame `schemeDF` defining stage-specific breeding scheme inputs.
@@ -66,133 +66,199 @@ I created a CSV to specify a data.frame `schemeDF` defining stage-specific breed
 schemeDF %>% rmarkdown::paged_table()
 ```
 
-`runBurnInSchemes()`: basically `runBreedingScheme()` but without the final call `records <- lastCycStgOut(records, bsp, SP)` so that sims can be continued based on the `records` and `bsp`.
+Run 10 cycles of burn-in simulation. 
 
-Also, set up function *include* the potentially parallel execution of multiple replications of each sim scheme.
-
-Run 16 replicate simulations of 10 cycles phenotypic selection with a small breeding scheme on a laptop.
-
+The default is to set-up phenotypic selection only during burn-in.
 ```{r run test burn-in sims, eval=F}
-burnIn_test<-runBurnInSchemes(bsp = bsp,
-                              nBurnInCycles=10,
-                              selCritPop="selCritIID",
-                              selCritPipe="selCritIID",
-                              iniFunc="initializeScheme",
-                              productFunc="productPipeline",
-                              popImprovFunc="popImprov1Cyc",
-                              nReplications=16,ncores=8,
-                              nBLASthreads=1,nThreadsMacs2=1)
-saveRDS(burnIn_test,file = here::here("output","burnIn_test.rds"))
+burnInSims<-runBurnInSchemes(bsp = bsp,
+                             nBurnInCycles=10,
+                             selCritPop="parentSelCritBLUP",
+                             selCritPipe="selCritIID",
+                             iniFunc="initializeScheme",
+                             productFunc="productPipeline",
+                             popImprovFunc="popImprovByParentSel",
+                             nReplications=4,nSimCores=4,
+                             nBLASthreads=1,nThreadsMacs2=1)
+saveRDS(burnInSims,file = here::here("output","test_burnInSims_2021Sep17.rds"))
 ```
 
-```{r ribbon plot of test sims}
-burnIn_test<-readRDS(here::here("output","burnIn_test.rds"))
-forSimPlot<-burnIn_test %>% 
-  unnest_wider(burnInSim) %>% 
-  select(SimRep,records) %>% 
-  unnest_wider(records) %>% 
-  select(SimRep,stageOutputs) %>% 
-  unnest() %>% 
-  filter(stage=="F1") %>% 
-  mutate(Year=year-max(year))
+Two sets of post burn-in simulations, both with same `bsp` overall. 
 
-library(patchwork)
-meanGplot<-forSimPlot %>% 
-  group_by(Year,year,stage) %>% 
-  summarize(meanGenMean=mean(genValMean),
-            seGenMean=sd(genValMean)/n()) %>% 
-  ggplot(.,aes(x=Year)) +
-  geom_ribbon(aes(ymin = meanGenMean - seGenMean, 
-                  ymax = meanGenMean + seGenMean), 
-              fill = "grey70", alpha=0.75) + 
-  geom_line(aes(y = meanGenMean))
-sdGplot<-forSimPlot %>% 
-  group_by(Year,year,stage) %>% 
-  summarize(meanGenSD=mean(genValSD),
-            seGenSD=sd(genValSD)/n()) %>% 
-  ggplot(.,aes(x=Year)) +
-  geom_ribbon(aes(ymin = meanGenSD - seGenSD, 
-                  ymax = meanGenSD + seGenSD), 
-              fill = "grey70", alpha=0.75) + 
-  geom_line(aes(y = meanGenSD))
-(meanGplot | sdGplot) & theme_bw()
+(1) continue with phenotypic selection, _no change_. 
+
+(2) Switch to `parentSelCritGEBV`.
+
+**NOTE:** Below, switch (by default) to `productPipelinePostBurnIn` for the product advancement pipeline _and_ it's corresponding selection criteria `productSelCritBLUP`
+
+```{r post burn-in - same bsp, eval=F}
+burnInSims<-readRDS(file = here::here("output","test_burnInSims_2021Sep17.rds"))
+postBurnIn_PS<-runSchemesPostBurnIn(simulations = burnInSims,
+                                    nPostBurnInCycles=10,
+                                    selCritPop="parentSelCritBLUP",
+                                    selCritPipe="productSelCritBLUP",
+                                    productFunc="productPipelinePostBurnIn",
+                                    popImprovFunc="popImprovByParentSel",
+                                    nSimCores=4,
+                                    nBLASthreads=1)
+saveRDS(postBurnIn_PS,file = here::here("output","test_burnInSims_PS_2021Sep17.rds"))
+#postBurnIn_PS$SimOutput[[1]]$records$stageOutputs
+postBurnIn_GS<-runSchemesPostBurnIn(simulations = burnInSims,
+                                    nPostBurnInCycles=10,
+                                    selCritPop="parentSelCritGEBV",
+                                    selCritPipe="productSelCritBLUP",
+                                    productFunc="productPipelinePostBurnIn",
+                                    popImprovFunc="popImprovByParentSel",
+                                    nSimCores=4,
+                                    nBLASthreads=1)
+saveRDS(postBurnIn_GS,file = here::here("output","test_burnInSims_GS_2021Sep17.rds"))
+#postBurnIn_GS$SimOutput[[1]]$records$stageOutputs
 ```
 
-Ribbon plot mean and std. error computed across replicated simulations.
-
-Next, execute the `runSchemesPostBurnIn()` function to continue running the 16 replicate initiated sims for an additional 10 post-burn in cycles of phenotypic selection.
-
-```{r continue simulating post burn-in, eval=F}
-source(here::here("code","runSchemesPostBurnIn.R"))
-simulations<-readRDS(here::here("output","burnIn_test.rds"))
-postBurnIn_test<-runSchemesPostBurnIn(simulations = simulations,
-                                      newBSP=NULL, # so you can change the scheme after burn-in
-                                      nPostBurnInCycles=10,
-                                      selCritPop="selCritIID",
-                                      selCritPipe="selCritIID",
-                                      productFunc="productPipeline",
-                                      popImprovFunc="popImprov1Cyc",
-                                      ncores=8,
-                                      nBLASthreads=1,nThreadsMacs2=1)
-saveRDS(postBurnIn_test,file = here::here("output","postBurnIn_test.rds"))
-```
-
-```{r plot test sims}
-postBurnIn_test<-readRDS(here::here("output","postBurnIn_test.rds"))
-
-forSimPlot<-postBurnIn_test %>% 
+```{r, eval=T}
+forSimPlot<-readRDS(file = here::here("output","test_burnInSims_GS_2021Sep17.rds")) %>% 
+  mutate(PostBurnIn="GS") %>% 
+  bind_rows(readRDS(file = here::here("output","test_burnInSims_PS_2021Sep17.rds")) %>% 
+              mutate(PostBurnIn="PS")) %>% 
   unnest_wider(SimOutput) %>% 
-  select(SimRep,records) %>% 
+  select(SimRep,PostBurnIn,records) %>% 
   unnest_wider(records) %>% 
-  select(SimRep,stageOutputs) %>% 
+  select(SimRep,PostBurnIn,stageOutputs) %>% 
   unnest() %>% 
   filter(stage=="F1") %>% 
   mutate(YearPostBurnIn=year-10)
  
 library(patchwork)
 meanGplot<-forSimPlot %>% 
-  group_by(YearPostBurnIn,year,stage) %>% 
+  mutate(SimRep=paste0(PostBurnIn,SimRep)) %>% 
+  group_by(PostBurnIn,YearPostBurnIn,year,stage) %>% 
   summarize(meanGenMean=mean(genValMean),
-            seGenMean=sd(genValMean)/n()) %>% 
+            seGenMean=sd(genValMean)/sqrt(n())) %>% 
   ggplot(.,aes(x=YearPostBurnIn)) +
   geom_ribbon(aes(ymin = meanGenMean - seGenMean, 
-                  ymax = meanGenMean + seGenMean), 
-              fill = "grey70", alpha=0.75) + 
-  geom_line(aes(y = meanGenMean))
+                  ymax = meanGenMean + seGenMean,
+                  fill = PostBurnIn), 
+              alpha=0.75) + 
+  geom_line(aes(y = meanGenMean, color=PostBurnIn))
 sdGplot<-forSimPlot %>% 
-  group_by(YearPostBurnIn,year,stage) %>% 
+  mutate(SimRep=paste0(PostBurnIn,SimRep)) %>% 
+  group_by(PostBurnIn,YearPostBurnIn,year,stage) %>% 
   summarize(meanGenSD=mean(genValSD),
-            seGenSD=sd(genValSD)/n()) %>% 
+            seGenSD=sd(genValSD)/sqrt(n())) %>% 
   ggplot(.,aes(x=YearPostBurnIn)) +
   geom_ribbon(aes(ymin = meanGenSD - seGenSD, 
-                  ymax = meanGenSD + seGenSD), 
-              fill = "grey70", alpha=0.75) + 
-  geom_line(aes(y = meanGenSD))
-(meanGplot | sdGplot) & theme_bw() & geom_vline(xintercept = 0, color='darkred')
+                  ymax = meanGenSD + seGenSD,
+                  fill = PostBurnIn), 
+              alpha=0.75) + 
+  geom_line(aes(y = meanGenSD, color=PostBurnIn))
+(meanGplot | sdGplot) + patchwork::plot_layout(guides = 'collect') & 
+  theme_bw() & geom_vline(xintercept = 0, color='darkred')
 ```
 
-Now run the same 16 burnt-in sims for 10 cycles of GS.
+# Change the VDP
 
-```{r continue after burn-in with GS, eval=F}
-# source(here::here("code","runSchemesPostBurnIn.R"))
-# simulations<-readRDS(here::here("output","burnIn_test.rds"))
-# postBurnInGS_test<-runSchemesPostBurnIn(simulations = simulations,
-#                                       newBSP=NULL,
-#                                       nPostBurnInCycles=10,
-#                                       selCritPop="parentSelCritGEBV",
-#                                       selCritPipe="selCritIID",
-#                                       productFunc="productPipeline",
-#                                       popImprovFunc="popImprov1Cyc",
-#                                       ncores=8,
-#                                       nBLASthreads=1,nThreadsMacs2=1)
-# saveRDS(postBurnInGS_test,file = here::here("output","postBurnInGS_test.rds"))
+Try post burn-in sims with an altered VDP (specified in the `bsp`). 
+
+_Do not_ change pop. genetic / genomic parameters. 
+
+Try removing middle "AYT" stage of the example `schemeDF`.
+```{r post burn-in - NEW bsp, eval=F}
+suppressMessages(library(AlphaSimHlpR))
+suppressMessages(library(tidyverse))
+suppressMessages(library(genomicMateSelectR))
+select <- dplyr::select
+
+schemeDF<-read.csv(here::here("data","baselineScheme - Test.csv"), 
+                   header = T, stringsAsFactors = F)
+
+source(here::here("code","runSchemesPostBurnIn.R"))
+
+burnInSims<-readRDS(file = here::here("output","test_burnInSims_2021Sep17.rds"))
+newBSP<-specifyBSP(schemeDF = schemeDF %>% filter(stageNames!="AYT"),
+                   nChr = 3,effPopSize = 100,quickHaplo = F,
+                   segSites = 400, nQTL = 40, nSNP = 100, genVar = 40,
+                   gxeVar = NULL, gxyVar = 15, gxlVar = 10,gxyxlVar = 5,
+                   meanDD = 0.5,varDD = 0.01,relAA = 0.5,
+                   stageToGenotype = "PYT",
+                   nParents = 10, nCrosses = 4, nProgeny = 50,nClonesToNCRP = 3,
+                   phenoF1toStage1 = T,errVarPreStage1 = 500,
+                   useCurrentPhenoTrain = F,
+                   nCyclesToKeepRecords = 30,
+                   nTrainPopCycles=6,
+                   nYrsAsCandidates=1,
+                   maxTrainingPopSize=500)
+
+postBurnIn_PS_newBSP<-runSchemesPostBurnIn(simulations = burnInSims,
+                                           newBSP = newBSP,
+                                           nPostBurnInCycles=10,
+                                           selCritPop="parentSelCritBLUP",
+                                           selCritPipe="productSelCritBLUP",
+                                           productFunc="productPipelinePostBurnIn",
+                                           popImprovFunc="popImprovByParentSel",
+                                           nSimCores=4,
+                                           nBLASthreads=1)
+saveRDS(postBurnIn_PS_newBSP,file = here::here("output","test_burnInSims_PS_noAYT_2021Sep17.rds"))
+
+postBurnIn_GS_newBSP<-runSchemesPostBurnIn(simulations = burnInSims,
+                                           newBSP = newBSP,
+                                           nPostBurnInCycles=10,
+                                           selCritPop="parentSelCritGEBV",
+                                           selCritPipe="productSelCritBLUP",
+                                           productFunc="productPipelinePostBurnIn",
+                                           popImprovFunc="popImprovByParentSel",
+                                           nSimCores=4,
+                                           nBLASthreads=1)
+saveRDS(postBurnIn_GS_newBSP,file = here::here("output","test_burnInSims_GS_noAYT_2021Sep17.rds"))
+
+```
+```{r, eval=T}
+forSimPlot<-readRDS(file = here::here("output","test_burnInSims_GS_2021Sep17.rds")) %>% 
+  mutate(PostBurnIn="GS") %>% 
+  bind_rows(readRDS(file = here::here("output","test_burnInSims_PS_2021Sep17.rds")) %>% 
+              mutate(PostBurnIn="PS")) %>% 
+  bind_rows(readRDS(file = here::here("output","test_burnInSims_PS_noAYT_2021Sep17.rds")) %>% 
+              mutate(PostBurnIn="PS_noAYT")) %>% 
+  bind_rows(readRDS(file = here::here("output","test_burnInSims_GS_noAYT_2021Sep17.rds")) %>% 
+              mutate(PostBurnIn="GS_noAYT")) %>% 
+  unnest_wider(SimOutput) %>% 
+  select(SimRep,PostBurnIn,records) %>% 
+  unnest_wider(records) %>% 
+  select(SimRep,PostBurnIn,stageOutputs) %>% 
+  unnest() %>% 
+  filter(stage=="F1") %>% 
+  mutate(YearPostBurnIn=year-10)
+ 
+library(patchwork)
+meanGplot<-forSimPlot %>% 
+  mutate(SimRep=paste0(PostBurnIn,SimRep)) %>% 
+  group_by(PostBurnIn,YearPostBurnIn,year,stage) %>% 
+  summarize(meanGenMean=mean(genValMean),
+            seGenMean=sd(genValMean)/sqrt(n())) %>% 
+  ggplot(.,aes(x=YearPostBurnIn)) +
+  geom_ribbon(aes(ymin = meanGenMean - seGenMean, 
+                  ymax = meanGenMean + seGenMean,
+                  fill = PostBurnIn), 
+              alpha=0.75) + 
+  geom_line(aes(y = meanGenMean, color=PostBurnIn))
+sdGplot<-forSimPlot %>% 
+  mutate(SimRep=paste0(PostBurnIn,SimRep)) %>% 
+  group_by(PostBurnIn,YearPostBurnIn,year,stage) %>% 
+  summarize(meanGenSD=mean(genValSD),
+            seGenSD=sd(genValSD)/sqrt(n())) %>% 
+  ggplot(.,aes(x=YearPostBurnIn)) +
+  geom_ribbon(aes(ymin = meanGenSD - seGenSD, 
+                  ymax = meanGenSD + seGenSD,
+                  fill = PostBurnIn), 
+              alpha=0.75) + 
+  geom_line(aes(y = meanGenSD, color=PostBurnIn))
+(meanGplot | sdGplot) + patchwork::plot_layout(guides = 'collect') & 
+  theme_bw() & geom_vline(xintercept = 0, color='darkred')
 ```
 
-*This actually ran all night on my laptop without finishing.... even the toy example with GS is non-trivial to run.*
+# Run full-scale burn-in sims
 
-## Run full-scale burn-in sims
+Previously, I used an empirical approach to estimate TrialType-specific error variances in terms of the IITA selection index (SELIND). See that analysis [here](https://wolfemd.github.io/IITA_2021GS/inputsForSimulationV2.html). 
 
-Set-up multiple iterations of a simulation with `selCritIID` as burn-in.
+**TO DO:** Need to run full-scale burn-in simulations for each breeding program. 
 
 20 burn-in cycles to match examples by EiB.
 
@@ -260,225 +326,13 @@ read.csv(here::here("data","baselineScheme - IITA.csv"),
             -   This might be faster since the number of clones / dimension of kinship matrix is primary slow point.
 
 
-**I run multiple versions of an burn-in simulation for 20 cycles. See plots below!** My first try, with Ne=1000 seemed to have "too much" genetic variation so I did extra "tuning" simulations. 
+**Run multiple versions of an burn-in simulation for 20 cycles.** 
 
-```{bash, eval=F}
-# 1) start a screen shell 
-screen; 
-# 2) reserve interactive slurm
-salloc -n 20 --mem 60G;
-# 3) start the singularity Linux shell inside that
-singularity shell ~/rocker2.sif; 
-# Project directory, so R will use as working dir.
-cd /home/mw489/BreedingSchemeOpt/;
-# 3) Start R
-export OMP_NUM_THREADS=1;
-R
-```
-```{r, eval=F}
-suppressMessages(library(AlphaSimHlpR))
-suppressMessages(library(tidyverse))
-suppressMessages(library(genomicMateSelectR))
-select <- dplyr::select
-source(here::here("code","runBurnInSchemes.R"))
-RhpcBLASctl::blas_set_num_threads(1)
 
-schemeDF<-read.csv(here::here("data","baselineScheme - IITA.csv"), 
-                   header = T, stringsAsFactors = F) %>% 
-  select(-errVars,-PlantsPerPlot) %>% 
-  left_join(readRDS(here::here("data","siErrorVarEst_byTrialType_directApproach_2021Aug25.rds")) %>% 
-              select(-VarEsts) %>% 
-              rename(errVars=siErrorVarEst)) %>% 
-  select(-TrialType) %>% 
-  mutate(trainingPopCycles=20)
-bsp<-specifyBSP(schemeDF = schemeDF,
-                nChr = 18,effPopSize = 1000,quickHaplo = F,
-                segSites = 2000, nQTL = 1000, nSNP = 300, genVar = 750,
-                gxeVar = NULL, gxyVar = 750, gxlVar = 375,gxyxlVar = 150,
-                meanDD = 0.23,varDD = 0.05,#relAA = 0.05,
-                stageToGenotype = "CET",
-                nParents = 100, nCrosses = 250, nProgeny = 10,nClonesToNCRP = 3,
-                phenoF1toStage1 = F,errVarPreStage1 = 500,
-                useCurrentPhenoTrain = F,
-                nCyclesToKeepRecords = 30,
-                # selCrits are overwritten by runBreedingScheme_wBurnIn
-                selCritPipeAdv = selCritIID, # thus have no actual effect
-                selCritPopImprov =  selCritIID)
-
-schemeDF %<>% 
-  mutate(trainingPopCycles=10)
-bsp1<-specifyBSP(schemeDF = schemeDF,
-                nChr = 18,effPopSize = 200,quickHaplo = F,
-                segSites = 2000, nQTL = 500, nSNP = 300, genVar = 750,
-                gxeVar = NULL, gxyVar = 750, gxlVar = 375,gxyxlVar = 150,
-                meanDD = 0.23,varDD = 0.05,#relAA = 0.05,
-                stageToGenotype = "CET",
-                nParents = 100, nCrosses = 250, nProgeny = 10,nClonesToNCRP = 3,
-                phenoF1toStage1 = F,errVarPreStage1 = 500,
-                useCurrentPhenoTrain = F,
-                nCyclesToKeepRecords = 30,
-                # selCrits are overwritten by runBreedingScheme_wBurnIn
-                selCritPipeAdv = selCritIID, # thus have no actual effect
-                selCritPopImprov =  selCritIID)
-
-bsp2<-specifyBSP(schemeDF = schemeDF,
-                nChr = 18,effPopSize = 200,quickHaplo = F,
-                segSites = 2000, nQTL = 150, nSNP = 300, genVar = 750,
-                gxeVar = NULL, gxyVar = 750, gxlVar = 375,gxyxlVar = 150,
-                meanDD = 0.23,varDD = 0.05,#relAA = 0.05,
-                stageToGenotype = "CET",
-                nParents = 100, nCrosses = 250, nProgeny = 10,nClonesToNCRP = 3,
-                phenoF1toStage1 = F,errVarPreStage1 = 500,
-                useCurrentPhenoTrain = F,
-                nCyclesToKeepRecords = 30,
-                # selCrits are overwritten by runBreedingScheme_wBurnIn
-                selCritPipeAdv = selCritIID, # thus have no actual effect
-                selCritPopImprov =  selCritIID)
-
-bsp3<-specifyBSP(schemeDF = schemeDF,
-                nChr = 18,effPopSize = 100,quickHaplo = F,
-                segSites = 2000, nQTL = 150, nSNP = 300, genVar = 750,
-                gxeVar = NULL, gxyVar = 750, gxlVar = 375,gxyxlVar = 150,
-                meanDD = 0.23,varDD = 0.05,#relAA = 0.05,
-                stageToGenotype = "CET",
-                nParents = 100, nCrosses = 250, nProgeny = 10,nClonesToNCRP = 3,
-                phenoF1toStage1 = F,errVarPreStage1 = 500,
-                useCurrentPhenoTrain = F,
-                nCyclesToKeepRecords = 30,
-                # selCrits are overwritten by runBreedingScheme_wBurnIn
-                selCritPipeAdv = selCritIID, # thus have no actual effect
-                selCritPopImprov =  selCritIID)
-
-# bsp4<-specifyBSP(schemeDF = schemeDF,
-#                 nChr = 18,effPopSize = 100,quickHaplo = F,
-#                 segSites = 2000, nQTL = 150, nSNP = 300, genVar = 350,
-#                 gxeVar = NULL, gxyVar = 350, gxlVar = 125,gxyxlVar = 50,
-#                 meanDD = 0.23,varDD = 0.05,#relAA = 0.05,
-#                 stageToGenotype = "CET",
-#                 nParents = 100, nCrosses = 250, nProgeny = 10,nClonesToNCRP = 3,
-#                 phenoF1toStage1 = F,errVarPreStage1 = 500,
-#                 useCurrentPhenoTrain = F,
-#                 nCyclesToKeepRecords = 30,
-#                 # selCrits are overwritten by runBreedingScheme_wBurnIn
-#                 selCritPipeAdv = selCritIID, # thus have no actual effect
-#                 selCritPopImprov =  selCritIID)
-```
-```{r, eval=F}
-start<-proc.time()[3]
-burnInSims<-runBurnInSchemes(bsp = bsp,
-                             nBurnInCycles=20,
-                             selCritPop="selCritIID",
-                             selCritPipe="selCritIID",
-                             iniFunc="initializeScheme",
-                             productFunc="productPipeline",
-                             popImprovFunc="popImprov1Cyc",
-                             nReplications=20,ncores=20,
-                             nBLASthreads=1,nThreadsMacs2=1)
-end<-proc.time()[3]; print(paste0((end-start)/60," mins elapsed"))
-saveRDS(burnInSims,file = here::here("output","burnInSims_iita_2021Aug27.rds"))
-# [1] "163.0525 mins elapsed"
-
-start<-proc.time()[3]
-burnInSims<-runBurnInSchemes(bsp = bsp1,
-                             nBurnInCycles=20,
-                             selCritPop="selCritIID",
-                             selCritPipe="selCritIID",
-                             iniFunc="initializeScheme",
-                             productFunc="productPipeline",
-                             popImprovFunc="popImprov1Cyc",
-                             nReplications=20,ncores=20,
-                             nBLASthreads=1,nThreadsMacs2=1)
-saveRDS(burnInSims,file = here::here("output","burnInSims_bsp1_iita_2021Aug27.rds"))
-burnInSims<-runBurnInSchemes(bsp = bsp2,
-                             nBurnInCycles=20,
-                             selCritPop="selCritIID",
-                             selCritPipe="selCritIID",
-                             iniFunc="initializeScheme",
-                             productFunc="productPipeline",
-                             popImprovFunc="popImprov1Cyc",
-                             nReplications=20,ncores=20,
-                             nBLASthreads=1,nThreadsMacs2=1)
-saveRDS(burnInSims,file = here::here("output","burnInSims_bsp2_iita_2021Aug27.rds"))
-burnInSims<-runBurnInSchemes(bsp = bsp3,
-                             nBurnInCycles=20,
-                             selCritPop="selCritIID",
-                             selCritPipe="selCritIID",
-                             iniFunc="initializeScheme",
-                             productFunc="productPipeline",
-                             popImprovFunc="popImprov1Cyc",
-                             nReplications=20,ncores=20,
-                             nBLASthreads=1,nThreadsMacs2=1)
-saveRDS(burnInSims,file = here::here("output","burnInSims_bsp3_iita_2021Aug27.rds"))
-# burnInSims<-runBurnInSchemes(bsp = bsp4,
-#                              nBurnInCycles=20,
-#                              selCritPop="selCritIID",
-#                              selCritPipe="selCritIID",
-#                              iniFunc="initializeScheme",
-#                              productFunc="productPipeline",
-#                              popImprovFunc="popImprov1Cyc",
-#                              nReplications=20,ncores=20,
-#                              nBLASthreads=1,nThreadsMacs2=1)
-# saveRDS(burnInSims,file = here::here("output","burnInSims_bsp4_iita_2021Aug27.rds"))
-end<-proc.time()[3]; print(paste0((end-start)/60," mins elapsed"))
-
-```
-
-```{r}
-suppressMessages(library(AlphaSimHlpR))
-suppressMessages(library(tidyverse))
-suppressMessages(library(genomicMateSelectR))
-select <- dplyr::select
-
-forSimPlot<-tibble(bsp="0",Ne=1000,nQTL=1000, genVar=750) %>% 
-  bind_rows(tibble(bsp="1",Ne=200,nQTL=500, genVar=750)) %>%
-  bind_rows(tibble(bsp="2",Ne=200,nQTL=150, genVar=750)) %>%
-  bind_rows(tibble(bsp="3",Ne=100,nQTL=150, genVar=750)) %>%
-  #bind_rows(tibble(bsp="4",Ne=100,nQTL=150, genVar=350)) %>%
-  mutate(sims=paste0("burnInSims_bsp",bsp,"_iita_2021Aug27.rds"),
-         sims=ifelse(bsp=="0","burnInSims_iita_2021Aug27.rds",sims),
-         sims=map(sims,~readRDS(here::here("output",.))))
-forSimPlot %<>% 
-  mutate(sims=map(sims,function(sims){ 
-  sims %>% 
-      mutate(burnInSim=map(burnInSim,~.$records$stageOutputs)) })) %>% 
-  unnest(sims) %>% 
-  unnest(burnInSim) %>% 
-  filter(stage=="F1") %>% 
-  mutate(Year=year-max(year))
-gc()
-```
-
-```{r, fig.width=10}
-forSimPlot %<>% 
-  mutate(Pop=paste0("Ne",Ne,"_nQTL",nQTL))
-library(patchwork)
-meanGplot<-forSimPlot %>% 
-  group_by(Pop,Ne,nQTL,genVar,Year,year,stage) %>% 
-  summarize(meanGenMean=mean(genValMean),
-            seGenMean=sd(genValMean)/n()) %>% ungroup() %>% 
-  ggplot(.,aes(x=Year,group=Pop)) +
-  geom_ribbon(aes(ymin = meanGenMean - seGenMean, 
-                  ymax = meanGenMean + seGenMean,
-                  fill=Pop), 
-              alpha=0.75) + 
-  geom_line(aes(y = meanGenMean, color=Pop))
-sdGplot<-forSimPlot %>% 
-  group_by(Pop,Ne,nQTL,genVar,Year,year,stage) %>% 
-  summarize(meanGenSD=mean(genValSD),
-            seGenSD=sd(genValSD)/n()) %>% ungroup() %>% 
-  ggplot(.,aes(x=Year,group=Pop)) +
-  geom_ribbon(aes(ymin = meanGenSD - seGenSD, 
-                  ymax = meanGenSD + seGenSD,
-                  fill=Pop), 
-              alpha=0.75) + 
-  geom_line(aes(y = meanGenSD))
-(meanGplot | sdGplot) & theme_bw()
-```
-Should we just run those longer till they show any sign of slowing genetic gain?
 
 # Next steps
 
-1.  Complete burn-in simulations 
+1.  Complete full-scale burn-in simulations 
 
 2.  [Conduct a baseline post burn-in GS vs. Conv. simulation](baselineSim.html)
 
