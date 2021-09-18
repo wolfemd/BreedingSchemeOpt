@@ -4,7 +4,7 @@
 #' Runs potentially multiple replications and optionally in parallel.
 #'
 #' @param nReplications Integer number of replications of the specific breeding scheme to run
-#' @param ncores Integer, number of cores to optionally execute replicate simulations in parallel
+#' @param nSimCores Integer, number of cores to optionally execute replicate simulations in parallel
 #' @param bsp  A list of breeding scheme parameters.
 #' @param nBurnInCycles Integer number of cycles to as 'burn-in' using the \code{selCritPop} and \code{selCritPipe} settings.
 #' @param iniFunc string, Function to initialize the breeding program.
@@ -26,10 +26,10 @@ runBurnInSchemes<-function(bsp,
                            iniFunc="initializeScheme",
                            productFunc="productPipeline",
                            popImprovFunc="popImprov1Cyc",
-                           nReplications=1,ncores=1,
+                           nReplications=1,nSimCores=1,
                            nBLASthreads=NULL,nThreadsMacs2=NULL){
 
-  require(furrr); plan(multisession, workers = ncores)
+  require(furrr); plan(multisession, workers = nSimCores)
   options(future.globals.maxSize=+Inf); options(future.rng.onMisuse="ignore")
 
   simulations<-tibble(SimRep=1:nReplications) %>%
