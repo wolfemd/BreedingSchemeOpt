@@ -11,6 +11,8 @@ navbar:
       href: AlphaSimHlpR_firstSteps.html
     - text: Reducing error with new tools
       href: example-simulation-reducing-error-with-new-tools.html
+    - text: AlphaSimR Demo
+      href: AlphaSimR_demo.html
   - text: Simulations
     menu:
     - text: Burn-in simulations

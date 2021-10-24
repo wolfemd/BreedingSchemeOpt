@@ -1,0 +1,257 @@
+---
+title: "Demonstrate an entry level breeding simulation with AlphaSimR"
+author: "Marnin Wolfe"
+date: "2021-Oct-21"
+output: 
+  workflowr::wflow_html:
+    toc: true
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, 
+                      tidy='styler', 
+                      tidy.opts=list(strict=FALSE,width.cutoff=100), 
+                      highlight=TRUE)
+```
+
+First steps with `AlphaSimR` breeding scheme simulation. No "help" from `AlphaSimHlpR`.
+
+Example(s) below.
+
+See also:
+
+-   [AlphaSimR vignette](https://cran.r-project.org/web/packages/AlphaSimR/vignettes/intro.html)
+-   [Burn-in portion of the example inbred-line breeding scheme from EiB](https://gitlab.com/excellenceinbreeding/module2/breeding-program-assessment/-/blob/master/simulated-data/BURNIN.R)
+-   I found another [example, apparently by Jessica Rutkoski](https://rpubs.com/jrut/733909), which is a pretty simple intro
+
+In the EiB example, they _do_ in fact simulate checks and check plots and a multi-stage variety testing pipeline. 
+
+Below, I want to show how AlphaSimR works (as far as I can myself understand) and in a simple, bare bones way.
+
+You can build as much complexity on top of that into your simulation as you want if you understand how it stores and manipulates phenotypic, genotypic and related information. 
+
+# Basics
+```{r}
+library(AlphaSimR); suppressMessages(library(tidyverse))
+founderHap <- runMacs2(nInd=100, 
+                       nChr=2, segSites=100, 
+                       Ne=20)
+
+# New global simulation parameters from founder haplotypes
+SP <- SimParam$new(founderHap)
+SP$restrSegSites(minQtlPerChr=1, minSnpPerChr=10, overlap=FALSE)
+# Additive trait genetic architecture
+## the mean and variance correspond to the genetic mean and additive gen. var. 
+## of any founder population created from the `founderHap`
+SP$addTraitA(nQtlPerChr = 3, mean = 0, var = 1) 
+SP$setSexes("no") #all individuals are hermaphrodites
+SP$addSnpChip(nSnpPerChr = 10) # Observed SNPs per chromosome 
+# Next two seem probably useful, but are not required
+SP$setTrackPed(TRUE) #keeps pedigree information in slot SP@pedigree 
+SP$setTrackRec(TRUE) #keeps recomb. records of all individuals in slot of "SP"
+
+founders <- newPop(founderHap, simParam=SP)
+```
+
+At this point, we have a "population" or pop-object `founders`
+
+Contains 100 individuals, each created from the genome/haplotypes simulated by `runMacs2`.
+```{r}
+founders
+```
+```{r}
+str(founders,max.level = 2)
+```
+
+If you run e.g. `SP$setVarE()`, you can register a universal / default level of h2, H2 and error variance that will add 'default' phenotypic values into the `@pheno` slot of any pop-object you create (intial founders and subsequent progeny). 
+
+Doing that is convenient if you want to keep your simulation simple and not worry about simulating field trials. 
+
+However, we will often want more complexity. We want to simulate a series of variety testing trials / training population phenotyping trials. Those trials might take place across multiple years and locations. The years and locations may have different error-variance and replication number, both of which will impact the effective heritability, prediction/selection accuracy, etc. 
+
+You can set up a "field trial" using the `setPheno()` function. **Recommend examining the AlphaSimR manual's entry for `setPheno()`**. 
+
+
+Let's run a field trial on the founder population and then phenotypically select the best to make some crosses.
+
+
+```{r}
+# sim a narrow-sense h2 of 0.5 and 2 reps
+founders <- setPheno(pop = founders, h2 = 0.5, reps = 2)
+```
+
+This added a slot `founders@pheno`
+```{r}
+founders@pheno %>% str
+```
+Also added `founders@reps`. 
+
+```{r}
+founders@reps %>% str
+```
+
+**Important:** Using the `setPheno(reps = )` argument produces the equivalent of entry-means (aggregated phenotypes) in the `@pheno` slot. 
+
+It may be useful (crucial?) to store information on which individuals have been observed in which trials, with what replication number. For example, if you simulate many trials with varying design / connectivity, and want to aggregate those data to get BLUPs or GEBVS for selection, then replication numbers from individual trials would be appropriate as weights for each observation in the downstream analysis. 
+
+**Note:** You might just want to use `setPheno(onlyPheno=T)` to generate a matrix of phenotype values, instead of an actual **pop-class object** which takes considerably more memory.
+
+```{r}
+setPheno(pop = founders, h2 = 0.5, reps = 2, onlyPheno = T) %>% str
+```
+
+Or create your own convenient storage container for phenotypes and other outputs
+```{r}
+# Example
+tibble(ID=founders@id, 
+       pheno=founders@pheno, 
+       reps=founders@reps) %>% head
+```
+
+Now we've simulated an initial field trial on our founder population. 
+
+Let's make some selections and crosses.
+
+The selection criteria in our case is just `founders@pheno`. 
+
+`selectInd()` is a convenience / helper function.
+```{r}
+chosenParents<- selectInd(pop=founders, nInd=5, use = "pheno")
+chosenParents
+```
+Output is a **pop-class object** with the chosen individuals.
+
+```{r}
+chosenParents@id
+```
+
+Just to show, we can write our own code to choose the individuals.
+```{r}
+chosenParents<-tibble(id=founders@id, 
+       pheno=founders@pheno) %>% 
+  arrange(desc(pheno)) %>% 
+  slice(1:5)
+chosenParents
+```
+And manually subset the `founders` population.
+```{r}
+chosenParents<-founders[chosenParents$id]
+chosenParents
+```
+
+Now we can make crosses. There are several functions in `AlphaSimR` to set up crosses, from individual crosses, specific mating plans, even open-pollination. `randCross` is pretty convenient and does what it sounds like it does, randomly makes a specified number of progeny / crosses among a specified set of parents.
+
+```{r}
+offspringPop<-randCross(pop=chosenParents, nCrosses=10, nProgeny = 10)
+offspringPop
+```
+
+```{r}
+str(offspringPop,max.level = 2)
+```
+
+Now we have three **pop-class objects**, `founders`, `chosenParents` and `offspringPop`. 
+
+When we made the crosses, the pedigree at `SP$pedigree` was updated automatically, thus keeping records of the connection between `founders` and `offspringPop`. 
+
+```{r}
+SP$pedigree %>% str
+```
+
+Might not want / need to keep the `chosenParents` object since it's information is identical to the entries for those parents in the `founders` object. 
+
+This should emphasize how flexible things are. 
+
+We can proceed with separate objects for the founders and subsequent populations, OR combine them, like so:
+```{r}
+breedingPop<-c(founders,offspringPop)
+breedingPop
+```
+
+
+# Select and cross on a loop (recurrent selection)
+
+Put it on a loop now.
+
+```{r}
+rm(list=ls())
+
+# SET-UP FOUNDER POPULATION
+founderHap <- runMacs2(nInd=100, 
+                       nChr=2, segSites=100, 
+                       Ne=50)
+# New global simulation parameters from founder haplotypes
+SP <- SimParam$new(founderHap)
+SP$restrSegSites(minQtlPerChr=10, minSnpPerChr=10, overlap=FALSE)
+SP$addTraitA(nQtlPerChr = 10, mean = 0, var = 1) # Additive trait genetic architecture
+SP$setSexes("no") #all individuals are hermaphrodites
+SP$addSnpChip(nSnpPerChr = 10) # Observed SNPs per chromosome 
+SP$setTrackPed(TRUE) #keeps pedigree information in slot SP@pedigree 
+SP$setTrackRec(TRUE) #keeps recomb. records of all individuals in slot of "SP"
+
+# New founder pop
+founders <- newPop(founderHap, simParam=SP)
+# Initial founder phenotypes
+founders <- setPheno(pop = founders, h2 = 0.5, reps = 2)
+```
+
+
+```{r}
+# loop length / number of cycles of selection
+nCycles<-10
+
+# very simple container for each cycles sim output
+simOutput<-list(founders)
+cycle<-1
+for(cycle in 1:nCycles){
+  cat(paste0(" C",cycle))
+  # choose the best from last cycle
+  chosenParents<- selectInd(pop=simOutput[[cycle]], nInd=5, use = "pheno")
+  # make crosses 
+  offspringPop<-randCross(pop=chosenParents, 
+                          nCrosses=10, nProgeny = 10)
+  # phenotype  new offspring
+  offspringPop<-setPheno(pop = offspringPop, h2 = 0.5, reps = 2)
+  # add new offspring to simOutput list
+  simOutput[[cycle+1]]<-offspringPop
+}
+```
+
+Tidy up the simulation output. 
+
+Compute the mean and variance in the genetic value for each cycle / generation.
+
+Since it's a sim. I can use the `@gv` slot which corresponds to the true genetic value of each line.
+```{r}
+tidySimOutput<-tibble(Cycle=0:nCycles,
+       Sims=simOutput) %>% 
+  mutate(meanG=map_dbl(Sims,~mean(.@gv)),
+         varG=map_dbl(Sims,~var(.@gv)))
+tidySimOutput
+```
+```{r}
+library(patchwork)
+meanGplot<-ggplot(tidySimOutput,aes(x=Cycle,y=meanG)) + geom_point() + geom_line() 
+varGplot<-ggplot(tidySimOutput,aes(x=Cycle,y=varG)) + geom_point() + geom_line() 
+meanGplot | varGplot
+```
+
+
+# Extracting sim. SNP marker and QTL data
+
+(Some useful features).
+
+# Replicated sims on a tidy, parallel loop using `furrr`
+
+For now, see [this script](https://github.com/wolfemd/BreedingSchemeOpt/blob/master/code/runBurnInSchemes.R) which contains an example, but it might be over complicated / difficult to understand. 
+
+Recommend looking into `purrr` for better, tidier iteration and `furrr` or other options for parallel processing.
+
+
+# Plotting replicated sim output
+
+Lot's of ways to do this. Show how to plot meanG and varG over time, across multiple replications of a simulation scenario.
+
+The way I plot things [here](https://wolfemd.github.io/BreedingSchemeOpt/burnInSims.html#A_small_example) might be helpful as an example.
