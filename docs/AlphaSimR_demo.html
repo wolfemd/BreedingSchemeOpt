@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Marnin Wolfe" />
+
+
+<title>Demonstrate an entry level breeding simulation with AlphaSimR</title>
+
+<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/yeti.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/master/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    background-color: #232629;
+    color: #7a7c7d;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #7a7c7d;  padding-left: 4px; }
+div.sourceCode
+  { color: #cfcfc2; background-color: #232629; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span { color: #cfcfc2; } /* Normal */
+code span.al { color: #95da4c; background-color: #4d1f24; font-weight: bold; } /* Alert */
+code span.an { color: #3f8058; } /* Annotation */
+code span.at { color: #2980b9; } /* Attribute */
+code span.bn { color: #f67400; } /* BaseN */
+code span.bu { color: #7f8c8d; } /* BuiltIn */
+code span.cf { color: #fdbc4b; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #3daee9; } /* Char */
+code span.cn { color: #27aeae; font-weight: bold; } /* Constant */
+code span.co { color: #7a7c7d; } /* Comment */
+code span.cv { color: #7f8c8d; } /* CommentVar */
+code span.do { color: #a43340; } /* Documentation */
+code span.dt { color: #2980b9; } /* DataType */
+code span.dv { color: #f67400; } /* DecVal */
+code span.er { color: #da4453; text-decoration: underline; } /* Error */
+code span.ex { color: #0099ff; font-weight: bold; } /* Extension */
+code span.fl { color: #f67400; } /* Float */
+code span.fu { color: #8e44ad; } /* Function */
+code span.im { color: #27ae60; } /* Import */
+code span.in { color: #c45b00; } /* Information */
+code span.kw { color: #cfcfc2; font-weight: bold; } /* Keyword */
+code span.op { color: #cfcfc2; } /* Operator */
+code span.ot { color: #27ae60; } /* Other */
+code span.pp { color: #27ae60; } /* Preprocessor */
+code span.re { color: #2980b9; background-color: #153042; } /* RegionMarker */
+code span.sc { color: #3daee9; } /* SpecialChar */
+code span.ss { color: #da4453; } /* SpecialString */
+code span.st { color: #f44f4f; } /* String */
+code span.va { color: #27aeae; } /* Variable */
+code span.vs { color: #da4453; } /* VerbatimString */
+code span.wa { color: #da4453; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">BreedingSchemeOpt</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Vignettes
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="AlphaSimHlpR_firstSteps.html">AlphaSimHlpR first steps</a>
+    </li>
+    <li>
+      <a href="example-simulation-reducing-error-with-new-tools.html">Reducing error with new tools</a>
+    </li>
+    <li>
+      <a href="AlphaSimR_demo.html">AlphaSimR Demo</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Simulations
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="burnInSims.html">Burn-in simulations</a>
+    </li>
+    <li>
+      <a href="baselineSim.html">Baseline simulations</a>
+    </li>
+    <li>
+      <a href="genomicMateSelSims.html">Genomic mate selection simulations</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="resources.html">Resources</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Other
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="about.html">About</a>
+    </li>
+    <li>
+      <a href="license.html">License</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/wolfemd/BreedingSchemeOpt">
+    <span class="fa fa-github"></span>
+     
+    Source code
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Demonstrate an entry level breeding simulation with AlphaSimR</h1>
+<h4 class="author">Marnin Wolfe</h4>
+<h4 class="date">2021-Oct-21</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> </a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2021-10-24
+</p>
+<p>
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>BreedingSchemeOpt/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
+</p>
+<p>
+This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis was created with <a
+  href="https://github.com/jdblischak/workflowr">workflowr</a> (version 1.6.2). The <em>Checks</em> tab describes the reproducibility checks that were applied when the results were created. The <em>Past versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date </a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20210422code"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Seed:</strong> <code>set.seed(20210422)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20210422code" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20210422)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Session information:</strong> recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be confident that you successfully produced the results during this run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomwolfemdBreedingSchemeOpttreee0ca3451c18ab1071d7b335d3696169de0ea8097targetblanke0ca345a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/wolfemd/BreedingSchemeOpt/tree/e0ca3451c18ab1071d7b335d3696169de0ea8097" target="_blank">e0ca345</a> </a>
+</p>
+</div>
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomwolfemdBreedingSchemeOpttreee0ca3451c18ab1071d7b335d3696169de0ea8097targetblanke0ca345a" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version <a href="https://github.com/wolfemd/BreedingSchemeOpt/tree/e0ca3451c18ab1071d7b335d3696169de0ea8097" target="_blank">e0ca345</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+
+Untracked files:
+    Untracked:  analysis/archive/
+    Untracked:  code/runSchemesPostBurnIn_dev.R
+    Untracked:  code/scrap.R
+    Untracked:  data/baselineScheme.gsheet
+    Untracked:  output/Icon
+    Untracked:  output/benchmark_sim.rds
+    Untracked:  output/benchmark_sims5.rds
+    Untracked:  output/burnInSims_bsp1_iita_2021Aug27.rds
+    Untracked:  output/burnInSims_bsp2_iita_2021Aug27.rds
+    Untracked:  output/burnInSims_bsp3_iita_2021Aug27.rds
+    Untracked:  output/burnInSims_iita_2021Aug27.rds
+    Untracked:  output/burnIn_test.rds
+    Untracked:  output/postBurnInGMS_test_DirDom_UCparent.rds
+    Untracked:  output/postBurnInGMS_test_newBSP1.rds
+    Untracked:  output/postBurnInGMS_test_newBSP2.rds
+    Untracked:  output/postBurnInGMS_test_newBSP3.rds
+    Untracked:  output/postBurnInGMS_test_newBSP3_GS.rds
+    Untracked:  output/postBurnInGMS_test_newBSP3_PS.rds
+    Untracked:  output/postBurnInGS_test.rds
+    Untracked:  output/postBurnIn_test.rds
+    Untracked:  output/testSims_GMS_DirDom_MeanTGV_2021Sep18.rds
+    Untracked:  output/testSims_GMS_DirDom_MeanTGV_50parents_2021Sep18.rds
+    Untracked:  output/testSims_GMS_DirDom_UCvariety_2021Sep18.rds
+    Untracked:  output/testSims_GMS_ModelA_MeanBV_2021Sep15.rds
+    Untracked:  output/testSims_GMS_ModelA_MeanBV_2021Sep18.rds
+    Untracked:  output/testSims_GMS_ModelA_UCparent_propSelpt05_2021Sep18.rds
+    Untracked:  output/test_burnInSims_2021Sep17.rds
+    Untracked:  output/test_burnInSims_GS_2021Sep17.rds
+    Untracked:  output/test_burnInSims_GS_noAYT_2021Sep17.rds
+    Untracked:  output/test_burnInSims_PS_2021Sep17.rds
+    Untracked:  output/test_burnInSims_PS_noAYT_2021Sep17.rds
+    Untracked:  output/test_burnIn_sim.rds
+    Untracked:  output/test_inputs_for_mmer.Rdata
+
+Unstaged changes:
+    Modified:   analysis/AlphaSimHlpR_firstSteps.Rmd
+    Modified:   analysis/baselineSim.Rmd
+    Modified:   analysis/genomicMateSelSims.Rmd
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/AlphaSimR_demo.Rmd</code>) and HTML (<code>docs/AlphaSimR_demo.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/wolfemd/BreedingSchemeOpt/blob/e0ca3451c18ab1071d7b335d3696169de0ea8097/analysis/AlphaSimR_demo.Rmd" target="_blank">e0ca345</a>
+</td>
+<td>
+wolfemd
+</td>
+<td>
+2021-10-24
+</td>
+<td>
+Add a basic demo of AlphaSimR
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<p>First steps with <code>AlphaSimR</code> breeding scheme simulation. No “help” from <code>AlphaSimHlpR</code>.</p>
+<p>Example(s) below.</p>
+<p>See also:</p>
+<ul>
+<li><a href="https://cran.r-project.org/web/packages/AlphaSimR/vignettes/intro.html">AlphaSimR vignette</a></li>
+<li><a href="https://gitlab.com/excellenceinbreeding/module2/breeding-program-assessment/-/blob/master/simulated-data/BURNIN.R">Burn-in portion of the example inbred-line breeding scheme from EiB</a></li>
+<li>I found another <a href="https://rpubs.com/jrut/733909">example, apparently by Jessica Rutkoski</a>, which is a pretty simple intro</li>
+</ul>
+<p>In the EiB example, they <em>do</em> in fact simulate checks and check plots and a multi-stage variety testing pipeline.</p>
+<p>Below, I want to show how AlphaSimR works (as far as I can myself understand) and in a simple, bare bones way.</p>
+<p>You can build as much complexity on top of that into your simulation as you want if you understand how it stores and manipulates phenotypic, genotypic and related information.</p>
+<div id="basics" class="section level1">
+<h1>Basics</h1>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(AlphaSimR); <span class="fu">suppressMessages</span>(<span class="fu">library</span>(tidyverse))</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>founderHap <span class="ot">&lt;-</span> <span class="fu">runMacs2</span>(<span class="at">nInd=</span><span class="dv">100</span>, </span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                       <span class="at">nChr=</span><span class="dv">2</span>, <span class="at">segSites=</span><span class="dv">100</span>, </span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                       <span class="at">Ne=</span><span class="dv">20</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># New global simulation parameters from founder haplotypes</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>SP <span class="ot">&lt;-</span> SimParam<span class="sc">$</span><span class="fu">new</span>(founderHap)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>SP<span class="sc">$</span><span class="fu">restrSegSites</span>(<span class="at">minQtlPerChr=</span><span class="dv">1</span>, <span class="at">minSnpPerChr=</span><span class="dv">10</span>, <span class="at">overlap=</span><span class="cn">FALSE</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Additive trait genetic architecture</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="do">## the mean and variance correspond to the genetic mean and additive gen. var. </span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="do">## of any founder population created from the `founderHap`</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>SP<span class="sc">$</span><span class="fu">addTraitA</span>(<span class="at">nQtlPerChr =</span> <span class="dv">3</span>, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">var =</span> <span class="dv">1</span>) </span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>SP<span class="sc">$</span><span class="fu">setSexes</span>(<span class="st">&quot;no&quot;</span>) <span class="co">#all individuals are hermaphrodites</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>SP<span class="sc">$</span><span class="fu">addSnpChip</span>(<span class="at">nSnpPerChr =</span> <span class="dv">10</span>) <span class="co"># Observed SNPs per chromosome </span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Next two seem probably useful, but are not required</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>SP<span class="sc">$</span><span class="fu">setTrackPed</span>(<span class="cn">TRUE</span>) <span class="co">#keeps pedigree information in slot SP@pedigree </span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>SP<span class="sc">$</span><span class="fu">setTrackRec</span>(<span class="cn">TRUE</span>) <span class="co">#keeps recomb. records of all individuals in slot of &quot;SP&quot;</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>founders <span class="ot">&lt;-</span> <span class="fu">newPop</span>(founderHap, <span class="at">simParam=</span>SP)</span></code></pre></div>
+<p>At this point, we have a “population” or pop-object <code>founders</code></p>
+<p>Contains 100 individuals, each created from the genome/haplotypes simulated by <code>runMacs2</code>.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>founders</span></code></pre></div>
+<pre><code>An object of class &quot;Pop&quot; 
+Ploidy: 2 
+Individuals: 100 
+Chromosomes: 2 
+Loci: 200 
+Traits: 1 </code></pre>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(founders,<span class="at">max.level =</span> <span class="dv">2</span>)</span></code></pre></div>
+<pre><code>Formal class &#39;Pop&#39; [package &quot;AlphaSimR&quot;] with 18 slots
+  ..@ id     : chr [1:100] &quot;1&quot; &quot;2&quot; &quot;3&quot; &quot;4&quot; ...
+  ..@ iid    : int [1:100] 1 2 3 4 5 6 7 8 9 10 ...
+  ..@ mother : chr [1:100] &quot;0&quot; &quot;0&quot; &quot;0&quot; &quot;0&quot; ...
+  ..@ father : chr [1:100] &quot;0&quot; &quot;0&quot; &quot;0&quot; &quot;0&quot; ...
+  ..@ sex    : chr [1:100] &quot;H&quot; &quot;H&quot; &quot;H&quot; &quot;H&quot; ...
+  ..@ nTraits: int 1
+  ..@ gv     : num [1:100, 1] -1.766 -0.376 -0.376 -0.376 -0.376 ...
+  ..@ pheno  : num [1:100, 1] NA NA NA NA NA NA NA NA NA NA ...
+  ..@ ebv    : num[1:100, 0 ] 
+  ..@ gxe    :List of 1
+  ..@ fixEff : int [1:100] 1 1 1 1 1 1 1 1 1 1 ...
+  ..@ reps   : num [1:100] 1 1 1 1 1 1 1 1 1 1 ...
+  ..@ misc   :List of 100
+  ..@ nInd   : int 100
+  ..@ nChr   : int 2
+  ..@ ploidy : int 2
+  ..@ nLoci  : int [1:2] 100 100
+  ..@ geno   :List of 2
+  .. ..- attr(*, &quot;dim&quot;)= int [1:2] 2 1</code></pre>
+<p>If you run e.g. <code>SP$setVarE()</code>, you can register a universal / default level of h2, H2 and error variance that will add ‘default’ phenotypic values into the <code>@pheno</code> slot of any pop-object you create (intial founders and subsequent progeny).</p>
+<p>Doing that is convenient if you want to keep your simulation simple and not worry about simulating field trials.</p>
+<p>However, we will often want more complexity. We want to simulate a series of variety testing trials / training population phenotyping trials. Those trials might take place across multiple years and locations. The years and locations may have different error-variance and replication number, both of which will impact the effective heritability, prediction/selection accuracy, etc.</p>
+<p>You can set up a “field trial” using the <code>setPheno()</code> function. <strong>Recommend examining the AlphaSimR manual’s entry for <code>setPheno()</code></strong>.</p>
+<p>Let’s run a field trial on the founder population and then phenotypically select the best to make some crosses.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># sim a narrow-sense h2 of 0.5 and 2 reps</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>founders <span class="ot">&lt;-</span> <span class="fu">setPheno</span>(<span class="at">pop =</span> founders, <span class="at">h2 =</span> <span class="fl">0.5</span>, <span class="at">reps =</span> <span class="dv">2</span>)</span></code></pre></div>
+<p>This added a slot <code>founders@pheno</code></p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>founders<span class="sc">@</span>pheno <span class="sc">%&gt;%</span> str</span></code></pre></div>
+<pre><code> num [1:100, 1] -0.691 0.31 0.278 0.244 1.257 ...</code></pre>
+<p>Also added <code>founders@reps</code>.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>founders<span class="sc">@</span>reps <span class="sc">%&gt;%</span> str</span></code></pre></div>
+<pre><code> num [1:100] 2 2 2 2 2 2 2 2 2 2 ...</code></pre>
+<p><strong>Important:</strong> Using the <code>setPheno(reps = )</code> argument produces the equivalent of entry-means (aggregated phenotypes) in the <code>@pheno</code> slot.</p>
+<p>It may be useful (crucial?) to store information on which individuals have been observed in which trials, with what replication number. For example, if you simulate many trials with varying design / connectivity, and want to aggregate those data to get BLUPs or GEBVS for selection, then replication numbers from individual trials would be appropriate as weights for each observation in the downstream analysis.</p>
+<p><strong>Note:</strong> You might just want to use <code>setPheno(onlyPheno=T)</code> to generate a matrix of phenotype values, instead of an actual <strong>pop-class object</strong> which takes considerably more memory.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">setPheno</span>(<span class="at">pop =</span> founders, <span class="at">h2 =</span> <span class="fl">0.5</span>, <span class="at">reps =</span> <span class="dv">2</span>, <span class="at">onlyPheno =</span> T) <span class="sc">%&gt;%</span> str</span></code></pre></div>
+<pre><code> num [1:100, 1] -1.597 -0.435 0.72 -0.667 -1.434 ...</code></pre>
+<p>Or create your own convenient storage container for phenotypes and other outputs</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Example</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(<span class="at">ID=</span>founders<span class="sc">@</span>id, </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">pheno=</span>founders<span class="sc">@</span>pheno, </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">reps=</span>founders<span class="sc">@</span>reps) <span class="sc">%&gt;%</span> head</span></code></pre></div>
+<pre><code># A tibble: 6 × 3
+  ID    pheno[,1]  reps
+  &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt;
+1 1        -0.691     2
+2 2         0.310     2
+3 3         0.278     2
+4 4         0.244     2
+5 5         1.26      2
+6 6         0.817     2</code></pre>
+<p>Now we’ve simulated an initial field trial on our founder population.</p>
+<p>Let’s make some selections and crosses.</p>
+<p>The selection criteria in our case is just <code>founders@pheno</code>.</p>
+<p><code>selectInd()</code> is a convenience / helper function.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>chosenParents<span class="ot">&lt;-</span> <span class="fu">selectInd</span>(<span class="at">pop=</span>founders, <span class="at">nInd=</span><span class="dv">5</span>, <span class="at">use =</span> <span class="st">&quot;pheno&quot;</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>chosenParents</span></code></pre></div>
+<pre><code>An object of class &quot;Pop&quot; 
+Ploidy: 2 
+Individuals: 5 
+Chromosomes: 2 
+Loci: 200 
+Traits: 1 </code></pre>
+<p>Output is a <strong>pop-class object</strong> with the chosen individuals.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>chosenParents<span class="sc">@</span>id</span></code></pre></div>
+<pre><code>[1] &quot;66&quot;  &quot;100&quot; &quot;91&quot;  &quot;48&quot;  &quot;24&quot; </code></pre>
+<p>Just to show, we can write our own code to choose the individuals.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>chosenParents<span class="ot">&lt;-</span><span class="fu">tibble</span>(<span class="at">id=</span>founders<span class="sc">@</span>id, </span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">pheno=</span>founders<span class="sc">@</span>pheno) <span class="sc">%&gt;%</span> </span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(pheno)) <span class="sc">%&gt;%</span> </span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>chosenParents</span></code></pre></div>
+<pre><code># A tibble: 5 × 2
+  id    pheno[,1]
+  &lt;chr&gt;     &lt;dbl&gt;
+1 66         2.54
+2 100        2.09
+3 91         1.98
+4 48         1.88
+5 24         1.83</code></pre>
+<p>And manually subset the <code>founders</code> population.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>chosenParents<span class="ot">&lt;-</span>founders[chosenParents<span class="sc">$</span>id]</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>chosenParents</span></code></pre></div>
+<pre><code>An object of class &quot;Pop&quot; 
+Ploidy: 2 
+Individuals: 5 
+Chromosomes: 2 
+Loci: 200 
+Traits: 1 </code></pre>
+<p>Now we can make crosses. There are several functions in <code>AlphaSimR</code> to set up crosses, from individual crosses, specific mating plans, even open-pollination. <code>randCross</code> is pretty convenient and does what it sounds like it does, randomly makes a specified number of progeny / crosses among a specified set of parents.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>offspringPop<span class="ot">&lt;-</span><span class="fu">randCross</span>(<span class="at">pop=</span>chosenParents, <span class="at">nCrosses=</span><span class="dv">10</span>, <span class="at">nProgeny =</span> <span class="dv">10</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>offspringPop</span></code></pre></div>
+<pre><code>An object of class &quot;Pop&quot; 
+Ploidy: 2 
+Individuals: 100 
+Chromosomes: 2 
+Loci: 200 
+Traits: 1 </code></pre>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(offspringPop,<span class="at">max.level =</span> <span class="dv">2</span>)</span></code></pre></div>
+<pre><code>Formal class &#39;Pop&#39; [package &quot;AlphaSimR&quot;] with 18 slots
+  ..@ id     : chr [1:100] &quot;101&quot; &quot;102&quot; &quot;103&quot; &quot;104&quot; ...
+  ..@ iid    : int [1:100] 101 102 103 104 105 106 107 108 109 110 ...
+  ..@ mother : chr [1:100] &quot;66&quot; &quot;66&quot; &quot;66&quot; &quot;66&quot; ...
+  ..@ father : chr [1:100] &quot;100&quot; &quot;100&quot; &quot;100&quot; &quot;100&quot; ...
+  ..@ sex    : chr [1:100] &quot;H&quot; &quot;H&quot; &quot;H&quot; &quot;H&quot; ...
+  ..@ nTraits: int 1
+  ..@ gv     : num [1:100, 1] 1.278 0.792 2.946 1.278 1.278 ...
+  ..@ pheno  : num [1:100, 1] NA NA NA NA NA NA NA NA NA NA ...
+  ..@ ebv    : num[1:100, 0 ] 
+  ..@ gxe    :List of 1
+  ..@ fixEff : int [1:100] 1 1 1 1 1 1 1 1 1 1 ...
+  ..@ reps   : num [1:100] 1 1 1 1 1 1 1 1 1 1 ...
+  ..@ misc   :List of 100
+  ..@ nInd   : int 100
+  ..@ nChr   : int 2
+  ..@ ploidy : int 2
+  ..@ nLoci  : int [1:2] 100 100
+  ..@ geno   :List of 2
+  .. ..- attr(*, &quot;dim&quot;)= int [1:2] 2 1</code></pre>
+<p>Now we have three <strong>pop-class objects</strong>, <code>founders</code>, <code>chosenParents</code> and <code>offspringPop</code>.</p>
+<p>When we made the crosses, the pedigree at <code>SP$pedigree</code> was updated automatically, thus keeping records of the connection between <code>founders</code> and <code>offspringPop</code>.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>SP<span class="sc">$</span>pedigree <span class="sc">%&gt;%</span> str</span></code></pre></div>
+<pre><code> int [1:200, 1:3] 0 0 0 0 0 0 0 0 0 0 ...
+ - attr(*, &quot;dimnames&quot;)=List of 2
+  ..$ : chr [1:200] &quot;1&quot; &quot;2&quot; &quot;3&quot; &quot;4&quot; ...
+  ..$ : chr [1:3] &quot;mother&quot; &quot;father&quot; &quot;isDH&quot;</code></pre>
+<p>Might not want / need to keep the <code>chosenParents</code> object since it’s information is identical to the entries for those parents in the <code>founders</code> object.</p>
+<p>This should emphasize how flexible things are.</p>
+<p>We can proceed with separate objects for the founders and subsequent populations, OR combine them, like so:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>breedingPop<span class="ot">&lt;-</span><span class="fu">c</span>(founders,offspringPop)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>breedingPop</span></code></pre></div>
+<pre><code>An object of class &quot;Pop&quot; 
+Ploidy: 2 
+Individuals: 200 
+Chromosomes: 2 
+Loci: 200 
+Traits: 1 </code></pre>
+</div>
+<div id="select-and-cross-on-a-loop-recurrent-selection" class="section level1">
+<h1>Select and cross on a loop (recurrent selection)</h1>
+<p>Put it on a loop now.</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list=</span><span class="fu">ls</span>())</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="co"># SET-UP FOUNDER POPULATION</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>founderHap <span class="ot">&lt;-</span> <span class="fu">runMacs2</span>(<span class="at">nInd=</span><span class="dv">100</span>, </span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>                       <span class="at">nChr=</span><span class="dv">2</span>, <span class="at">segSites=</span><span class="dv">100</span>, </span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>                       <span class="at">Ne=</span><span class="dv">50</span>)</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a><span class="co"># New global simulation parameters from founder haplotypes</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>SP <span class="ot">&lt;-</span> SimParam<span class="sc">$</span><span class="fu">new</span>(founderHap)</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>SP<span class="sc">$</span><span class="fu">restrSegSites</span>(<span class="at">minQtlPerChr=</span><span class="dv">10</span>, <span class="at">minSnpPerChr=</span><span class="dv">10</span>, <span class="at">overlap=</span><span class="cn">FALSE</span>)</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>SP<span class="sc">$</span><span class="fu">addTraitA</span>(<span class="at">nQtlPerChr =</span> <span class="dv">10</span>, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">var =</span> <span class="dv">1</span>) <span class="co"># Additive trait genetic architecture</span></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>SP<span class="sc">$</span><span class="fu">setSexes</span>(<span class="st">&quot;no&quot;</span>) <span class="co">#all individuals are hermaphrodites</span></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>SP<span class="sc">$</span><span class="fu">addSnpChip</span>(<span class="at">nSnpPerChr =</span> <span class="dv">10</span>) <span class="co"># Observed SNPs per chromosome </span></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>SP<span class="sc">$</span><span class="fu">setTrackPed</span>(<span class="cn">TRUE</span>) <span class="co">#keeps pedigree information in slot SP@pedigree </span></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>SP<span class="sc">$</span><span class="fu">setTrackRec</span>(<span class="cn">TRUE</span>) <span class="co">#keeps recomb. records of all individuals in slot of &quot;SP&quot;</span></span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a><span class="co"># New founder pop</span></span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>founders <span class="ot">&lt;-</span> <span class="fu">newPop</span>(founderHap, <span class="at">simParam=</span>SP)</span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Initial founder phenotypes</span></span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>founders <span class="ot">&lt;-</span> <span class="fu">setPheno</span>(<span class="at">pop =</span> founders, <span class="at">h2 =</span> <span class="fl">0.5</span>, <span class="at">reps =</span> <span class="dv">2</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># loop length / number of cycles of selection</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>nCycles<span class="ot">&lt;-</span><span class="dv">10</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="co"># very simple container for each cycles sim output</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>simOutput<span class="ot">&lt;-</span><span class="fu">list</span>(founders)</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>cycle<span class="ot">&lt;-</span><span class="dv">1</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(cycle <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nCycles){</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">paste0</span>(<span class="st">&quot; C&quot;</span>,cycle))</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># choose the best from last cycle</span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>  chosenParents<span class="ot">&lt;-</span> <span class="fu">selectInd</span>(<span class="at">pop=</span>simOutput[[cycle]], <span class="at">nInd=</span><span class="dv">5</span>, <span class="at">use =</span> <span class="st">&quot;pheno&quot;</span>)</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># make crosses </span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>  offspringPop<span class="ot">&lt;-</span><span class="fu">randCross</span>(<span class="at">pop=</span>chosenParents, </span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>                          <span class="at">nCrosses=</span><span class="dv">10</span>, <span class="at">nProgeny =</span> <span class="dv">10</span>)</span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># phenotype  new offspring</span></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>  offspringPop<span class="ot">&lt;-</span><span class="fu">setPheno</span>(<span class="at">pop =</span> offspringPop, <span class="at">h2 =</span> <span class="fl">0.5</span>, <span class="at">reps =</span> <span class="dv">2</span>)</span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># add new offspring to simOutput list</span></span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>  simOutput[[cycle<span class="sc">+</span><span class="dv">1</span>]]<span class="ot">&lt;-</span>offspringPop</span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<pre><code> C1 C2 C3 C4 C5 C6 C7 C8 C9 C10</code></pre>
+<p>Tidy up the simulation output.</p>
+<p>Compute the mean and variance in the genetic value for each cycle / generation.</p>
+<p>Since it’s a sim. I can use the <code>@gv</code> slot which corresponds to the true genetic value of each line.</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>tidySimOutput<span class="ot">&lt;-</span><span class="fu">tibble</span>(<span class="at">Cycle=</span><span class="dv">0</span><span class="sc">:</span>nCycles,</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">Sims=</span>simOutput) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">meanG=</span><span class="fu">map_dbl</span>(Sims,<span class="sc">~</span><span class="fu">mean</span>(.<span class="sc">@</span>gv)),</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">varG=</span><span class="fu">map_dbl</span>(Sims,<span class="sc">~</span><span class="fu">var</span>(.<span class="sc">@</span>gv)))</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>tidySimOutput</span></code></pre></div>
+<pre><code># A tibble: 11 × 4
+   Cycle Sims      meanG   varG
+   &lt;int&gt; &lt;list&gt;    &lt;dbl&gt;  &lt;dbl&gt;
+ 1     0 &lt;Pop&gt;  1.50e-16 1.01  
+ 2     1 &lt;Pop&gt;  1.36e+ 0 0.467 
+ 3     2 &lt;Pop&gt;  2.30e+ 0 0.891 
+ 4     3 &lt;Pop&gt;  3.55e+ 0 0.328 
+ 5     4 &lt;Pop&gt;  4.38e+ 0 0.383 
+ 6     5 &lt;Pop&gt;  5.00e+ 0 0.301 
+ 7     6 &lt;Pop&gt;  6.00e+ 0 0.0913
+ 8     7 &lt;Pop&gt;  6.22e+ 0 0.0251
+ 9     8 &lt;Pop&gt;  6.32e+ 0 0.0176
+10     9 &lt;Pop&gt;  6.37e+ 0 0.0139
+11    10 &lt;Pop&gt;  6.46e+ 0 0.0111</code></pre>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>meanGplot<span class="ot">&lt;-</span><span class="fu">ggplot</span>(tidySimOutput,<span class="fu">aes</span>(<span class="at">x=</span>Cycle,<span class="at">y=</span>meanG)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">geom_line</span>() </span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>varGplot<span class="ot">&lt;-</span><span class="fu">ggplot</span>(tidySimOutput,<span class="fu">aes</span>(<span class="at">x=</span>Cycle,<span class="at">y=</span>varG)) <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span> <span class="fu">geom_line</span>() </span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>meanGplot <span class="sc">|</span> varGplot</span></code></pre></div>
+<p><img src="figure/AlphaSimR_demo.Rmd/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="extracting-sim.-snp-marker-and-qtl-data" class="section level1">
+<h1>Extracting sim. SNP marker and QTL data</h1>
+<p>(Some useful features).</p>
+</div>
+<div id="replicated-sims-on-a-tidy-parallel-loop-using-furrr" class="section level1">
+<h1>Replicated sims on a tidy, parallel loop using <code>furrr</code></h1>
+<p>For now, see <a href="https://github.com/wolfemd/BreedingSchemeOpt/blob/master/code/runBurnInSchemes.R">this script</a> which contains an example, but it might be over complicated / difficult to understand.</p>
+<p>Recommend looking into <code>purrr</code> for better, tidier iteration and <code>furrr</code> or other options for parallel processing.</p>
+</div>
+<div id="plotting-replicated-sim-output" class="section level1">
+<h1>Plotting replicated sim output</h1>
+<p>Lot’s of ways to do this. Show how to plot meanG and varG over time, across multiple replications of a simulation scenario.</p>
+<p>The way I plot things <a href="https://wolfemd.github.io/BreedingSchemeOpt/burnInSims.html#A_small_example">here</a> might be helpful as an example.</p>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
+<pre><code>R version 4.1.1 (2021-08-10)
+Platform: x86_64-apple-darwin17.0 (64-bit)
+Running under: macOS Big Sur 10.16
+
+Matrix products: default
+BLAS:   /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/4.1/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] patchwork_1.1.1 forcats_0.5.1   stringr_1.4.0   dplyr_1.0.7    
+ [5] purrr_0.3.4     readr_2.0.1     tidyr_1.1.3     tibble_3.1.4   
+ [9] ggplot2_3.3.5   tidyverse_1.3.1 AlphaSimR_1.0.4 R6_2.5.1       
+[13] workflowr_1.6.2
+
+loaded via a namespace (and not attached):
+ [1] Rcpp_1.0.7       lubridate_1.7.10 assertthat_0.2.1 rprojroot_2.0.2 
+ [5] digest_0.6.27    utf8_1.2.2       cellranger_1.1.0 backports_1.2.1 
+ [9] reprex_2.0.1     evaluate_0.14    highr_0.9        httr_1.4.2      
+[13] pillar_1.6.2     rlang_0.4.11     readxl_1.3.1     rstudioapi_0.13 
+[17] whisker_0.4      jquerylib_0.1.4  rmarkdown_2.11   labeling_0.4.2  
+[21] munsell_0.5.0    broom_0.7.9      compiler_4.1.1   httpuv_1.6.3    
+[25] modelr_0.1.8     xfun_0.26        pkgconfig_2.0.3  htmltools_0.5.2 
+[29] tidyselect_1.1.1 fansi_0.5.0      crayon_1.4.1     tzdb_0.1.2      
+[33] dbplyr_2.1.1     withr_2.4.2      later_1.3.0      grid_4.1.1      
+[37] jsonlite_1.7.2   gtable_0.3.0     lifecycle_1.0.0  DBI_1.1.1       
+[41] git2r_0.28.0     magrittr_2.0.1   scales_1.1.1     cli_3.0.1       
+[45] stringi_1.7.4    farver_2.1.0     fs_1.5.0         promises_1.2.0.1
+[49] xml2_1.3.2       bslib_0.3.0      ellipsis_0.3.2   generics_0.1.0  
+[53] vctrs_0.3.8      tools_4.1.1      glue_1.4.2       hms_1.1.0       
+[57] fastmap_1.1.0    yaml_2.2.1       colorspace_2.0-2 rvest_1.0.1     
+[61] knitr_1.34       haven_2.4.3      sass_0.4.0      </code></pre>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
